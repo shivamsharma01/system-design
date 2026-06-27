@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 360" font-family="Inter, system-ui, sans-serif" role="img" aria-label="Netflix playback path diagram">
+  <rect width="880" height="360" fill="#0d0d0d" rx="12"/>
+  <text x="440" y="36" fill="#ffffff" font-size="20" font-weight="700" text-anchor="middle">Netflix Playback Path</text>
+
+  <!-- Device -->
+  <g>
+    <rect x="40" y="120" width="150" height="90" rx="10" fill="#1f1f24" stroke="#e50914" stroke-width="2"/>
+    <text x="115" y="160" fill="#fff" font-size="15" font-weight="600" text-anchor="middle">Client Device</text>
+    <text x="115" y="182" fill="#9aa0a6" font-size="12" text-anchor="middle">TV / Mobile / Web</text>
+  </g>
+
+  <!-- Control plane (AWS) -->
+  <g>
+    <rect x="260" y="60" width="200" height="100" rx="10" fill="#11203a" stroke="#2563eb" stroke-width="2"/>
+    <text x="360" y="96" fill="#fff" font-size="15" font-weight="600" text-anchor="middle">Control Plane (AWS)</text>
+    <text x="360" y="118" fill="#9aa0a6" font-size="12" text-anchor="middle">Auth, Steering,</text>
+    <text x="360" y="136" fill="#9aa0a6" font-size="12" text-anchor="middle">Manifests, Billing</text>
+  </g>
+
+  <!-- Open Connect -->
+  <g>
+    <rect x="260" y="200" width="200" height="100" rx="10" fill="#0f291b" stroke="#22c55e" stroke-width="2"/>
+    <text x="360" y="236" fill="#fff" font-size="15" font-weight="600" text-anchor="middle">Open Connect CDN</text>
+    <text x="360" y="258" fill="#9aa0a6" font-size="12" text-anchor="middle">OCAs at ISPs / IXPs</text>
+    <text x="360" y="276" fill="#9aa0a6" font-size="12" text-anchor="middle">Pre-positioned video</text>
+  </g>
+
+  <!-- Origin / pipeline -->
+  <g>
+    <rect x="560" y="200" width="200" height="100" rx="10" fill="#1f1f24" stroke="#a855f7" stroke-width="2"/>
+    <text x="660" y="236" fill="#fff" font-size="15" font-weight="600" text-anchor="middle">Encoding Pipeline</text>
+    <text x="660" y="258" fill="#9aa0a6" font-size="12" text-anchor="middle">Transcode + per-title</text>
+    <text x="660" y="276" fill="#9aa0a6" font-size="12" text-anchor="middle">ABR ladders</text>
+  </g>
+
+  <!-- Arrows -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#9aa0a6"/>
+    </marker>
+  </defs>
+  <line x1="190" y1="150" x2="258" y2="110" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="208" y="120" fill="#9aa0a6" font-size="11">1. steer</text>
+  <line x1="190" y1="180" x2="258" y2="250" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="200" y="225" fill="#9aa0a6" font-size="11">2. stream</text>
+  <line x1="760" y1="250" x2="462" y2="250" stroke="#a855f7" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="540" y="240" fill="#9aa0a6" font-size="11">fill</text>
+</svg>

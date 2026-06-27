@@ -1,0 +1,28 @@
+<app-header (toggleSidebar)="toggleSidebar()" />
+
+<div class="shell" [class.has-toc]="toc.entries().length > 0">
+  <aside class="shell__sidebar" [class.open]="sidebarOpen()">
+    <app-sidebar />
+  </aside>
+
+  @if (sidebarOpen()) {
+    <div class="shell__backdrop" (click)="closeSidebar()" aria-hidden="true"></div>
+  }
+
+  <main id="main-content" class="shell__main" tabindex="-1">
+    <div class="shell__content">
+      <router-outlet />
+    </div>
+  </main>
+
+  @if (toc.entries().length > 0) {
+    <aside class="shell__toc">
+      <div class="shell__toc-inner">
+        <app-table-of-contents />
+      </div>
+    </aside>
+  }
+</div>
+
+<app-footer />
+<app-scroll-to-top />

@@ -1,0 +1,63 @@
+<figure class="code-block" [class.wrapped]="isWrapped()">
+  <figcaption class="code-block__header">
+    <div class="code-block__file">
+      @if (filename(); as name) {
+        <app-icon name="code" [size]="15" />
+        <span class="code-block__filename">{{ name }}</span>
+      } @else {
+        <span class="code-block__lang-label">{{ languageLabel() }}</span>
+      }
+    </div>
+
+    <div class="code-block__actions">
+      @if (filename()) {
+        <span class="code-block__lang-pill">{{ languageLabel() }}</span>
+      }
+
+      <button
+        type="button"
+        class="code-block__btn"
+        [class.active]="isWrapped()"
+        (click)="toggleWrap()"
+        [attr.aria-pressed]="isWrapped()"
+        title="Toggle word wrap"
+      >
+        <app-icon name="wrap" [size]="15" />
+      </button>
+
+      @if (collapsible()) {
+        <button
+          type="button"
+          class="code-block__btn"
+          (click)="toggleCollapsed()"
+          [attr.aria-expanded]="!isCollapsed()"
+          title="Toggle code"
+        >
+          <app-icon [name]="isCollapsed() ? 'chevron-down' : 'chevron-up'" [size]="15" />
+        </button>
+      }
+
+      <button
+        type="button"
+        class="code-block__btn code-block__copy"
+        #copyBtn="appCopyToClipboard"
+        [appCopyToClipboard]="code()"
+        [title]="copyBtn.copied() ? 'Copied!' : 'Copy code'"
+      >
+        <app-icon [name]="copyBtn.copied() ? 'check' : 'copy'" [size]="15" />
+        <span class="code-block__copy-label">{{ copyBtn.copied() ? 'Copied' : 'Copy' }}</span>
+      </button>
+    </div>
+  </figcaption>
+
+  @if (!isCollapsed()) {
+    <div class="code-block__body">
+      <pre
+        class="code-block__pre"
+      ><code class="hljs">@for (line of lines(); track line.number) {<span
+            class="code-block__line"
+            [class.is-highlighted]="line.highlighted"
+          >@if (showLineNumbers()) {<span class="code-block__ln" aria-hidden="true">{{ line.number }}</span>}<span class="code-block__code" [innerHTML]="line.html"></span></span>}</code></pre>
+    </div>
+  }
+</figure>

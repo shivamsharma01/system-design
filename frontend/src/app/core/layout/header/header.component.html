@@ -1,0 +1,37 @@
+<header class="header">
+  <div class="header__inner">
+    <div class="header__left">
+      <button
+        type="button"
+        class="header__menu"
+        (click)="toggleSidebar.emit()"
+        aria-label="Toggle navigation"
+      >
+        <app-icon name="menu" [size]="20" />
+      </button>
+
+      <a class="logo" routerLink="/" aria-label="Home">
+        <span class="logo__mark"><app-icon name="layers" [size]="18" /></span>
+        <span class="logo__text"> SystemDesign<span class="logo__dot">.dev</span> </span>
+      </a>
+    </div>
+
+    <div class="header__search">
+      <app-search-bar />
+    </div>
+
+    <div class="header__actions">
+      <a
+        class="header__link"
+        [href]="config.githubRepoUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="GitHub repository"
+      >
+        <app-icon name="github" [size]="18" />
+        <span class="header__link-text">GitHub</span>
+      </a>
+      <app-theme-switcher />
+    </div>
+  </div>
+</header>

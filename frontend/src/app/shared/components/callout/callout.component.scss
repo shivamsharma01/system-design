@@ -1,0 +1,60 @@
+.callout {
+  display: flex;
+  gap: var(--space-3);
+  margin: var(--space-6) 0;
+  padding: var(--space-4);
+  border: 1px solid var(--accent);
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+
+  --accent: var(--color-info);
+  --bg: var(--color-info-bg);
+}
+
+.callout__icon {
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.callout__content {
+  min-width: 0;
+}
+
+.callout__title {
+  margin: 0 0 var(--space-1);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.callout__body {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.callout--note {
+  --accent: var(--color-text-subtle);
+  --bg: var(--color-surface-sunken);
+}
+.callout--info {
+  --accent: var(--color-info);
+  --bg: var(--color-info-bg);
+}
+.callout--tip {
+  --accent: var(--color-tip);
+  --bg: var(--color-tip-bg);
+}
+.callout--warning {
+  --accent: var(--color-warning);
+  --bg: var(--color-warning-bg);
+}
+.callout--danger {
+  --accent: var(--color-danger);
+  --bg: var(--color-danger-bg);
+}
+.callout--summary {
+  --accent: var(--color-success);
+  --bg: var(--color-success-bg);
+}

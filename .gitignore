@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+out-tsc/
+.angular/
+backend/target/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editors / OS
+.idea/
+.DS_Store
+*.iml
+
+# Env
+.env
+.env.local
+
+# Playwright
+test-results/
+playwright-report/

@@ -1,0 +1,29 @@
+<app-reading-progress />
+
+@if (loading()) {
+  <div class="design-loading">
+    <div class="spinner" aria-hidden="true"></div>
+    <p>Loading design…</p>
+  </div>
+} @else if (content(); as design) {
+  <article class="design" appScrollSpy [appScrollSpy]="design">
+    <app-breadcrumb [crumbs]="crumbs()" />
+
+    <app-hero-banner [meta]="design.meta" />
+
+    <div class="design__sections">
+      @for (section of design.sections; track section.id) {
+        <section [id]="section.id" data-toc-section class="design__section">
+          <app-section-header [title]="section.title" [anchor]="section.id" />
+          <app-content-renderer [blocks]="section.blocks" />
+        </section>
+      }
+    </div>
+
+    <app-prev-next-nav [previous]="neighbors().previous" [next]="neighbors().next" />
+  </article>
+} @else {
+  <div class="design-loading">
+    <p>This design could not be found.</p>
+  </div>
+}

@@ -1,0 +1,45 @@
+<div class="search">
+  <div class="search__field">
+    <app-icon name="search" [size]="17" />
+    <input
+      #searchInput
+      type="text"
+      class="search__input"
+      placeholder="Search designs…"
+      autocomplete="off"
+      spellcheck="false"
+      aria-label="Search system designs"
+      [value]="query()"
+      (input)="onInput($any($event.target).value)"
+      (focus)="onFocus()"
+    />
+    <kbd class="search__kbd">⌘K</kbd>
+  </div>
+
+  @if (open() && query()) {
+    <div class="search__results" role="listbox">
+      @if (results().length) {
+        @for (result of results(); track result.meta.slug; let i = $index) {
+          <button
+            type="button"
+            class="search__result"
+            role="option"
+            [attr.aria-selected]="i === activeIndex()"
+            [class.active]="i === activeIndex()"
+            (click)="select(result.meta.slug)"
+            (mouseenter)="activeIndex.set(i)"
+          >
+            <span class="search__result-icon">{{ result.meta.icon || '#' }}</span>
+            <span class="search__result-text">
+              <span class="search__result-title">{{ result.meta.title }}</span>
+              <span class="search__result-tagline">{{ result.meta.tagline }}</span>
+            </span>
+            <app-difficulty-badge [difficulty]="result.meta.difficulty" />
+          </button>
+        }
+      } @else {
+        <p class="search__empty">No designs match “{{ query() }}”.</p>
+      }
+    </div>
+  }
+</div>

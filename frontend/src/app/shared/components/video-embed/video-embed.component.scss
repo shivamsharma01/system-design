@@ -1,0 +1,21 @@
+.video {
+  margin: var(--space-6) 0;
+
+  video,
+  iframe {
+    width: 100%;
+    aspect-ratio: inherit;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: #000;
+    display: block;
+  }
+
+  figcaption {
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--color-text-subtle);
+    font-style: italic;
+    text-align: center;
+  }
+}

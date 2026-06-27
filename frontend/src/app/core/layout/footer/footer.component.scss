@@ -1,0 +1,66 @@
+@use 'mixins' as mix;
+
+.footer {
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-10) var(--space-5) var(--space-6);
+  background: var(--color-bg-subtle);
+}
+
+.footer__inner {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-6);
+  max-width: var(--layout-max-width);
+  margin: 0 auto;
+
+  @include mix.below(mix.$bp-md) {
+    flex-direction: column;
+  }
+}
+
+.footer__title {
+  margin: 0;
+  font-weight: 800;
+  font-size: var(--text-lg);
+
+  span {
+    color: var(--color-brand);
+  }
+}
+
+.footer__tagline {
+  margin: var(--space-2) 0 0;
+  max-width: 360px;
+  color: var(--color-text-subtle);
+  font-size: var(--text-sm);
+}
+
+.footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  align-items: flex-start;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--color-text);
+    }
+  }
+}
+
+.footer__copy {
+  max-width: var(--layout-max-width);
+  margin: var(--space-8) auto 0;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}

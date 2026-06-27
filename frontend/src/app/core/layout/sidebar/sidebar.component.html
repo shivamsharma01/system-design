@@ -1,0 +1,54 @@
+<nav class="sidebar" aria-label="Designs navigation">
+  <a
+    class="sidebar__home"
+    routerLink="/"
+    routerLinkActive="active"
+    [routerLinkActiveOptions]="{ exact: true }"
+  >
+    <app-icon name="book" [size]="16" /> All designs
+  </a>
+
+  <div class="sidebar__group">
+    <p class="sidebar__heading"><app-icon name="star" [size]="13" /> Popular</p>
+    <ul class="sidebar__list">
+      @for (design of popular; track design.slug) {
+        <li>
+          <a [routerLink]="['/designs', design.slug]" routerLinkActive="active">
+            {{ design.title }}
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
+
+  <div class="sidebar__group">
+    <p class="sidebar__heading"><app-icon name="calendar" [size]="13" /> Recently added</p>
+    <ul class="sidebar__list">
+      @for (design of recent; track design.slug) {
+        <li>
+          <a [routerLink]="['/designs', design.slug]" routerLinkActive="active">
+            {{ design.title }}
+          </a>
+        </li>
+      }
+    </ul>
+  </div>
+
+  @for (group of groups; track group.category) {
+    <div class="sidebar__group">
+      <p class="sidebar__heading">{{ group.category }}</p>
+      <ul class="sidebar__list">
+        @for (design of group.designs; track design.slug) {
+          <li>
+            <a [routerLink]="['/designs', design.slug]" routerLinkActive="active">
+              {{ design.title }}
+              @if (design.status === 'draft') {
+                <span class="sidebar__draft">draft</span>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</nav>

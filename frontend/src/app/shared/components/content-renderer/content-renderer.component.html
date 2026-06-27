@@ -1,0 +1,170 @@
+@for (block of blocks(); track $index) {
+  @switch (block.type) {
+    @case ('markdown') {
+      <app-markdown [value]="asMarkdown(block).value" />
+    }
+
+    @case ('heading') {
+      @if (asHeading(block).level === 3) {
+        <h3 class="content-heading">{{ asHeading(block).text }}</h3>
+      } @else {
+        <h4 class="content-heading">{{ asHeading(block).text }}</h4>
+      }
+    }
+
+    @case ('code') {
+      <app-code-block
+        [code]="asCode(block).code"
+        [language]="asCode(block).language"
+        [filename]="asCode(block).filename"
+        [highlightLines]="asCode(block).highlightLines || []"
+        [showLineNumbers]="asCode(block).showLineNumbers ?? true"
+        [collapsible]="asCode(block).collapsible ?? false"
+        [collapsed]="asCode(block).collapsed ?? false"
+        [wrap]="asCode(block).wrap ?? false"
+      />
+    }
+
+    @case ('mermaid') {
+      @defer (on viewport) {
+        <app-diagram-viewer
+          [definition]="asMermaid(block).definition"
+          [caption]="asMermaid(block).caption"
+        />
+      } @placeholder {
+        <div class="defer-placeholder">Diagram</div>
+      } @loading {
+        <div class="defer-placeholder">Rendering diagram…</div>
+      }
+    }
+
+    @case ('callout') {
+      <app-callout
+        [variant]="asCallout(block).variant"
+        [title]="asCallout(block).title"
+        [body]="asCallout(block).body"
+      />
+    }
+
+    @case ('prosCons') {
+      <app-pros-cons
+        [title]="asProsCons(block).title"
+        [pros]="asProsCons(block).pros"
+        [cons]="asProsCons(block).cons"
+      />
+    }
+
+    @case ('table') {
+      <app-data-table
+        [headers]="asTable(block).headers"
+        [rows]="asTable(block).rows"
+        [caption]="asTable(block).caption"
+      />
+    }
+
+    @case ('apiTable') {
+      <app-api-table [title]="asApiTable(block).title" [endpoints]="asApiTable(block).endpoints" />
+    }
+
+    @case ('metrics') {
+      <app-metric-card [items]="asMetrics(block).items" />
+    }
+
+    @case ('architectureCard') {
+      <app-architecture-card
+        [title]="asArchitecture(block).title"
+        [description]="asArchitecture(block).description"
+        [icon]="asArchitecture(block).icon"
+        [tags]="asArchitecture(block).tags || []"
+      />
+    }
+
+    @case ('interviewQa') {
+      <app-interview-tips
+        [title]="asInterviewQa(block).title"
+        [items]="asInterviewQa(block).items"
+      />
+    }
+
+    @case ('bestPractices') {
+      <app-best-practices
+        [title]="asBestPractices(block).title"
+        [practices]="asBestPractices(block).practices"
+      />
+    }
+
+    @case ('image') {
+      <app-image-viewer
+        [src]="asImage(block).src"
+        [alt]="asImage(block).alt"
+        [caption]="asImage(block).caption"
+      />
+    }
+
+    @case ('video') {
+      @defer (on viewport) {
+        <app-video-embed
+          [src]="asVideo(block).src"
+          [poster]="asVideo(block).poster"
+          [caption]="asVideo(block).caption"
+        />
+      } @placeholder {
+        <div class="defer-placeholder">Video</div>
+      }
+    }
+
+    @case ('youtube') {
+      <app-youtube-embed [videoId]="asYouTube(block).videoId" [title]="asYouTube(block).title" />
+    }
+
+    @case ('embed') {
+      @defer (on viewport) {
+        <app-video-embed
+          [src]="asEmbed(block).url"
+          [caption]="asEmbed(block).title"
+          [ratio]="asEmbed(block).ratio || '16 / 9'"
+          [embed]="true"
+        />
+      } @placeholder {
+        <div class="defer-placeholder">Embedded content</div>
+      }
+    }
+
+    @case ('timeline') {
+      <app-timeline [items]="asTimeline(block).items" />
+    }
+
+    @case ('featureComparison') {
+      <app-feature-comparison
+        [columns]="asComparison(block).columns"
+        [rows]="asComparison(block).rows"
+        [caption]="asComparison(block).caption"
+      />
+    }
+
+    @case ('math') {
+      @defer (on viewport) {
+        <app-math-block
+          [tex]="asMath(block).tex"
+          [display]="asMath(block).display ?? false"
+          [caption]="asMath(block).caption"
+        />
+      } @placeholder {
+        <div class="defer-placeholder">Equation</div>
+      }
+    }
+
+    @case ('expandable') {
+      <app-expandable-panel
+        [title]="asExpandable(block).title"
+        [open]="asExpandable(block).open ?? false"
+      >
+        <app-content-renderer [blocks]="asExpandable(block).blocks" />
+      </app-expandable-panel>
+    }
+
+    @case ('references') {
+      <app-reference-list [items]="asReferences(block).items" />
+    }
+  }
+}

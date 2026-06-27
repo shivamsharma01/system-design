@@ -1,0 +1,36 @@
+.design {
+  display: block;
+}
+
+.design__sections {
+  margin-top: var(--space-8);
+}
+
+.design__section {
+  scroll-margin-top: calc(var(--header-height) + var(--space-4));
+}
+
+.design-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  min-height: 50vh;
+  color: var(--color-text-subtle);
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-brand);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

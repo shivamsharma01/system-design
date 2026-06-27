@@ -1,0 +1,97 @@
+@use 'mixins' as mix;
+
+.shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  max-width: var(--layout-max-width);
+  margin: 0 auto;
+  align-items: start;
+
+  &.has-toc {
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr) var(--toc-width);
+  }
+
+  @include mix.below(mix.$bp-lg) {
+    grid-template-columns: minmax(0, 1fr);
+
+    &.has-toc {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}
+
+.shell__sidebar {
+  position: sticky;
+  top: var(--header-height);
+  height: calc(100vh - var(--header-height));
+  overflow-y: auto;
+  border-right: 1px solid var(--color-border);
+  @include mix.scrollbar;
+
+  @include mix.below(mix.$bp-lg) {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    width: var(--sidebar-width);
+    max-width: 84vw;
+    z-index: var(--z-sidebar);
+    background: var(--color-bg);
+    transform: translateX(-105%);
+    transition: transform var(--transition-base);
+    box-shadow: var(--shadow-lg);
+
+    &.open {
+      transform: translateX(0);
+    }
+  }
+}
+
+.shell__backdrop {
+  display: none;
+
+  @include mix.below(mix.$bp-lg) {
+    display: block;
+    position: fixed;
+    inset: var(--header-height) 0 0;
+    z-index: calc(var(--z-sidebar) - 1);
+    background: var(--color-overlay);
+  }
+}
+
+.shell__main {
+  min-width: 0;
+  outline: none;
+}
+
+.shell__content {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-6) var(--space-12);
+  width: 100%;
+
+  @include mix.below(mix.$bp-sm) {
+    padding: var(--space-4) var(--space-4) var(--space-10);
+  }
+}
+
+.shell.has-toc .shell__content {
+  // On wide design pages let content breathe a bit more.
+  max-width: 760px;
+}
+
+.shell__toc {
+  position: sticky;
+  top: var(--header-height);
+  height: calc(100vh - var(--header-height));
+  overflow-y: auto;
+  padding: var(--space-6) var(--space-4);
+  @include mix.scrollbar;
+
+  @include mix.below(mix.$bp-lg) {
+    display: none;
+  }
+}
+
+.shell__toc-inner {
+  position: relative;
+}

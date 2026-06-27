@@ -1,0 +1,39 @@
+.diagram {
+  margin: var(--space-6) 0;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+  overflow-x: auto;
+}
+
+.diagram__canvas {
+  display: flex;
+  justify-content: center;
+
+  ::ng-deep svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+.diagram__loading {
+  color: var(--color-text-subtle);
+  font-size: var(--text-sm);
+  padding: var(--space-8);
+}
+
+.diagram__error {
+  text-align: left;
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  white-space: pre-wrap;
+}
+
+.diagram__caption {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-subtle);
+  font-style: italic;
+}

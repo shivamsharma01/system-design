@@ -1,0 +1,113 @@
+// Theme-aware highlight.js token colors. Instead of shipping two separate hljs
+// themes, we map token classes to CSS variables that flip with `[data-theme]`.
+
+:root {
+  --hl-comment: #6a737d;
+  --hl-keyword: #c678dd;
+  --hl-string: #98c379;
+  --hl-number: #d19a66;
+  --hl-function: #61afef;
+  --hl-title: #e5c07b;
+  --hl-attr: #56b6c2;
+  --hl-variable: #e06c75;
+  --hl-meta: #7f848e;
+  --hl-tag: #e06c75;
+  --hl-built-in: #e5c07b;
+}
+
+[data-theme='dark'] {
+  --hl-comment: #7d8590;
+  --hl-keyword: #ff7b72;
+  --hl-string: #a5d6ff;
+  --hl-number: #79c0ff;
+  --hl-function: #d2a8ff;
+  --hl-title: #d2a8ff;
+  --hl-attr: #7ee787;
+  --hl-variable: #ffa657;
+  --hl-meta: #8b949e;
+  --hl-tag: #7ee787;
+  --hl-built-in: #ffa657;
+}
+
+.hljs {
+  color: var(--code-text);
+  background: transparent;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: var(--hl-comment);
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-section,
+.hljs-doctag,
+.hljs-type {
+  color: var(--hl-keyword);
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-addition {
+  color: var(--hl-string);
+}
+
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet {
+  color: var(--hl-number);
+}
+
+.hljs-function .hljs-title,
+.hljs-title.function_ {
+  color: var(--hl-function);
+}
+
+.hljs-title,
+.hljs-class .hljs-title,
+.hljs-title.class_ {
+  color: var(--hl-title);
+}
+
+.hljs-attr,
+.hljs-attribute,
+.hljs-property,
+.hljs-selector-attr,
+.hljs-selector-class,
+.hljs-selector-id {
+  color: var(--hl-attr);
+}
+
+.hljs-variable,
+.hljs-template-variable,
+.hljs-params {
+  color: var(--hl-variable);
+}
+
+.hljs-built_in,
+.hljs-builtin-name {
+  color: var(--hl-built-in);
+}
+
+.hljs-meta {
+  color: var(--hl-meta);
+}
+
+.hljs-tag {
+  color: var(--color-text-muted);
+}
+
+.hljs-name {
+  color: var(--hl-tag);
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 700;
+}
