@@ -1,0 +1,872 @@
+import { DesignContent } from '../../../shared/models';
+import { ZOMATO_META } from './zomato.meta';
+
+/**
+ * Flagship-depth example (peer of the Netflix, WhatsApp, Twitter, Uber, and
+ * Instagram designs). Covers the three-sided food-delivery marketplace:
+ * restaurant discovery/search, the order state machine + payments, and the
+ * real-time last-mile dispatch + tracking of delivery partners.
+ */
+const content: DesignContent = {
+  meta: ZOMATO_META,
+  sections: [
+    {
+      id: 'overview',
+      title: 'Overview',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Zomato is a **three-sided marketplace** connecting **customers**, **restaurants**, and **delivery partners**. A customer discovers nearby restaurants, places an order, the restaurant accepts and cooks it, and a delivery partner picks it up and drops it off — all tracked in real time. It spans **hundreds of cities**, **millions of orders/day**, with sharp **lunch/dinner peaks**. The hard parts are **geospatial discovery + search**, a reliable **order/payment workflow**, and **last-mile dispatch** that assigns the right rider at the right time.',
+        },
+        {
+          type: 'callout',
+          variant: 'info',
+          title: 'The big idea',
+          body: 'Think of it as **three coupled subsystems**: (1) a **read-heavy discovery/search** layer (find open, nearby, relevant restaurants fast); (2) a **transactional order workflow** (a strongly-consistent state machine with payments); and (3) a **real-time logistics** layer (geospatial rider tracking + dispatch, much like the Uber design). Orchestrated by events, each scales independently.',
+        },
+        {
+          type: 'image',
+          src: 'assets/diagrams/zomato-architecture.svg',
+          alt: 'Zomato architecture: customer searches via discovery service, places an order through the order service, the restaurant accepts, dispatch assigns a delivery partner using the location service, all coordinated through Kafka.',
+          caption:
+            'Discover → Order → Deliver. Discovery/search, the order state machine, and last-mile dispatch are decoupled through Kafka events.',
+        },
+      ],
+    },
+    {
+      id: 'functional-requirements',
+      title: 'Functional Requirements',
+      blocks: [
+        {
+          type: 'markdown',
+          value: 'We scope the interview to the food-ordering + delivery core.',
+        },
+        {
+          type: 'bestPractices',
+          title: 'In scope',
+          practices: [
+            '**Discovery & search**: nearby, open restaurants filtered by cuisine, price, rating, ETA.',
+            "**Menu / catalog**: browse a restaurant's items, customizations, availability.",
+            '**Place an order**: cart, checkout, payment.',
+            '**Order lifecycle**: placed → accepted → preparing → picked up → delivered.',
+            '**Dispatch**: assign a delivery partner and route them restaurant → customer.',
+            '**Real-time tracking**: customer sees the partner move + live ETA.',
+            '**Ratings & notifications** for each stage.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'note',
+          title: 'Out of scope (state this explicitly)',
+          body: 'Restaurant onboarding/KYC, the dine-out/reservation product, ads & promotions ranking internals, the full ETA ML model, and fraud detection. Naming the boundary keeps the focus on discovery, ordering, and last-mile logistics.',
+        },
+      ],
+    },
+    {
+      id: 'non-functional-requirements',
+      title: 'Non-Functional Requirements',
+      blocks: [
+        {
+          type: 'prosCons',
+          title: 'Prioritizing the qualities',
+          pros: [
+            'Low discovery/search latency (homepage + search < 200ms).',
+            'High availability of browse/order path (target 99.99%).',
+            'Strong consistency + exactly-once for orders and payments.',
+            'Real-time tracking with sub-10s location freshness.',
+            'Elastic capacity for sharp lunch/dinner peaks.',
+          ],
+          cons: [
+            'Search results can be slightly stale (eventually consistent index).',
+            'Exact rider position to the meter is unnecessary.',
+            'ETA is a best-effort prediction, not a guarantee.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'CAP framing — it is mixed',
+          body: 'Discovery/search and rider location are **AP** (availability + freshness-tolerant). The **order + payment** workflow is **CP**: an order must not be lost, double-charged, or double-assigned. Designing along this AP/CP seam is the recurring theme.',
+        },
+      ],
+    },
+    {
+      id: 'capacity-estimation',
+      title: 'Capacity Estimation',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Assume **5M orders/day**, but heavily concentrated — roughly **60%** of volume falls in the lunch (12–2pm) and dinner (7–10pm) windows. Also assume **200k concurrent online delivery partners** at peak, each pinging GPS every ~5s during active deliveries.',
+        },
+        {
+          type: 'metrics',
+          items: [
+            { label: 'Orders / day', value: '~5M', hint: '~58/sec avg' },
+            { label: 'Peak orders / sec', value: '~500+', hint: 'dinner rush' },
+            { label: 'Search QPS', value: '~50k+', hint: 'browse ≫ order' },
+            { label: 'Concurrent riders', value: '~200k', hint: 'peak, online' },
+            { label: 'Location writes / sec', value: '~40k', hint: '200k / 5s' },
+            { label: 'Restaurants', value: '~1M+', hint: 'listed catalog' },
+          ],
+        },
+        {
+          type: 'markdown',
+          value:
+            'The defining characteristic is **peakiness**: average load is modest, but the dinner rush is ~10× the daily average. Capacity and autoscaling must target the **peak**, not the mean:',
+        },
+        {
+          type: 'math',
+          display: true,
+          tex: 'O_{peak} \\approx \\frac{0.6 \\times O_{day}}{t_{peak}} = \\frac{0.6 \\times 5\\times10^{6}}{5\\ \\text{hrs} \\times 3600} \\approx 167\\ \\text{orders/sec avg in-peak} \\;\\Rightarrow\\; 500\\text{+ at the spike}',
+          caption:
+            'Order rate during peak windows is many times the daily average — the system is provisioned (and autoscaled) for the spike.',
+        },
+        {
+          type: 'markdown',
+          value:
+            'Search/browse traffic dwarfs orders (people browse far more than they buy), so the discovery layer is the most read-heavy component and the first to need aggressive caching.',
+        },
+      ],
+    },
+    {
+      id: 'high-level-architecture',
+      title: 'High-Level Architecture',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            "A customer hits the **Discovery Service** (geospatial + Elasticsearch) to find restaurants, browses a menu from the **Catalog Service**, and checks out via the **Order Service** — a strongly-consistent state machine that takes payment. On acceptance, **Dispatch** queries the **Location Service** (rider geo-index) to assign a partner, and **tracking** streams the partner's position to the customer. Kafka glues the stages together.",
+        },
+        {
+          type: 'mermaid',
+          caption: 'Discovery, ordering, and last-mile dispatch, coordinated via events.',
+          definition: `flowchart TD
+  Cust["Customer App"] --> GW["API Gateway"]
+  GW --> Disc["Discovery / Search"]
+  Disc --> ES[("Elasticsearch + geo")]
+  GW --> Cat["Catalog Service"]
+  Cat --> CatDB[("Menu DB: Cassandra")]
+  GW --> Order["Order Service (state machine)"]
+  Order --> OrderDB[("Orders: SQL, CP")]
+  Order --> Pay["Payment Service"]
+  Order --> Kafka[("Kafka: order events")]
+  Kafka --> Rest["Restaurant App / KDS"]
+  Kafka --> Dispatch["Dispatch Service"]
+  Loc["Rider pings"] --> LocSvc["Location Service"]
+  LocSvc --> GeoIdx[("Rider geo-index: Redis/H3")]
+  GeoIdx --> Dispatch
+  Dispatch --> Rider["Delivery Partner App"]
+  Rider -->|GPS| LocSvc
+  Kafka --> Track["Tracking / Notifications"]
+  Track --> Cust`,
+        },
+        {
+          type: 'architectureCard',
+          title: 'Discovery / Search',
+          description:
+            'Read-heavy service answering "open, nearby, relevant restaurants" with geo-filtering + full-text + ranking (rating, ETA, popularity, promotions). Backed by Elasticsearch with geo queries; heavily cached.',
+          icon: 'search',
+          tags: ['elasticsearch', 'geo', 'ranking'],
+        },
+        {
+          type: 'architectureCard',
+          title: 'Order Service',
+          description:
+            'Owns the authoritative order state machine. Strongly consistent and transactional so an order is created once, paid once, and assigned to one restaurant + one rider. Emits domain events to Kafka.',
+          icon: 'route',
+          tags: ['state-machine', 'payments', 'CP'],
+        },
+        {
+          type: 'architectureCard',
+          title: 'Dispatch + Location',
+          description:
+            'Location Service maintains rider positions in an in-memory geo-index (H3/geohash). Dispatch finds candidate riders near the restaurant, ranks by pickup ETA + current load, and assigns — optionally batching nearby orders.',
+          icon: 'shuffle',
+          tags: ['geospatial', 'dispatch', 'last-mile'],
+        },
+      ],
+    },
+    {
+      id: 'discovery-search',
+      title: 'Discovery & Search',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'The homepage and search are the most-hit surfaces. The query is inherently **geospatial + relevance**: "restaurants that **deliver to my location**, are **open now**, match my filters, ranked by a blend of distance/ETA, rating, popularity, and promotions." This is served by an **Elasticsearch** index with geo-distance queries, refreshed from the catalog as restaurants change.',
+        },
+        {
+          type: 'code',
+          language: 'json',
+          filename: 'restaurant-search.json',
+          highlightLines: [4, 5, 6, 7, 8],
+          code: `POST /restaurants/_search
+{
+  "query": {
+    "bool": {
+      "filter": [
+        { "geo_distance": { "distance": "5km", "location": { "lat": 12.97, "lon": 77.59 } } },
+        { "term": { "isOpen": true } },
+        { "terms": { "cuisines": ["north-indian", "chinese"] } }
+      ]
+    }
+  },
+  "sort": [{ "_score": "desc" }, { "_geo_distance": { "location": "12.97,77.59" } }]
+}`,
+        },
+        {
+          type: 'bestPractices',
+          title: 'Discovery best practices',
+          practices: [
+            '**Index for the query**: store serviceability polygons / cells so "delivers to me" is a fast filter.',
+            '**Cache the homepage** per geo-cell + filters — most users in an area see similar results.',
+            '**Precompute open/closed** and surface them via cheap boolean filters.',
+            '**Blend ranking signals** (ETA, rating, conversion, sponsorship) in a scoring function.',
+            '**Keep the index eventually consistent** — a menu change can take seconds to reflect.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Serviceability is a geo problem',
+          body: 'A restaurant only delivers within a radius / set of geo cells (limited by rider range and food quality). Model serviceability with **H3/geohash cells** or polygons so "which restaurants can deliver to this address?" is an index lookup, not a per-restaurant distance computation.',
+        },
+      ],
+    },
+    {
+      id: 'api-design',
+      title: 'API Design',
+      blocks: [
+        {
+          type: 'apiTable',
+          title: 'Core endpoints',
+          endpoints: [
+            {
+              method: 'GET',
+              path: '/v1/restaurants?lat&lng&cuisine',
+              description: 'Discover nearby, serviceable restaurants',
+              auth: false,
+            },
+            {
+              method: 'GET',
+              path: '/v1/restaurants/{id}/menu',
+              description: 'Fetch a restaurant menu (cached)',
+              auth: false,
+            },
+            { method: 'POST', path: '/v1/cart', description: 'Create / update a cart', auth: true },
+            {
+              method: 'POST',
+              path: '/v1/orders',
+              description: 'Place an order (idempotent)',
+              auth: true,
+            },
+            {
+              method: 'GET',
+              path: '/v1/orders/{id}',
+              description: 'Order status + live tracking handle',
+              auth: true,
+            },
+            {
+              method: 'POST',
+              path: '/v1/partners/location',
+              description: 'Delivery partner GPS ping (WebSocket)',
+              auth: true,
+            },
+            {
+              method: 'POST',
+              path: '/v1/orders/{id}/status',
+              description: 'Advance order/delivery state',
+              auth: true,
+            },
+          ],
+        },
+        {
+          type: 'markdown',
+          value:
+            'Placing an order is **idempotent** (a client-supplied key dedupes double-taps and retries). Tracking and rider pings use a **WebSocket** rather than REST polling.',
+        },
+        {
+          type: 'code',
+          language: 'json',
+          filename: 'place-order.json',
+          highlightLines: [2, 9],
+          code: `{
+  "idempotencyKey": "order_01H8X...",   // dedupe double-submits / retries
+  "restaurantId": "r_8842",
+  "deliverTo": { "lat": 12.9352, "lng": 77.6245, "addressId": "a_12" },
+  "items": [
+    { "itemId": "i_1", "qty": 2, "customizations": ["extra-spicy"] },
+    { "itemId": "i_7", "qty": 1 }
+  ],
+  "payment": { "method": "upi", "instrumentId": "pm_upi_01" },
+  "couponCode": "WELCOME50"
+}`,
+        },
+      ],
+    },
+    {
+      id: 'database-design',
+      title: 'Database Design',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Polyglot persistence split along the AP/CP line: the search index in Elasticsearch, menus in a wide-column store, orders + payments in strongly-consistent SQL, rider locations in Redis, and events in Kafka.',
+        },
+        {
+          type: 'code',
+          language: 'sql',
+          filename: 'orders.sql',
+          highlightLines: [3, 4, 12],
+          code: `-- Authoritative order. Strongly consistent; one row per order.
+CREATE TABLE orders (
+  order_id     UUID PRIMARY KEY,
+  status       TEXT NOT NULL,   -- CREATED|PAID|ACCEPTED|PREPARING|READY|PICKED_UP|DELIVERED|CANCELLED
+  customer_id  BIGINT NOT NULL,
+  restaurant_id BIGINT NOT NULL,
+  partner_id   BIGINT,          -- NULL until dispatched
+  items        JSONB NOT NULL,
+  total_cents  INT NOT NULL,
+  deliver_to   GEOGRAPHY(POINT),
+  created_at   TIMESTAMPTZ DEFAULT now(),
+  idem_key     TEXT UNIQUE      -- enforces exactly-once order creation
+);
+-- A partner can hold a bounded number of concurrent orders (batching).
+CREATE INDEX active_orders_by_partner ON orders (partner_id)
+  WHERE status IN ('PICKED_UP','ACCEPTED','PREPARING','READY');`,
+        },
+        {
+          type: 'table',
+          caption: 'Data store chosen per workload.',
+          headers: ['Data', 'Store', 'Why'],
+          rows: [
+            ['Restaurant search', 'Elasticsearch', 'Geo + full-text + ranking, read-heavy'],
+            ['Menus / catalog', 'Cassandra + cache', 'Read-heavy, rarely changes, cacheable'],
+            ['Orders + payments', 'Sharded SQL (PostgreSQL)', 'Transactions, exactly-once, CP'],
+            ['Rider live locations', 'Redis (geo index)', 'Ephemeral, high write rate, AP'],
+            ['Order history (cold)', 'Cassandra / warehouse', 'Append-only, analytics'],
+            ['Events', 'Kafka', 'Decouple order/dispatch/notify/analytics'],
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Idempotency key as a unique constraint',
+          body: 'A `UNIQUE` constraint on `idem_key` makes order creation **exactly-once** at the database level: a retried submit with the same key collides and returns the existing order instead of creating a duplicate.',
+        },
+      ],
+    },
+    {
+      id: 'order-state-machine',
+      title: 'Order State Machine',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'An order is a **finite state machine** spanning three parties. Modeling it explicitly makes transitions atomic and auditable, lets each transition emit an event (notify customer, ping restaurant, trigger dispatch), and makes recovery deterministic after a crash.',
+        },
+        {
+          type: 'mermaid',
+          caption: 'Order + delivery lifecycle.',
+          definition: `stateDiagram-v2
+  [*] --> CREATED
+  CREATED --> PAID: payment authorized
+  CREATED --> CANCELLED: payment fails / user cancels
+  PAID --> ACCEPTED: restaurant accepts
+  PAID --> REFUNDED: restaurant rejects
+  ACCEPTED --> PREPARING: cooking
+  PREPARING --> READY: food ready
+  READY --> PICKED_UP: partner collects
+  PICKED_UP --> DELIVERED: dropped at customer
+  DELIVERED --> [*]
+  CANCELLED --> [*]
+  REFUNDED --> [*]`,
+        },
+        {
+          type: 'callout',
+          variant: 'note',
+          title: 'Dispatch starts early',
+          body: 'Dispatch does not wait for the food to be READY. A partner is assigned around acceptance/preparing so they arrive near the restaurant just as the food is ready — minimizing both food wait time and customer ETA. This overlap is a core optimization in food delivery.',
+        },
+        {
+          type: 'expandable',
+          title: 'Why a state machine (not ad-hoc flags)',
+          blocks: [
+            {
+              type: 'markdown',
+              value:
+                'Explicit states make illegal transitions impossible (you cannot go `CREATED → DELIVERED`), give every transition a clear event to publish, and make crash recovery deterministic — on restart, an order resumes from its persisted state. With three parties acting concurrently, this is the backbone of correctness.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'dispatch-flow',
+      title: 'Dispatch & Tracking Flow',
+      blocks: [
+        {
+          type: 'markdown',
+          value: 'From acceptance to assigned rider and live tracking:',
+        },
+        {
+          type: 'mermaid',
+          caption: 'Accept → dispatch → assign → track.',
+          definition: `sequenceDiagram
+  participant O as Order Svc
+  participant K as Kafka
+  participant D as Dispatch
+  participant L as Location Svc
+  participant P as Partner
+  participant C as Customer
+  O->>K: order.accepted
+  K->>D: consume
+  D->>L: riders near restaurant (geo query)
+  L-->>D: candidates (online, free/under-capacity)
+  D->>D: rank by pickup ETA + load + direction
+  D->>P: offer order
+  P-->>D: accept
+  D->>O: assign partner (atomic)
+  O-->>C: partner assigned + live ETA
+  P->>L: GPS pings (~5s)
+  L-->>C: live partner location (WebSocket)`,
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Rank by pickup ETA, not raw distance',
+          body: 'As in ride-hailing, candidates are ranked by **estimated time to reach the restaurant** over the road network, plus current load and travel direction — not straight-line distance. A rider already heading that way with spare capacity may beat a closer but busy one.',
+        },
+        {
+          type: 'callout',
+          variant: 'warning',
+          title: 'Batching for efficiency',
+          body: 'During peaks, one rider may carry **multiple orders** from the same restaurant or along the same route. Batching cuts delivery cost and rider idle time, but must respect food freshness and per-order ETA promises — a constrained optimization, not just nearest-rider.',
+        },
+      ],
+    },
+    {
+      id: 'geospatial-indexing',
+      title: 'Geospatial Indexing',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Two geospatial problems: **serviceability** (which restaurants deliver to an address) and **rider proximity** (which riders are near a restaurant). Both use a **cell-based index** — divide the map into cells (H3/geohash/S2) and bucket entities into cells so a query reads a cell + its neighbors instead of scanning everything.',
+        },
+        {
+          type: 'code',
+          language: 'python',
+          filename: 'nearby_riders.py',
+          highlightLines: [3, 7, 8],
+          code: `import h3
+
+def index_rider(rider_id, lat, lng, res=8):          # ~0.7 km^2 cells
+    cell = h3.latlng_to_cell(lat, lng, res)
+    redis.geoadd(f"riders:{cell}", lng, lat, rider_id)
+
+def riders_near_restaurant(lat, lng, res=8, ring=1):
+    center = h3.latlng_to_cell(lat, lng, res)
+    cells = h3.grid_disk(center, ring)               # center + neighbors
+    return [r for c in cells for r in redis.zrange(f"riders:{c}", 0, -1)]`,
+        },
+        {
+          type: 'callout',
+          variant: 'warning',
+          title: 'Tune cell resolution to density',
+          body: "In a dense market (downtown), a fine resolution keeps each cell's candidate set small; in a sparse suburb, a coarser cell (or wider neighbor ring) avoids empty results. Adapt resolution to local rider/restaurant density rather than using one global value.",
+        },
+      ],
+    },
+    {
+      id: 'message-queues',
+      title: 'Message Queues',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Order state transitions publish to **Kafka**, decoupling the order workflow from restaurant notifications, dispatch, customer push, payments/settlement, and analytics. Each consumer reacts independently and can be scaled or retried on its own.',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'OrderAcceptedConsumer.java',
+          highlightLines: [5, 6, 7],
+          code: `@KafkaListener(topics = "order.accepted", groupId = "dispatch")
+public void onAccepted(OrderEvent e) {
+  // At-least-once delivery: make dispatch idempotent so a redelivered
+  // event does not assign two riders to one order.
+  String key = "dispatch:" + e.orderId();
+  if (!dispatchLocks.acquire(key)) return;     // already being handled
+  Rider r = dispatch.assignBestRider(e);
+  orders.assignPartner(e.orderId(), r.id());   // atomic, conditional update
+}`,
+        },
+        {
+          type: 'callout',
+          variant: 'warning',
+          title: 'Idempotency on money + assignment',
+          body: 'Payments and rider assignment are the unforgiving operations. Key charges on `order_id` and guard assignment with a conditional update so reprocessing a duplicate event is always a safe no-op.',
+        },
+      ],
+    },
+    {
+      id: 'scaling-strategy',
+      title: 'Scaling Strategy',
+      blocks: [
+        {
+          type: 'bestPractices',
+          practices: [
+            '**Shard by city/region**: food delivery is local, so partition discovery, dispatch, and location by geography.',
+            '**Cache discovery aggressively** per geo-cell + filter set — browse traffic is the heaviest.',
+            '**Keep rider locations in memory** (Redis), never writing every ping to disk.',
+            '**Autoscale for the dinner peak**, and pre-warm capacity ahead of known rush windows.',
+            '**Async everything downstream** via Kafka so the order path stays fast.',
+            '**Approximate where possible** (ETA, counts); reserve strong consistency for orders + payments.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'info',
+          title: 'Geography is a natural shard key',
+          body: 'A customer in Bangalore is only matched with Bangalore restaurants and Bangalore riders. Partitioning by city keeps each shard small, independent, and individually scalable/failover-able — and makes peak handling a per-city concern.',
+        },
+      ],
+    },
+    {
+      id: 'consistency',
+      title: 'Consistency',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'The system mixes models along the AP/CP boundary: discovery/search and rider location are eventually consistent; the order state machine and payments are strongly consistent and transactional.',
+        },
+        {
+          type: 'featureComparison',
+          caption: 'Consistency expectations by data type.',
+          columns: ['Strong', 'Eventual'],
+          rows: [
+            { feature: 'Order creation / payment', values: [true, false] },
+            { feature: 'Order state transitions', values: [true, false] },
+            { feature: 'Rider assignment (one rider)', values: [true, false] },
+            { feature: 'Search results', values: [false, true] },
+            { feature: 'Rider live location', values: [false, true] },
+            { feature: 'ETA shown to customer', values: [false, true] },
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Idempotency everywhere on the CP side',
+          body: 'Mobile networks retry constantly. Idempotency keys on order creation, payment, and assignment turn at-least-once delivery into effectively-once behavior — no duplicate orders, no double charges, no double dispatch.',
+        },
+      ],
+    },
+    {
+      id: 'availability',
+      title: 'Availability',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Each city runs semi-independently, so a regional failure is contained. Dependencies degrade gracefully: if search ranking is down, fall back to a simple distance sort; if live ETA is unavailable, show a coarse estimate; if tracking drops, the order still completes. The one invariant: a **paid order is never lost**.',
+        },
+        {
+          type: 'callout',
+          variant: 'summary',
+          title: 'Graceful degradation',
+          body: 'A degraded experience (simpler search, coarse ETA, delayed tracking) beats an outage. Never let discovery, tracking, or ETA failures block placing or fulfilling a paid order.',
+        },
+        {
+          type: 'youtube',
+          videoId: 'AyOAjFNPAbA',
+          title: 'Designing a food delivery system (illustrative embed)',
+        },
+      ],
+    },
+    {
+      id: 'partitioning',
+      title: 'Partitioning',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Discovery, location, and dispatch partition by **geo cell / city**. Orders partition by `order_id` (or by city) for balanced writes; menus partition by `restaurant_id`. This locality is what makes proximity queries and per-city peak handling tractable.',
+        },
+        {
+          type: 'callout',
+          variant: 'warning',
+          title: 'Avoid hot partitions',
+          body: 'A viral restaurant or a stadium/event area becomes a hot cell. Mitigate by sub-dividing dense cells at finer resolution, caching hot menus, and load-shedding/queuing with clear customer feedback ("high demand") rather than failing.',
+        },
+      ],
+    },
+    {
+      id: 'sharding',
+      title: 'Sharding',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Redis geo data shards by cell; order SQL shards by city or order id via consistent hashing so adding capacity rebalances automatically. Elasticsearch shards the restaurant index by region. Each city is largely a self-contained unit of scaling and failover.',
+        },
+        {
+          type: 'mermaid',
+          caption: 'Geographic sharding across the stack.',
+          definition: `flowchart LR
+  R["Router (by city)"] --> C1["Shard: Bangalore"]
+  R --> C2["Shard: Delhi"]
+  R --> C3["Shard: Mumbai"]
+  C1 --> ES1[("ES index + Redis geo + orders")]
+  C2 --> ES2[("...")]
+  C3 --> ES3[("...")]`,
+        },
+      ],
+    },
+    {
+      id: 'replication',
+      title: 'Replication',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Order + payment stores replicate with quorum/consensus (RF=3, one per AZ) so a single AZ failure never loses or double-commits an order. Redis location indexes run with replicas; because location self-heals from the ongoing ping stream within seconds, a cold replica recovers quickly. Elasticsearch keeps replica shards for query availability.',
+        },
+        {
+          type: 'prosCons',
+          title: 'Multi-region with regional ownership',
+          pros: [
+            'A region outage only affects that geography.',
+            'Low latency: discovery + dispatch happen close to users.',
+            'Order + payment durability across AZs.',
+          ],
+          cons: [
+            'Operational complexity of many semi-independent regions.',
+            'Consensus writes add latency to the order path.',
+            'Cross-region edge cases (travelers, border areas).',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'fault-tolerance',
+      title: 'Fault Tolerance',
+      blocks: [
+        {
+          type: 'bestPractices',
+          practices: [
+            '**Persist order state before responding** so a crash never loses a paid order.',
+            '**Idempotency keys** on order/payment/assignment make retries safe.',
+            '**DB-level guards** (unique idem_key, conditional assignment) prevent duplicates.',
+            '**Offer timeouts + fallback to next rider** keep dispatch live under rejections.',
+            '**Circuit breakers** on search/ETA/tracking with safe fallbacks.',
+            '**Reconciliation jobs** sweep stuck orders (e.g. paid but never accepted → auto-refund).',
+          ],
+        },
+        {
+          type: 'expandable',
+          title: 'Example: atomic rider assignment',
+          blocks: [
+            {
+              type: 'code',
+              language: 'sql',
+              filename: 'assign.sql',
+              code: `-- Only assign if the order is unassigned and still in a dispatchable
+-- state. Prevents two dispatch consumers assigning two riders.
+UPDATE orders
+   SET partner_id = :rider, status = 'ACCEPTED', updated_at = now()
+ WHERE order_id = :order
+   AND partner_id IS NULL
+   AND status IN ('PAID','ACCEPTED','PREPARING');
+-- 0 rows updated => another consumer won; skip (idempotent).`,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'trade-offs',
+      title: 'Trade-offs',
+      blocks: [
+        {
+          type: 'table',
+          caption: 'Key decisions and what they cost.',
+          headers: ['Decision', 'Gain', 'Cost'],
+          rows: [
+            [
+              'Three decoupled subsystems',
+              'Independent scaling per concern',
+              'Coordination via events; eventual effects',
+            ],
+            [
+              'Geographic sharding',
+              'Locality, per-city peak handling',
+              'Boundary/cross-region edge cases',
+            ],
+            [
+              'Elasticsearch for discovery',
+              'Rich geo + relevance search',
+              'Index sync lag, extra system',
+            ],
+            [
+              'Dispatch before food ready',
+              'Lower total delivery time',
+              'Risk of rider idle if cooking slips',
+            ],
+            [
+              'Order batching',
+              'Lower cost, higher rider utilization',
+              'Complex optimization, ETA risk',
+            ],
+            [
+              'Mixed AP/CP',
+              'Right guarantee per concern',
+              'Two consistency models to reason about',
+            ],
+          ],
+        },
+      ],
+    },
+    {
+      id: 'technology-choices',
+      title: 'Technology Choices',
+      blocks: [
+        {
+          type: 'markdown',
+          value: 'A representative slice of the stack and the role each plays:',
+        },
+        {
+          type: 'table',
+          headers: ['Concern', 'Technology'],
+          rows: [
+            ['Discovery / search', 'Elasticsearch'],
+            ['Menus / catalog', 'Cassandra + Redis cache'],
+            ['Orders + payments', 'Sharded PostgreSQL (CP)'],
+            ['Rider location index', 'Redis + H3 / geohash'],
+            ['Real-time transport', 'WebSocket'],
+            ['Eventing', 'Apache Kafka'],
+            ['Routing / ETA', 'Maps + routing service (OSRM-like)'],
+            ['Analytics / history', 'Cassandra / data warehouse'],
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'note',
+          title: 'Reuse, do not reinvent',
+          body: 'The last-mile half of Zomato is essentially the **Uber** design (geo-index + dispatch + trip/order state machine), and the discovery half reuses standard **search + CDN-cached catalog** patterns. Strong system design is recognizing that a new product is often a recombination of known building blocks.',
+        },
+        {
+          type: 'code',
+          language: 'yaml',
+          filename: 'dispatch-service.deploy.yaml',
+          code: `service: dispatch
+strategy: rolling
+regions: [ap-south-1, ap-south-2]      # owns its cities
+autoscaling:
+  metric: pending_assignments_per_city
+  target: 50
+  min: 8
+  max: 400
+  scheduledWarmup: ["11:30", "18:30"]  # pre-scale before lunch/dinner peaks
+healthCheck:
+  path: /health
+  unhealthyThreshold: 3`,
+        },
+      ],
+    },
+    {
+      id: 'interview-questions',
+      title: 'Interview Questions',
+      blocks: [
+        {
+          type: 'interviewQa',
+          items: [
+            {
+              question: 'How do you find restaurants that can deliver to a user?',
+              answer:
+                'Model **serviceability** as geo cells/polygons and index restaurants in Elasticsearch with their delivery area. "Restaurants near me" becomes a **geo-distance filter** plus open/closed and cuisine filters, ranked by a blend of ETA, rating, popularity, and promotions. Cache results per geo-cell since users in an area see similar lists.',
+            },
+            {
+              question: 'How do you assign a delivery partner to an order?',
+              answer:
+                'Keep rider positions in an in-memory geo-index (H3/geohash in Redis). On order acceptance, Dispatch queries riders near the restaurant, ranks them by **pickup ETA + current load + direction**, and assigns atomically. Assignment often starts **before** the food is ready so the rider arrives just in time.',
+            },
+            {
+              question: "How do you guarantee an order isn't created or charged twice?",
+              answer:
+                'A client-supplied **idempotency key** stored as a `UNIQUE` constraint makes order creation exactly-once; the payment charge is keyed on `order_id`; and rider assignment uses a conditional `UPDATE`. Retries (inevitable on mobile) collide harmlessly instead of duplicating.',
+            },
+            {
+              question: 'How do you handle the lunch/dinner peaks?',
+              answer:
+                'Provision and autoscale for the **peak, not the average**, with scheduled warm-up before known rush windows. Shard by city so peaks are handled per-region, cache discovery heavily, batch deliveries to raise rider utilization, and load-shed gracefully ("high demand") rather than failing.',
+            },
+            {
+              question: 'What consistency model does the system use?',
+              answer:
+                'Mixed. **Discovery + rider location are AP** (stale-tolerant, availability-first). **Orders + payments are CP** (no lost orders, no double charges), enforced with transactions, unique idempotency keys, and conditional updates.',
+            },
+            {
+              question: 'How do you model the order lifecycle across three parties?',
+              answer:
+                'As an explicit **finite state machine** (CREATED → PAID → ACCEPTED → PREPARING → READY → PICKED_UP → DELIVERED, with CANCELLED/REFUNDED). Each transition is atomic, emits a Kafka event (notify customer, dispatch rider, settle payment), and makes crash recovery deterministic.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'references',
+      title: 'References',
+      blocks: [
+        {
+          type: 'references',
+          items: [
+            {
+              label: 'Zomato Engineering Blog',
+              url: 'https://www.zomato.com/blog/category/technology',
+              source: 'Zomato',
+            },
+            {
+              label: 'Building a Hyperlocal Delivery System (Swiggy)',
+              url: 'https://bytes.swiggy.com/',
+              source: 'Swiggy Engineering',
+            },
+            {
+              label: 'DoorDash: Building the Dispatch System',
+              url: 'https://careersatdoordash.com/engineering-blog/',
+              source: 'DoorDash Engineering',
+            },
+            {
+              label: "H3: Uber's Hexagonal Spatial Index",
+              url: 'https://www.uber.com/blog/h3/',
+              source: 'Uber Engineering',
+            },
+            {
+              label: 'Elasticsearch Geo Queries',
+              url: 'https://www.elastic.co/guide/en/elasticsearch/reference/current/geo-queries.html',
+              source: 'Elastic',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'summary',
+      title: 'Summary',
+      blocks: [
+        {
+          type: 'callout',
+          variant: 'summary',
+          title: 'Key takeaways',
+          body: '1. **Three coupled subsystems** — read-heavy discovery/search, a transactional order state machine, and real-time last-mile dispatch — decoupled through Kafka events.\n2. **Geo everything**: serviceability and rider proximity are cell-based index lookups (H3/geohash + Elasticsearch geo).\n3. **Mix consistency models**: AP for discovery + location, CP for orders + payments, with idempotency keys everywhere.\n4. **Shard by city** because food delivery is local — enabling locality, independent failover, and per-city peak handling.\n5. **Dispatch early and batch smartly**, and provision for the dinner peak (≫ average) rather than the mean.',
+        },
+      ],
+    },
+  ],
+};
+
+export default content;

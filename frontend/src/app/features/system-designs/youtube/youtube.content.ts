@@ -1,4 +1,865 @@
-import { draftContent } from '../shared/content-helpers';
+import { DesignContent } from '../../../shared/models';
 import { YOUTUBE_META } from './youtube.meta';
 
-export default draftContent(YOUTUBE_META);
+/**
+ * Flagship-depth example (peer of the Netflix, WhatsApp, Twitter, Uber,
+ * Instagram, and Zomato designs). Where the Netflix design centers on curated
+ * VOD delivery via a private CDN, this one centers on the problems unique to
+ * *user-generated* video at scale: massive ingest, the transcoding pipeline,
+ * view counting, search, and recommendations.
+ */
+const content: DesignContent = {
+  meta: YOUTUBE_META,
+  sections: [
+    {
+      id: 'overview',
+      title: 'Overview',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'YouTube is the largest **user-generated video** platform: **500+ hours of video uploaded every minute**, **billions of views/day**, and **2B+ monthly users**. Unlike a curated VOD service, *anyone* can upload, so the system must **ingest** a firehose of raw video, **transcode** each one into many formats/resolutions, **deliver** it globally via CDN, and layer **search, recommendations, comments, and view counting** on top.',
+        },
+        {
+          type: 'callout',
+          variant: 'info',
+          title: 'The big idea',
+          body: 'Separate the **write-heavy ingest/processing pipeline** from the **read-heavy delivery + discovery** path. Uploads land in raw storage and flow through an asynchronous **transcoding pipeline** (chunk → encode in parallel → package → publish to CDN). Viewers then stream adaptively from the edge while metadata, search, and recommendations are served by independent read-optimized systems.',
+        },
+        {
+          type: 'callout',
+          variant: 'note',
+          title: 'How this differs from the Netflix design',
+          body: 'Netflix is **curated VOD**: a known, finite catalog pre-positioned on a private CDN (Open Connect). YouTube is **UGC**: an unbounded, unpredictable upload stream where the **transcoding pipeline**, **storage growth**, **view counting**, and **search/recommendation over billions of videos** are the dominant problems.',
+        },
+        {
+          type: 'image',
+          src: 'assets/diagrams/youtube-pipeline.svg',
+          alt: 'YouTube pipeline: creator uploads to the upload service and raw store, the transcoding pipeline chunks and encodes in parallel into an ABR ladder, processed segments go to the CDN, and viewers stream while metadata and view counts are tracked.',
+          caption:
+            'Two halves: the write-heavy ingest + transcoding pipeline, and the read-heavy delivery + discovery path.',
+        },
+      ],
+    },
+    {
+      id: 'functional-requirements',
+      title: 'Functional Requirements',
+      blocks: [
+        {
+          type: 'markdown',
+          value: 'We scope the interview to the upload-and-watch core.',
+        },
+        {
+          type: 'bestPractices',
+          title: 'In scope',
+          practices: [
+            '**Upload** a video (resumable, any format/resolution).',
+            '**Transcode** into multiple resolutions/codecs (the ABR ladder).',
+            '**Watch** with adaptive bitrate streaming + resume.',
+            '**Search** videos by title, description, tags.',
+            '**Recommendations** (home + watch-next).',
+            '**Engagement**: view counts, likes, comments, subscriptions.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'note',
+          title: 'Out of scope (state this explicitly)',
+          body: 'Live streaming internals, monetization/ads, Content ID (copyright matching), Shorts ranking, and the full recommendation model. Naming the boundary keeps the focus on ingest, transcoding, delivery, and view counting.',
+        },
+      ],
+    },
+    {
+      id: 'non-functional-requirements',
+      title: 'Non-Functional Requirements',
+      blocks: [
+        {
+          type: 'prosCons',
+          title: 'Prioritizing the qualities',
+          pros: [
+            'Low playback startup latency (time-to-first-frame < 1s) + minimal rebuffering.',
+            'High availability for watch + search (target 99.99%).',
+            'Extreme durability for uploaded source video.',
+            'Read-heavy global scalability (views ≫ uploads).',
+            'Reasonable upload-to-watchable latency (minutes, not hours).',
+          ],
+          cons: [
+            'Strong consistency NOT required for view counts (approximate is fine).',
+            'Transcoding is async — a video need not be instantly available in all formats.',
+            'Comments/recommendations can be eventually consistent.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'CAP framing',
+          body: "Overwhelmingly **AP** for watch, search, counts, and comments. The one place caring about correctness is **upload durability** (never lose a creator's source file) and the **monotonicity** of view counts (they should not visibly go backwards).",
+        },
+      ],
+    },
+    {
+      id: 'capacity-estimation',
+      title: 'Capacity Estimation',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Assume **500 hours uploaded/minute** and **5B views/day**. Each uploaded hour is transcoded into ~6 renditions, multiplying storage and compute.',
+        },
+        {
+          type: 'metrics',
+          items: [
+            { label: 'Upload rate', value: '~500 hrs/min', hint: '~8.3 hrs/sec' },
+            { label: 'Views / day', value: '~5B', hint: '~58k/sec avg' },
+            { label: 'Renditions / video', value: '~6+', hint: '144p → 4K, multi-codec' },
+            { label: 'Avg watch bitrate', value: '~3 Mbps', hint: 'adaptive' },
+            { label: 'New source / day', value: '~1+ PB', hint: 'raw uploads' },
+            { label: 'CDN egress', value: '100s of Tbps', hint: 'global peak' },
+          ],
+        },
+        {
+          type: 'markdown',
+          value:
+            'Storage growth is relentless because content is **permanent and multiplied** by renditions. A rough daily source-storage estimate:',
+        },
+        {
+          type: 'math',
+          display: true,
+          tex: 'S_{day} = R_{upload} \\times Bitrate_{src} = 500\\,\\tfrac{\\text{hr}}{\\text{min}} \\times 1440\\,\\tfrac{\\text{min}}{\\text{day}} \\times 3600\\,\\tfrac{\\text{s}}{\\text{hr}} \\times \\tfrac{10\\,\\text{Mbps}}{8} \\approx 3.2\\ \\text{PB/day (source only)}',
+          caption:
+            'Source video alone adds petabytes per day; renditions multiply this several-fold. This forces tiered storage and a "popular vs long-tail" delivery strategy.',
+        },
+        {
+          type: 'markdown',
+          value:
+            'The **transcoding compute** is equally daunting: ~8.3 hours of video arrive every second, each needing multiple encodes — only feasible by **chunking** a video and encoding chunks **in parallel** across a large worker fleet.',
+        },
+      ],
+    },
+    {
+      id: 'high-level-architecture',
+      title: 'High-Level Architecture',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Uploads go to the **Upload Service** (resumable) and land in **raw blob storage**. A **transcoding pipeline** (orchestrated via Kafka) chunks the video, encodes chunks in parallel into the ABR ladder, packages segments + manifests, and publishes to the **CDN**. Read-side, the **Watch/Metadata**, **Search**, **Recommendation**, and **View Count** services are independent and read-optimized.',
+        },
+        {
+          type: 'mermaid',
+          caption: 'Ingest + transcoding pipeline (write) and delivery + discovery (read).',
+          definition: `flowchart TD
+  Creator["Creator"] -->|resumable upload| Up["Upload Service"]
+  Up --> Raw[("Raw Blob Store")]
+  Up --> K[("Kafka: video.uploaded")]
+  K --> Split["Splitter: chunk video"]
+  Split --> Enc["Encoder workers (parallel)"]
+  Enc --> Pack["Packager: segments + manifest + DRM"]
+  Pack --> Proc[("Processed Store")]
+  Proc --> CDN["CDN (edge cache)"]
+  Pack --> Meta[("Video Metadata DB")]
+  Meta --> SearchIdx[("Search index: ES")]
+  Viewer["Viewer"] -->|watch| Watch["Watch / Metadata Svc"]
+  Watch --> CDN
+  Viewer -->|search| Search["Search Svc"]
+  Viewer -->|home/next| Reco["Recommendation Svc"]
+  Viewer -->|view event| VC["View Count (stream)"]`,
+        },
+        {
+          type: 'architectureCard',
+          title: 'Upload Service',
+          description:
+            'Accepts large, resumable uploads (so a dropped connection does not restart from zero), validates, and writes the source to durable blob storage. Emits a video.uploaded event to kick off processing. Returns immediately with status PROCESSING.',
+          icon: 'upload',
+          tags: ['resumable', 'ingest', 'durable'],
+        },
+        {
+          type: 'architectureCard',
+          title: 'Transcoding Pipeline',
+          description:
+            'A DAG of stages: split the source into chunks, encode chunks in parallel into multiple resolutions/codecs, package into streamable segments + manifests, then publish. Massively parallel and idempotent so failed chunks just retry.',
+          icon: 'cpu',
+          tags: ['transcode', 'parallel', 'dag'],
+        },
+        {
+          type: 'architectureCard',
+          title: 'CDN',
+          description:
+            'Global edge caches serve the overwhelming majority of bytes via adaptive bitrate streaming. Popular videos live hot at the edge; the long tail is fetched from origin on demand and cached.',
+          icon: 'globe',
+          tags: ['cdn', 'edge', 'abr'],
+        },
+      ],
+    },
+    {
+      id: 'transcoding-pipeline',
+      title: 'The Transcoding Pipeline',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            "This is YouTube's defining subsystem. A single source video is **split into short chunks** (e.g. by GOP/keyframe boundaries) so they can be **encoded independently and in parallel** across many workers — turning a multi-hour serial encode into a job that finishes in minutes. Each chunk is encoded into every rung of the **ABR ladder**, then packaged into streamable segments with a manifest.",
+        },
+        {
+          type: 'timeline',
+          items: [
+            {
+              title: 'Ingest',
+              description: 'Resumable upload lands the source in raw blob storage; emit an event.',
+              meta: 'upload',
+            },
+            {
+              title: 'Split',
+              description: 'Chop the source into independent chunks at keyframe boundaries.',
+              meta: 'splitter',
+            },
+            {
+              title: 'Encode (parallel)',
+              description:
+                'Each chunk → every ABR rung (144p…4K) + codecs (H.264, VP9, AV1) on the worker fleet.',
+              meta: 'encoders',
+            },
+            {
+              title: 'Package',
+              description: 'Stitch encoded chunks into DASH/HLS segments + manifest; apply DRM.',
+              meta: 'packager',
+            },
+            {
+              title: 'Publish',
+              description:
+                'Write to processed store, warm CDN, mark video READY, notify subscribers.',
+              meta: 'publish',
+            },
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Why chunk-level parallelism',
+          body: 'Encoding is CPU-intensive and inherently sequential per stream. Splitting at keyframe boundaries makes chunks independent, so thousands of workers encode them simultaneously. It also gives **fault isolation**: a failed chunk is retried alone, not the whole video.',
+        },
+        {
+          type: 'callout',
+          variant: 'warning',
+          title: 'Prioritize the ladder',
+          body: 'Publish a low/medium rendition first so the video becomes watchable quickly, then fill in higher resolutions. New uploads from large channels can be prioritized in the queue over long-tail content.',
+        },
+      ],
+    },
+    {
+      id: 'api-design',
+      title: 'API Design',
+      blocks: [
+        {
+          type: 'apiTable',
+          title: 'Core endpoints',
+          endpoints: [
+            {
+              method: 'POST',
+              path: '/v1/uploads',
+              description: 'Initiate a resumable upload session',
+              auth: true,
+            },
+            {
+              method: 'PUT',
+              path: '/v1/uploads/{id}?offset=',
+              description: 'Upload a chunk (resumable)',
+              auth: true,
+            },
+            {
+              method: 'POST',
+              path: '/v1/videos',
+              description: 'Create video metadata after upload',
+              auth: true,
+            },
+            {
+              method: 'GET',
+              path: '/v1/videos/{id}/watch',
+              description: 'Manifest + stream URLs + metadata',
+              auth: false,
+            },
+            { method: 'GET', path: '/v1/search?q=', description: 'Search videos', auth: false },
+            {
+              method: 'GET',
+              path: '/v1/recommendations',
+              description: 'Home / watch-next feed',
+              auth: false,
+            },
+            {
+              method: 'POST',
+              path: '/v1/videos/{id}/view',
+              description: 'Report a view event',
+              auth: false,
+            },
+            {
+              method: 'POST',
+              path: '/v1/videos/{id}/comments',
+              description: 'Add a comment',
+              auth: true,
+            },
+          ],
+        },
+        {
+          type: 'markdown',
+          value:
+            'Watching returns a **manifest** (the ABR ladder) plus segment URLs; the client measures bandwidth and requests the highest sustainable rendition. A `view` event is fire-and-forget into a streaming counter.',
+        },
+        {
+          type: 'code',
+          language: 'json',
+          filename: 'watch-response.json',
+          highlightLines: [2, 5, 6, 7, 8],
+          code: `{
+  "video": { "id": "v_8x2", "title": "System Design 101", "duration": 743, "status": "READY" },
+  "manifest": {
+    "type": "dash",
+    "renditions": [
+      { "res": "360p",  "codec": "h264", "bitrate": 800000 },
+      { "res": "720p",  "codec": "vp9",  "bitrate": 2500000 },
+      { "res": "1080p", "codec": "vp9",  "bitrate": 4500000 },
+      { "res": "2160p", "codec": "av1",  "bitrate": 14000000 }
+    ],
+    "segmentBase": "https://cdn.yt.com/v_8x2/"
+  },
+  "channel": { "id": "c_42", "name": "DevBytes", "subscribers": 1280000 }
+}`,
+        },
+      ],
+    },
+    {
+      id: 'database-design',
+      title: 'Database Design',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Polyglot persistence: source/segments in blob storage, video metadata in a wide-column store, relational data (channels, subscriptions) in a sharded SQL (Vitess-style), the search index in Elasticsearch, and view counts in a streaming counter system.',
+        },
+        {
+          type: 'code',
+          language: 'sql',
+          filename: 'videos.cql',
+          highlightLines: [3, 8],
+          code: `-- Video metadata. Partition by video id; status drives the watch path.
+CREATE TABLE videos (
+  video_id     text PRIMARY KEY,    -- opaque, unguessable id
+  channel_id   bigint,
+  title        text,
+  description  text,
+  duration_sec int,
+  status       text,                -- UPLOADING | PROCESSING | READY | FAILED
+  manifest_key text,                -- pointer to processed manifest
+  created_at   timestamp
+);
+-- Comments: partition by video, clustered by time for ordered reads.
+CREATE TABLE comments (
+  video_id text, comment_id timeuuid, user_id bigint, body text,
+  PRIMARY KEY ((video_id), comment_id)
+) WITH CLUSTERING ORDER BY (comment_id DESC);`,
+        },
+        {
+          type: 'table',
+          caption: 'Data store chosen per workload.',
+          headers: ['Data', 'Store', 'Why'],
+          rows: [
+            ['Source + segments', 'Blob store + CDN', 'Huge, immutable, globally served'],
+            ['Video metadata', 'Bigtable / Cassandra', 'Read-heavy, key lookups, AP'],
+            ['Channels, subs, users', 'Vitess (sharded MySQL)', 'Relational, transactional'],
+            ['Search index', 'Elasticsearch', 'Full-text + ranking'],
+            ['View counts', 'Stream processor + counters', 'Massive write rate, approximate'],
+            ['Comments', 'Cassandra', 'Append-heavy, partition by video'],
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Opaque video IDs',
+          body: "Video IDs are short, random, unguessable strings (not sequential) so private/unlisted videos can't be enumerated and the namespace is huge. Same idea as a URL shortener's key space.",
+        },
+      ],
+    },
+    {
+      id: 'view-counting',
+      title: 'View Counting',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Counting views sounds trivial but is a classic scale trap: a viral video gets **millions of view events in minutes**, all trying to increment one counter — a textbook **hot key / hot partition**. Incrementing a single row per view would melt the database. The solution is **streaming aggregation with approximate, eventually-consistent counts**.',
+        },
+        {
+          type: 'mermaid',
+          caption: 'View events aggregated through a stream, not a single hot row.',
+          definition: `flowchart LR
+  V["View events"] --> K[("Kafka: view.events")]
+  K --> Agg["Stream aggregator (windowed)"]
+  Agg --> Sharded[("Sharded counters: video_id:bucket")]
+  Sharded --> Roll["Periodic rollup"]
+  Roll --> Display[("Displayed count (cached)")]`,
+        },
+        {
+          type: 'bestPractices',
+          title: 'View-count best practices',
+          practices: [
+            '**Buffer + batch** view events through Kafka rather than incrementing per request.',
+            '**Shard the counter** (`video_id:bucket`) and sum buckets to avoid a single hot key.',
+            '**Aggregate in windows** (e.g. per-minute) and roll up asynchronously.',
+            '**Dedupe / validate** to filter bots and double-counts (a "view" has rules, e.g. >30s).',
+            '**Serve a cached, slightly stale count** — exactness is unnecessary and impossible in real time.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Approximate is fine (and unavoidable)',
+          body: 'Nobody needs the view count exact to the unit in real time. Display an eventually-consistent, monotonically-increasing approximation. For very high-cardinality uniqueness (unique viewers), structures like **HyperLogLog** give cheap approximate distinct counts.',
+        },
+      ],
+    },
+    {
+      id: 'search-recommendations',
+      title: 'Search & Recommendations',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            '**Search** indexes title, description, tags, transcripts, and channel into Elasticsearch, ranked by relevance blended with quality/engagement signals. **Recommendations** are the real engagement engine: candidate generation (related videos, watch history, trending) followed by ML ranking, precomputed offline and served as fast key lookups.',
+        },
+        {
+          type: 'bestPractices',
+          title: 'Recommendation pipeline',
+          practices: [
+            '**Candidate generation**: co-watch graph, channel subs, topic similarity, trending.',
+            '**Feature hydration**: watch time, CTR, freshness, user history embeddings.',
+            '**Ranking model**: predict watch-time / satisfaction, not just clicks.',
+            '**Precompute offline** (batch) and cache per-user candidate sets for fast serving.',
+            '**Diversify + filter**: avoid repetition, demote clickbait/low-quality.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'note',
+          title: 'Optimize for watch time, not clicks',
+          body: "Optimizing purely for click-through breeds clickbait. Ranking on **predicted watch time / satisfaction** aligns recommendations with genuine engagement — a famous lesson from YouTube's own evolution.",
+        },
+      ],
+    },
+    {
+      id: 'communication-flow',
+      title: 'Communication Flow',
+      blocks: [
+        {
+          type: 'markdown',
+          value: 'The full lifecycle of uploading and then watching a video:',
+        },
+        {
+          type: 'mermaid',
+          caption: 'Upload → transcode → publish, then watch via CDN.',
+          definition: `sequenceDiagram
+  participant C as Creator
+  participant U as Upload Svc
+  participant S as Raw Store
+  participant P as Transcode Pipeline
+  participant D as Processed Store/CDN
+  participant V as Viewer
+  C->>U: resumable upload (chunks)
+  U->>S: store source
+  U-->>C: 201 (status PROCESSING)
+  U->>P: video.uploaded
+  P->>P: split → encode (parallel) → package
+  P->>D: publish segments + manifest; mark READY
+  V->>U: GET /watch
+  U-->>V: manifest + segment base URL
+  V->>D: GET segments (lowest safe bitrate first)
+  D-->>V: video bytes (edge cache)
+  V->>D: ramp up bitrate (ABR)
+  V->>U: view event (fire-and-forget)`,
+        },
+        {
+          type: 'callout',
+          variant: 'note',
+          title: 'Watchable before fully processed',
+          body: 'Publishing a low rendition first lets viewers watch within minutes of upload while higher resolutions finish encoding in the background. The watch response only advertises renditions that are actually ready.',
+        },
+      ],
+    },
+    {
+      id: 'caching-strategy',
+      title: 'Caching Strategy',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'The biggest cache is the **CDN** serving video segments. Beyond that, video metadata, manifests, search results, and recommendation candidate sets are cached. View counts are served from a cached rollup, not recomputed per request.',
+        },
+        {
+          type: 'callout',
+          variant: 'info',
+          title: 'Popularity is extremely skewed',
+          body: 'A tiny fraction of videos drive most views. Keep those **hot at the edge**; let the massive long tail be fetched from origin on first request and cached with a TTL. This Pareto skew is what makes CDN caching so effective.',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'WatchService.java',
+          highlightLines: [7, 8, 9],
+          code: `@Service
+public class WatchService {
+  private final MetaCache meta;       // video metadata + manifest
+  private final ViewCountCache views; // cached rollup
+
+  public WatchResponse watch(String videoId) {
+    Video v = meta.get(videoId);              // cache-aside
+    if (v.status() != READY) return processingResponse(v);
+    long count = views.approx(videoId);       // cached, eventually consistent
+    return new WatchResponse(v.manifest(), count, v.channel());
+  }
+}`,
+        },
+      ],
+    },
+    {
+      id: 'scaling-strategy',
+      title: 'Scaling Strategy',
+      blocks: [
+        {
+          type: 'bestPractices',
+          practices: [
+            '**Offload all video bytes to the CDN** so origin handles misses, not the firehose.',
+            '**Massively parallel transcoding** via chunking so encode time is bounded regardless of video length.',
+            '**Async pipeline** (Kafka) so uploads return instantly and processing scales independently.',
+            '**Stream + shard view counts** to avoid hot-key meltdowns.',
+            '**Precompute recommendations** offline; serve as fast key lookups.',
+            '**Tier storage**: hot SSD/edge for popular, cold/archival for the long tail.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'info',
+          title: 'Read-optimize the common path',
+          body: 'Views dwarf uploads. Pay heavy one-time costs on upload (transcode, package, CDN warm) so the billions of reads are cheap edge hits. The recurring theme across these designs.',
+        },
+      ],
+    },
+    {
+      id: 'consistency',
+      title: 'Consistency',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Source video is durable on upload; processed segments are immutable once published. View counts, search freshness, and recommendations are eventually consistent. The watch path only advertises READY renditions, so viewers never hit a half-encoded stream.',
+        },
+        {
+          type: 'featureComparison',
+          caption: 'Consistency expectations by data type.',
+          columns: ['Strong', 'Eventual'],
+          rows: [
+            { feature: 'Source upload durability', values: [true, false] },
+            { feature: 'View count', values: [false, true] },
+            { feature: 'Search index freshness', values: [false, true] },
+            { feature: 'Recommendations', values: [false, true] },
+            { feature: 'Subscriptions / channel', values: [true, false] },
+            { feature: 'Comment counts', values: [false, true] },
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Monotonic counts',
+          body: 'Counts should never visibly decrease. Serve from a rollup that only moves forward, smoothing out per-shard aggregation so a refresh never shows fewer views than before.',
+        },
+      ],
+    },
+    {
+      id: 'availability',
+      title: 'Availability',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            "The watch + search path stays up even when sub-systems degrade. If recommendations fail, show trending/most-viewed; if the exact view count is unavailable, show the last cached value; if a higher rendition isn't ready, play a lower one. Video is served from many edges, so an origin/region issue is invisible to most viewers.",
+        },
+        {
+          type: 'callout',
+          variant: 'summary',
+          title: 'Graceful degradation',
+          body: 'A degraded experience (lower resolution, generic recommendations, slightly stale counts) beats an error. Never let processing, counting, or recommendation failures block playback.',
+        },
+        {
+          type: 'youtube',
+          videoId: 'jPKTo1iGQiE',
+          title: 'Designing YouTube / video platform (illustrative embed)',
+        },
+      ],
+    },
+    {
+      id: 'partitioning',
+      title: 'Partitioning',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Video metadata and comments partition by `video_id` (a watch page = a few fast reads). View counters partition by `video_id:bucket` to defuse hot keys. Channels/subscriptions partition by `channel_id`/`user_id`. Blob storage partitions segments by a hashed key prefix.',
+        },
+        {
+          type: 'callout',
+          variant: 'warning',
+          title: 'Avoid hot partitions',
+          body: 'A viral video is the canonical hot key: millions of concurrent reads + view increments. Mitigate with **CDN absorption** for bytes, **sharded counters** for views, and a **read cache** for metadata so the database is barely touched.',
+        },
+      ],
+    },
+    {
+      id: 'sharding',
+      title: 'Sharding',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Wide-column stores shard by key via consistent hashing. The relational tier uses **Vitess** to shard MySQL horizontally (YouTube\'s own technology) so a single logical schema spans many shards transparently. The transcoding fleet "shards" work by chunk across thousands of stateless workers.',
+        },
+        {
+          type: 'mermaid',
+          caption: 'Vitess shards a logical MySQL schema across many nodes.',
+          definition: `flowchart LR
+  App["App"] --> VTGate["VTGate (router)"]
+  VTGate --> S1["Shard -80"]
+  VTGate --> S2["Shard 80-"]
+  S1 --> M1[("MySQL")]
+  S2 --> M2[("MySQL")]`,
+        },
+      ],
+    },
+    {
+      id: 'replication',
+      title: 'Replication',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Blob storage replicates segments across zones/regions for very high durability (and the CDN replicates hot content across edges worldwide). Wide-column stores replicate RF=3 across AZs. Vitess shards run primary + replicas with cross-region copies for disaster recovery and local reads.',
+        },
+        {
+          type: 'prosCons',
+          title: 'Multi-region delivery',
+          pros: [
+            'Survives a region outage; bytes served from the nearest edge.',
+            'Low global startup latency.',
+            'High source durability via cross-zone replication.',
+          ],
+          cons: [
+            'Storage + egress cost of wide replication.',
+            'Cross-region metadata lag.',
+            'Operational complexity at this scale.',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'fault-tolerance',
+      title: 'Fault Tolerance',
+      blocks: [
+        {
+          type: 'bestPractices',
+          practices: [
+            '**Resumable uploads** survive flaky networks without restarting.',
+            '**Idempotent, retryable transcoding** — a failed chunk retries in isolation.',
+            '**Persist source before processing** so a pipeline crash never loses the original.',
+            '**Circuit breakers + fallbacks** on recommendations, counts, and search.',
+            '**CDN absorbs origin failures** for already-cached segments.',
+            '**Reconciliation** sweeps stuck PROCESSING videos and re-enqueues them.',
+          ],
+        },
+        {
+          type: 'expandable',
+          title: 'Example: idempotent chunk encoding',
+          blocks: [
+            {
+              type: 'code',
+              language: 'python',
+              filename: 'encode_chunk.py',
+              code: `def encode_chunk(video_id, chunk_idx, rung):
+    out_key = f"{video_id}/{rung.name}/chunk_{chunk_idx}.m4s"
+    if blob.exists(out_key):              # idempotent: already done
+        return out_key
+    src = blob.get(f"{video_id}/chunks/{chunk_idx}.raw")
+    encoded = ffmpeg_encode(src, rung)    # deterministic for (chunk, rung)
+    blob.put(out_key, encoded)
+    return out_key                        # safe to retry on failure`,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'trade-offs',
+      title: 'Trade-offs',
+      blocks: [
+        {
+          type: 'table',
+          caption: 'Key decisions and what they cost.',
+          headers: ['Decision', 'Gain', 'Cost'],
+          rows: [
+            [
+              'Async transcoding pipeline',
+              'Instant upload, elastic compute',
+              'Eventual availability; PROCESSING state',
+            ],
+            [
+              'Chunk-level parallel encode',
+              'Bounded encode time, fault isolation',
+              'Orchestration + stitching complexity',
+            ],
+            ['Approximate view counts', 'Survives viral hot keys', 'Not exact in real time'],
+            [
+              'CDN-first delivery',
+              'Cheap global low latency',
+              'Cache management; long-tail misses',
+            ],
+            ['Precomputed recommendations', 'Fast serving', 'Staleness; heavy offline compute'],
+            ['Tiered storage', 'Cost control at PB scale', 'Cold-tier fetch latency'],
+          ],
+        },
+      ],
+    },
+    {
+      id: 'technology-choices',
+      title: 'Technology Choices',
+      blocks: [
+        {
+          type: 'markdown',
+          value: 'A representative slice of the stack and the role each plays:',
+        },
+        {
+          type: 'table',
+          headers: ['Concern', 'Technology'],
+          rows: [
+            ['Video storage', 'Blob store (GCS/Colossus-like) + CDN'],
+            ['Video metadata', 'Bigtable / Cassandra'],
+            ['Relational (channels/subs)', 'Vitess (sharded MySQL)'],
+            ['Transcoding', 'FFmpeg on a worker fleet'],
+            ['Pipeline orchestration', 'Kafka + workflow engine'],
+            ['Search', 'Elasticsearch'],
+            ['View counts / streaming', 'Kafka + stream processor (Flink-like)'],
+            ['Recommendations', 'Offline ML (Spark/TF) + serving cache'],
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'note',
+          title: 'Vitess was born here',
+          body: 'YouTube created **Vitess** to scale MySQL horizontally when a single database could no longer hold its relational data. It is now a widely-used open-source sharding layer — a reminder that scaling pressure often produces reusable infrastructure.',
+        },
+        {
+          type: 'code',
+          language: 'yaml',
+          filename: 'encoder-fleet.deploy.yaml',
+          code: `service: encoder-worker
+strategy: rolling
+autoscaling:
+  metric: transcode_queue_depth
+  target: 2000              # chunks waiting before scaling out
+  min: 100
+  max: 20000               # huge elastic fleet for upload spikes
+resources:
+  cpu: high                # encoding is CPU-bound (or GPU/ASIC accelerated)
+healthCheck:
+  path: /health
+  unhealthyThreshold: 3`,
+        },
+      ],
+    },
+    {
+      id: 'interview-questions',
+      title: 'Interview Questions',
+      blocks: [
+        {
+          type: 'interviewQa',
+          items: [
+            {
+              question: 'How do you transcode millions of hours of video?',
+              answer:
+                'Split each source into independent chunks at keyframe boundaries and **encode chunks in parallel** across a large worker fleet, into every rung of the ABR ladder and multiple codecs, then package into DASH/HLS segments. Chunking bounds encode time regardless of video length and isolates failures to a single chunk.',
+            },
+            {
+              question: 'How do you count views on a viral video without melting the DB?',
+              answer:
+                'Never increment a single row per view. Buffer view events through **Kafka**, aggregate them in **windows**, write to **sharded counters** (`video_id:bucket`), and roll up asynchronously. Serve a cached, eventually-consistent, monotonic approximation — exact real-time counts are neither needed nor feasible.',
+            },
+            {
+              question: 'How is a video watchable so soon after upload?',
+              answer:
+                'Publish a **low/medium rendition first** so playback works within minutes, then fill in higher resolutions in the background. The watch response only advertises renditions that are actually READY, and the source is stored durably before processing begins.',
+            },
+            {
+              question: 'How does this differ from designing Netflix?',
+              answer:
+                'Netflix is **curated VOD** with a finite catalog pre-positioned on a private CDN. YouTube is **UGC**: the dominant problems are massive **ingest**, the **transcoding pipeline**, **view counting**, and **search/recommendation over billions of videos** — an unbounded, unpredictable write stream rather than a known catalog.',
+            },
+            {
+              question: 'How do you store video efficiently at petabyte scale?',
+              answer:
+                'Keep source + segments in blob storage, serve via **CDN**, and **tier** storage: hot SSD/edge for the small set of popular videos, cold/archival for the long tail (fetched and cached on demand). Popularity is heavily skewed, so most reads are cheap edge hits.',
+            },
+            {
+              question: 'What should recommendations optimize for?',
+              answer:
+                'Predicted **watch time / satisfaction**, not raw clicks — optimizing for clicks breeds clickbait. Generate candidates (co-watch graph, history, trending), rank with an ML model offline, cache per-user candidate sets, and diversify/filter for quality.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'references',
+      title: 'References',
+      blocks: [
+        {
+          type: 'references',
+          items: [
+            {
+              label: 'Vitess: Scaling MySQL (born at YouTube)',
+              url: 'https://vitess.io/docs/overview/whatisvitess/',
+              source: 'Vitess',
+            },
+            {
+              label: 'Deep Neural Networks for YouTube Recommendations',
+              url: 'https://research.google/pubs/pub45530/',
+              source: 'Google Research',
+            },
+            {
+              label: 'Cloud Transcoding & ABR Streaming (DASH/HLS)',
+              url: 'https://developer.mozilla.org/en-US/docs/Web/Media/Audio_and_video_delivery/Live_streaming_web_audio_and_video',
+              source: 'MDN',
+            },
+            {
+              label: 'HyperLogLog: approximate distinct counting',
+              url: 'https://redis.io/docs/latest/develop/data-types/probabilistic/hyperloglogs/',
+              source: 'Redis',
+            },
+            {
+              label: "Colossus: Google's file system",
+              url: 'https://cloud.google.com/blog/products/storage-data-transfer/a-peek-behind-colossus-googles-file-system',
+              source: 'Google Cloud',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'summary',
+      title: 'Summary',
+      blocks: [
+        {
+          type: 'callout',
+          variant: 'summary',
+          title: 'Key takeaways',
+          body: '1. **Split write from read**: a write-heavy ingest + transcoding pipeline feeding a read-heavy CDN delivery + discovery path.\n2. **Chunk-level parallel transcoding** bounds encode time and isolates failures; publish a low rendition first for fast availability.\n3. **View counting is a hot-key problem** — buffer through a stream, shard counters, and serve approximate, monotonic, cached counts.\n4. **CDN-first delivery + tiered storage** exploit the heavy popularity skew to serve billions of views cheaply.\n5. **Recommendations drive engagement** — precompute offline and optimize for watch time, not clicks.',
+        },
+      ],
+    },
+  ],
+};
+
+export default content;

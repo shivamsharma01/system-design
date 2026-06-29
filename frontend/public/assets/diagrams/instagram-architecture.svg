@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 380" font-family="Inter, system-ui, sans-serif" role="img" aria-label="Instagram media upload and feed architecture diagram">
+  <rect width="880" height="380" fill="#1a1a1a" rx="12"/>
+  <text x="440" y="36" fill="#ffffff" font-size="20" font-weight="700" text-anchor="middle">Instagram Upload &amp; Feed</text>
+
+  <!-- Uploader -->
+  <g>
+    <rect x="36" y="60" width="140" height="80" rx="10" fill="#2a2a2a" stroke="#dd2a7b" stroke-width="2"/>
+    <text x="106" y="96" fill="#fff" font-size="15" font-weight="600" text-anchor="middle">Uploader</text>
+    <text x="106" y="118" fill="#b0b0b0" font-size="12" text-anchor="middle">posts photo</text>
+  </g>
+
+  <!-- Viewer -->
+  <g>
+    <rect x="36" y="240" width="140" height="80" rx="10" fill="#2a2a2a" stroke="#515bd4" stroke-width="2"/>
+    <text x="106" y="276" fill="#fff" font-size="15" font-weight="600" text-anchor="middle">Viewer</text>
+    <text x="106" y="298" fill="#b0b0b0" font-size="12" text-anchor="middle">scrolls feed</text>
+  </g>
+
+  <!-- Upload service -->
+  <g>
+    <rect x="232" y="50" width="180" height="100" rx="10" fill="#222" stroke="#f58529" stroke-width="2"/>
+    <text x="322" y="86" fill="#fff" font-size="15" font-weight="600" text-anchor="middle">Upload Service</text>
+    <text x="322" y="108" fill="#b0b0b0" font-size="12" text-anchor="middle">pre-signed URL</text>
+    <text x="322" y="126" fill="#b0b0b0" font-size="12" text-anchor="middle">+ metadata write</text>
+  </g>
+
+  <!-- Object store + processing -->
+  <g>
+    <rect x="232" y="200" width="180" height="120" rx="10" fill="#222" stroke="#a855f7" stroke-width="2"/>
+    <text x="322" y="236" fill="#fff" font-size="15" font-weight="600" text-anchor="middle">Blob Store (S3)</text>
+    <text x="322" y="258" fill="#b0b0b0" font-size="12" text-anchor="middle">+ transcode worker</text>
+    <text x="322" y="276" fill="#b0b0b0" font-size="12" text-anchor="middle">thumbnails / sizes</text>
+    <text x="322" y="298" fill="#b0b0b0" font-size="12" text-anchor="middle">via Kafka</text>
+  </g>
+
+  <!-- Feed + metadata -->
+  <g>
+    <rect x="468" y="50" width="180" height="100" rx="10" fill="#222" stroke="#22c55e" stroke-width="2"/>
+    <text x="558" y="86" fill="#fff" font-size="15" font-weight="600" text-anchor="middle">Feed Service</text>
+    <text x="558" y="108" fill="#b0b0b0" font-size="12" text-anchor="middle">fan-out IDs ’ Redis</text>
+    <text x="558" y="126" fill="#b0b0b0" font-size="12" text-anchor="middle">hydrate + rank</text>
+  </g>
+
+  <!-- Metadata DB -->
+  <g>
+    <rect x="468" y="200" width="180" height="120" rx="10" fill="#222" stroke="#3b82f6" stroke-width="2"/>
+    <text x="558" y="236" fill="#fff" font-size="15" font-weight="600" text-anchor="middle">Metadata</text>
+    <text x="558" y="258" fill="#b0b0b0" font-size="12" text-anchor="middle">posts: Cassandra</text>
+    <text x="558" y="276" fill="#b0b0b0" font-size="12" text-anchor="middle">graph + users: SQL</text>
+    <text x="558" y="294" fill="#b0b0b0" font-size="12" text-anchor="middle">counts: Redis</text>
+  </g>
+
+  <!-- CDN -->
+  <g>
+    <rect x="704" y="150" width="144" height="100" rx="10" fill="#222" stroke="#f59e0b" stroke-width="2"/>
+    <text x="776" y="190" fill="#fff" font-size="15" font-weight="600" text-anchor="middle">CDN</text>
+    <text x="776" y="212" fill="#b0b0b0" font-size="12" text-anchor="middle">edge cache</text>
+    <text x="776" y="230" fill="#b0b0b0" font-size="12" text-anchor="middle">images/video</text>
+  </g>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#b0b0b0"/>
+    </marker>
+  </defs>
+  <line x1="176" y1="100" x2="230" y2="100" stroke="#dd2a7b" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="180" y="92" fill="#b0b0b0" font-size="11">1. upload</text>
+  <line x1="322" y1="150" x2="322" y2="198" stroke="#a855f7" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="328" y="178" fill="#b0b0b0" font-size="11">blob</text>
+  <line x1="412" y1="100" x2="466" y2="100" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="416" y="92" fill="#b0b0b0" font-size="11">fan-out</text>
+  <line x1="558" y1="150" x2="558" y2="198" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="176" y1="280" x2="466" y2="270" stroke="#515bd4" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="250" y="290" fill="#b0b0b0" font-size="11">2. GET feed</text>
+  <line x1="648" y1="220" x2="702" y2="210" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="652" y="200" fill="#b0b0b0" font-size="11">3. media</text>
+</svg>

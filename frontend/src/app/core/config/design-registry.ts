@@ -13,6 +13,10 @@ import { RATE_LIMITER_META } from '../../features/system-designs/rate-limiter/ra
 import { NOTIFICATION_SYSTEM_META } from '../../features/system-designs/notification-system/notification-system.meta';
 import { DISTRIBUTED_CACHE_META } from '../../features/system-designs/distributed-cache/distributed-cache.meta';
 import { PAYMENT_GATEWAY_META } from '../../features/system-designs/payment-gateway/payment-gateway.meta';
+import { ZOMATO_META } from '../../features/system-designs/zomato/zomato.meta';
+import { SPOTIFY_META } from '../../features/system-designs/spotify/spotify.meta';
+import { AMAZON_META } from '../../features/system-designs/amazon/amazon.meta';
+import { DROPBOX_META } from '../../features/system-designs/dropbox/dropbox.meta';
 
 /**
  * The single source of truth for the catalog.
@@ -72,5 +76,21 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   {
     meta: PAYMENT_GATEWAY_META,
     load: () => import('../../features/system-designs/payment-gateway/payment-gateway.content'),
+  },
+  {
+    meta: ZOMATO_META,
+    load: () => import('../../features/system-designs/zomato/zomato.content'),
+  },
+  {
+    meta: SPOTIFY_META,
+    load: () => import('../../features/system-designs/spotify/spotify.content'),
+  },
+  {
+    meta: AMAZON_META,
+    load: () => import('../../features/system-designs/amazon/amazon.content'),
+  },
+  {
+    meta: DROPBOX_META,
+    load: () => import('../../features/system-designs/dropbox/dropbox.content'),
   },
 ];
