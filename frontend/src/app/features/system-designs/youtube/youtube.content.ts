@@ -113,7 +113,7 @@ const content: DesignContent = {
             { label: 'Views / day', value: '~5B', hint: '~58k/sec avg' },
             { label: 'Renditions / video', value: '~6+', hint: '144p → 4K, multi-codec' },
             { label: 'Avg watch bitrate', value: '~3 Mbps', hint: 'adaptive' },
-            { label: 'New source / day', value: '~1+ PB', hint: 'raw uploads' },
+            { label: 'New source / day', value: '~3 PB', hint: 'raw uploads' },
             { label: 'CDN egress', value: '100s of Tbps', hint: 'global peak' },
           ],
         },

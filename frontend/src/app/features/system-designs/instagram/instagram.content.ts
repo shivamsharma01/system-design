@@ -107,7 +107,7 @@ const content: DesignContent = {
             { label: 'Uploads / day', value: '~100M', hint: '~1,160/sec avg' },
             { label: 'Avg original size', value: '~2 MB', hint: 'photo; video far larger' },
             { label: 'Feed reads / sec', value: '~1M+', hint: 'read-heavy' },
-            { label: 'New media / day', value: '~200 TB+', hint: 'originals + variants' },
+            { label: 'New media / day', value: '~600 TB', hint: 'originals + variants (≈3×)' },
             { label: 'CDN hit ratio', value: '~95%+', hint: 'hot media at edge' },
           ],
         },

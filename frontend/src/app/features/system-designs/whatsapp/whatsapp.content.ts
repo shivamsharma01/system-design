@@ -110,7 +110,7 @@ const content: DesignContent = {
             { label: 'Messages / sec (avg)', value: '~1.2M', hint: '100B / 86400' },
             { label: 'Peak msgs / sec', value: '~5–8M', hint: 'evening / events spike' },
             { label: 'Conns / server', value: '~1M+', hint: 'tuned Erlang node' },
-            { label: 'Write volume', value: '~100 GB/day', hint: '100B × ~1KB env, text only' },
+            { label: 'Write volume', value: '~100 TB/day', hint: '100B × ~1KB env, text only' },
           ],
         },
         {
