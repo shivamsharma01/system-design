@@ -20,7 +20,7 @@ export const CONTENT_SECTIONS: ContentSectionMeta[] = [
   {
     id: 'design-patterns',
     title: 'Design Patterns',
-    description: 'Classic software design patterns — coming soon.',
+    description: 'GoF patterns grouped by Creational and Structural — more categories coming soon.',
     order: 3,
   },
 ];

@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const FLYWEIGHT_META: DesignMeta = {
+  slug: 'flyweight',
+  title: 'Flyweight Pattern',
+  tagline:
+    'Share intrinsic state across many objects — text characters, map icons, and game particles to cut memory use.',
+  section: 'design-patterns',
+  category: 'Structural',
+  tags: ['flyweight', 'structural', 'gof', 'lld', 'memory'],
+  technologies: ['Java', 'Caching', 'Games'],
+  difficulty: 'intermediate',
+  readingTimeMin: 13,
+  status: 'published',
+  keywords: ['intrinsic extrinsic', 'shared state', 'memory optimization', 'glyph'],
+  dateAdded: '2026-07-09',
+  popularity: 78,
+  icon: 'FL',
+  heroGradient: 'linear-gradient(135deg, #14b8a6 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

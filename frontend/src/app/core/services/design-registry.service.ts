@@ -50,10 +50,29 @@ export class DesignRegistryService {
     return this.getAllMeta().filter((m) => m.section === section);
   }
 
+  /** Preferred order for Design Patterns GoF categories. */
+  private static readonly PATTERN_CATEGORY_ORDER = [
+    'Creational',
+    'Structural',
+    'Behavioral',
+    'Concurrency',
+    'Architectural',
+  ];
+
   /** Categories within a section (or all categories if section omitted). */
   getCategories(section?: ContentSectionId): string[] {
     const list = section ? this.getBySection(section) : this.getAllMeta();
-    return [...new Set(list.map((m) => m.category))].sort();
+    const categories = [...new Set(list.map((m) => m.category))];
+    if (section === 'design-patterns') {
+      return categories.sort((a, b) => {
+        const ai = DesignRegistryService.PATTERN_CATEGORY_ORDER.indexOf(a);
+        const bi = DesignRegistryService.PATTERN_CATEGORY_ORDER.indexOf(b);
+        const ao = ai === -1 ? Number.MAX_SAFE_INTEGER : ai;
+        const bo = bi === -1 ? Number.MAX_SAFE_INTEGER : bi;
+        return ao !== bo ? ao - bo : a.localeCompare(b);
+      });
+    }
+    return categories.sort();
   }
 
   getTags(): string[] {

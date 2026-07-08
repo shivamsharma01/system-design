@@ -3,6 +3,19 @@ import { DesignRegistryEntry } from './design-registry.model';
 // --- Design metadata (statically imported; tiny, used for cards + search) ---
 import { INTERVIEW_FRAMEWORK_META } from '../../features/system-designs/interview-framework/interview-framework.meta';
 import { SOLID_PRINCIPLES_META } from '../../features/system-designs/solid-principles/solid-principles.meta';
+import { SINGLETON_META } from '../../features/system-designs/singleton/singleton.meta';
+import { FACTORY_METHOD_META } from '../../features/system-designs/factory-method/factory-method.meta';
+import { ABSTRACT_FACTORY_META } from '../../features/system-designs/abstract-factory/abstract-factory.meta';
+import { BUILDER_META } from '../../features/system-designs/builder/builder.meta';
+import { PROTOTYPE_META } from '../../features/system-designs/prototype/prototype.meta';
+import { OBJECT_POOL_META } from '../../features/system-designs/object-pool/object-pool.meta';
+import { ADAPTER_META } from '../../features/system-designs/adapter/adapter.meta';
+import { BRIDGE_META } from '../../features/system-designs/bridge/bridge.meta';
+import { COMPOSITE_META } from '../../features/system-designs/composite/composite.meta';
+import { DECORATOR_META } from '../../features/system-designs/decorator/decorator.meta';
+import { FACADE_META } from '../../features/system-designs/facade/facade.meta';
+import { FLYWEIGHT_META } from '../../features/system-designs/flyweight/flyweight.meta';
+import { PROXY_META } from '../../features/system-designs/proxy/proxy.meta';
 import { NETFLIX_META } from '../../features/system-designs/netflix/netflix.meta';
 import { URL_SHORTENER_META } from '../../features/system-designs/url-shortener/url-shortener.meta';
 import { WHATSAPP_META } from '../../features/system-designs/whatsapp/whatsapp.meta';
@@ -38,6 +51,58 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   {
     meta: SOLID_PRINCIPLES_META,
     load: () => import('../../features/system-designs/solid-principles/solid-principles.content'),
+  },
+  {
+    meta: SINGLETON_META,
+    load: () => import('../../features/system-designs/singleton/singleton.content'),
+  },
+  {
+    meta: FACTORY_METHOD_META,
+    load: () => import('../../features/system-designs/factory-method/factory-method.content'),
+  },
+  {
+    meta: ABSTRACT_FACTORY_META,
+    load: () => import('../../features/system-designs/abstract-factory/abstract-factory.content'),
+  },
+  {
+    meta: BUILDER_META,
+    load: () => import('../../features/system-designs/builder/builder.content'),
+  },
+  {
+    meta: PROTOTYPE_META,
+    load: () => import('../../features/system-designs/prototype/prototype.content'),
+  },
+  {
+    meta: OBJECT_POOL_META,
+    load: () => import('../../features/system-designs/object-pool/object-pool.content'),
+  },
+  {
+    meta: ADAPTER_META,
+    load: () => import('../../features/system-designs/adapter/adapter.content'),
+  },
+  {
+    meta: BRIDGE_META,
+    load: () => import('../../features/system-designs/bridge/bridge.content'),
+  },
+  {
+    meta: COMPOSITE_META,
+    load: () => import('../../features/system-designs/composite/composite.content'),
+  },
+  {
+    meta: DECORATOR_META,
+    load: () => import('../../features/system-designs/decorator/decorator.content'),
+  },
+  {
+    meta: FACADE_META,
+    load: () => import('../../features/system-designs/facade/facade.content'),
+  },
+  {
+    meta: FLYWEIGHT_META,
+    load: () => import('../../features/system-designs/flyweight/flyweight.content'),
+  },
+  {
+    meta: PROXY_META,
+    load: () => import('../../features/system-designs/proxy/proxy.content'),
   },
   {
     meta: NETFLIX_META,

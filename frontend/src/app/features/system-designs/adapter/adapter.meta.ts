@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const ADAPTER_META: DesignMeta = {
+  slug: 'adapter',
+  title: 'Adapter Pattern',
+  tagline:
+    'Make incompatible interfaces work together — payment SDKs, legacy APIs, and third-party libraries behind one contract.',
+  section: 'design-patterns',
+  category: 'Structural',
+  tags: ['adapter', 'structural', 'gof', 'lld', 'integration'],
+  technologies: ['Java', 'Payments', 'Legacy APIs'],
+  difficulty: 'beginner',
+  readingTimeMin: 12,
+  status: 'published',
+  keywords: ['wrapper', 'interface conversion', 'legacy integration', 'third party'],
+  dateAdded: '2026-07-09',
+  popularity: 93,
+  icon: 'AD',
+  heroGradient: 'linear-gradient(135deg, #3b82f6 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

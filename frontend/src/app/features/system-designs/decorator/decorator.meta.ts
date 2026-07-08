@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const DECORATOR_META: DesignMeta = {
+  slug: 'decorator',
+  title: 'Decorator Pattern',
+  tagline:
+    'Add behavior dynamically — logging, compression, auth wrappers, and Java I/O streams without subclass explosion.',
+  section: 'design-patterns',
+  category: 'Structural',
+  tags: ['decorator', 'structural', 'gof', 'lld', 'middleware'],
+  technologies: ['Java', 'I/O Streams', 'Middleware'],
+  difficulty: 'intermediate',
+  readingTimeMin: 14,
+  status: 'published',
+  keywords: ['wrapper', 'open closed', 'java io', 'middleware chain'],
+  dateAdded: '2026-07-09',
+  popularity: 97,
+  icon: 'DE',
+  heroGradient: 'linear-gradient(135deg, #f97316 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

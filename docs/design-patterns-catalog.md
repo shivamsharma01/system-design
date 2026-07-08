@@ -15,24 +15,24 @@ A backlog of design patterns to turn into pages under the **Design Patterns** se
 
 ## Creational (GoF)
 
-- [ ] **Singleton** — Ensure a class has only one instance and provide global access to it. `slug: singleton`
-- [ ] **Factory Method** — Define an interface for creating objects; let subclasses decide which class to instantiate. `slug: factory-method`
-- [ ] **Abstract Factory** — Provide an interface for creating families of related objects without specifying concrete classes. `slug: abstract-factory`
-- [ ] **Builder** — Separate construction of a complex object from its representation so the same process can build different variants. `slug: builder`
-- [ ] **Prototype** — Create new objects by copying an existing instance (prototype) instead of constructing from scratch. `slug: prototype`
-- [ ] **Object Pool** — Reuse expensive-to-create objects from a pool instead of allocating and destroying repeatedly. `slug: object-pool`
+- [x] **Singleton** — Ensure a class has only one instance and provide global access to it. `slug: singleton`
+- [x] **Factory Method** — Define an interface for creating objects; let subclasses decide which class to instantiate. `slug: factory-method`
+- [x] **Abstract Factory** — Provide an interface for creating families of related objects without specifying concrete classes. `slug: abstract-factory`
+- [x] **Builder** — Separate construction of a complex object from its representation so the same process can build different variants. `slug: builder`
+- [x] **Prototype** — Create new objects by copying an existing instance (prototype) instead of constructing from scratch. `slug: prototype`
+- [x] **Object Pool** — Reuse expensive-to-create objects from a pool instead of allocating and destroying repeatedly. `slug: object-pool`
 
 ---
 
 ## Structural (GoF)
 
-- [ ] **Adapter** — Convert one interface into another that clients expect, enabling incompatible types to work together. `slug: adapter`
-- [ ] **Bridge** — Decouple an abstraction from its implementation so both can vary independently. `slug: bridge`
-- [ ] **Composite** — Compose objects into tree structures to represent part-whole hierarchies uniformly. `slug: composite`
-- [ ] **Decorator** — Attach additional responsibilities to an object dynamically without subclassing. `slug: decorator`
-- [ ] **Facade** — Provide a simplified, unified interface to a complex subsystem. `slug: facade`
-- [ ] **Flyweight** — Share intrinsic state across many fine-grained objects to reduce memory use. `slug: flyweight`
-- [ ] **Proxy** — Provide a surrogate or placeholder to control access to another object. `slug: proxy`
+- [x] **Adapter** — Convert one interface into another that clients expect, enabling incompatible types to work together. `slug: adapter`
+- [x] **Bridge** — Decouple an abstraction from its implementation so both can vary independently. `slug: bridge`
+- [x] **Composite** — Compose objects into tree structures to represent part-whole hierarchies uniformly. `slug: composite`
+- [x] **Decorator** — Attach additional responsibilities to an object dynamically without subclassing. `slug: decorator`
+- [x] **Facade** — Provide a simplified, unified interface to a complex subsystem. `slug: facade`
+- [x] **Flyweight** — Share intrinsic state across many fine-grained objects to reduce memory use. `slug: flyweight`
+- [x] **Proxy** — Provide a surrogate or placeholder to control access to another object. `slug: proxy`
 
 ---
 

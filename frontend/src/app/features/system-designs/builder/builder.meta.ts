@@ -1,0 +1,27 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const BUILDER_META: DesignMeta = {
+  slug: 'builder',
+  title: 'Builder Pattern',
+  tagline:
+    'Step-by-step construction for complex objects — HTTP requests, SQL queries, and meal orders with optional parts.',
+  section: 'design-patterns',
+  category: 'Creational',
+  tags: ['builder', 'creational', 'gof', 'lld', 'fluent-api'],
+  technologies: ['Java', 'HTTP Clients', 'SQL'],
+  difficulty: 'beginner',
+  readingTimeMin: 12,
+  status: 'published',
+  keywords: [
+    'builder',
+    'fluent interface',
+    'telescoping constructor',
+    'immutable object',
+    'stepwise construction',
+  ],
+  dateAdded: '2026-07-09',
+  popularity: 94,
+  icon: 'BU',
+  heroGradient: 'linear-gradient(135deg, #8b5cf6 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

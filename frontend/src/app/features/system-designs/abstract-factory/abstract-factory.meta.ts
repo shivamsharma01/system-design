@@ -1,0 +1,27 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const ABSTRACT_FACTORY_META: DesignMeta = {
+  slug: 'abstract-factory',
+  title: 'Abstract Factory Pattern',
+  tagline:
+    'Create families of related objects — UI themes, cloud providers, or payment stacks — without coupling to concrete classes.',
+  section: 'design-patterns',
+  category: 'Creational',
+  tags: ['abstract-factory', 'creational', 'gof', 'lld', 'families'],
+  technologies: ['Java', 'UI Themes', 'Cloud SDKs'],
+  difficulty: 'intermediate',
+  readingTimeMin: 14,
+  status: 'published',
+  keywords: [
+    'abstract factory',
+    'product family',
+    'theme',
+    'cross platform',
+    'factory of factories',
+  ],
+  dateAdded: '2026-07-09',
+  popularity: 88,
+  icon: 'AF',
+  heroGradient: 'linear-gradient(135deg, #06b6d4 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};
