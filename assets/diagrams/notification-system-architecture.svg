@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 440" font-family="Inter, system-ui, sans-serif" role="img" aria-label="Notification system architecture">
+  <rect width="900" height="440" fill="#140a24" rx="12"/>
+  <text x="450" y="34" fill="#ffffff" font-size="20" font-weight="700" text-anchor="middle">Notification System: Ingest ’ Process ’ Fan-out ’ Deliver</text>
+
+  <defs>
+    <marker id="na" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#a78bda"/>
+    </marker>
+  </defs>
+
+  <!-- Producers -->
+  <g>
+    <rect x="28" y="70" width="140" height="70" rx="10" fill="#241338" stroke="#7c3aed" stroke-width="2"/>
+    <text x="98" y="100" fill="#fff" font-size="13" font-weight="600" text-anchor="middle">Services / Events</text>
+    <text x="98" y="120" fill="#b7a6d6" font-size="11" text-anchor="middle">order, social, system</text>
+  </g>
+
+  <!-- API / Notification Service -->
+  <g>
+    <rect x="210" y="70" width="150" height="70" rx="10" fill="#241338" stroke="#a78bda" stroke-width="2"/>
+    <text x="285" y="96" fill="#fff" font-size="13" font-weight="600" text-anchor="middle">Notification API</text>
+    <text x="285" y="114" fill="#b7a6d6" font-size="11" text-anchor="middle">validate, dedupe,</text>
+    <text x="285" y="129" fill="#b7a6d6" font-size="11" text-anchor="middle">rate-limit</text>
+  </g>
+
+  <!-- Kafka -->
+  <g>
+    <rect x="405" y="70" width="120" height="70" rx="10" fill="#241338" stroke="#f59e0b" stroke-width="2"/>
+    <text x="465" y="100" fill="#fff" font-size="13" font-weight="600" text-anchor="middle">Kafka</text>
+    <text x="465" y="120" fill="#b7a6d6" font-size="11" text-anchor="middle">durable queue</text>
+  </g>
+
+  <!-- Processing workers -->
+  <g>
+    <rect x="565" y="60" width="300" height="92" rx="10" fill="#1c1030" stroke="#3b82f6" stroke-width="2"/>
+    <text x="715" y="84" fill="#fff" font-size="13" font-weight="600" text-anchor="middle">Processing Workers</text>
+    <text x="715" y="104" fill="#b7a6d6" font-size="11" text-anchor="middle">preferences · template render</text>
+    <text x="715" y="120" fill="#b7a6d6" font-size="11" text-anchor="middle">user settings · quiet hours</text>
+    <text x="715" y="136" fill="#b7a6d6" font-size="11" text-anchor="middle">channel routing</text>
+  </g>
+
+  <!-- Per-channel queues -->
+  <g>
+    <rect x="565" y="180" width="90" height="50" rx="8" fill="#241338" stroke="#22c55e" stroke-width="2"/>
+    <text x="610" y="210" fill="#fff" font-size="12" text-anchor="middle">Push Q</text>
+    <rect x="668" y="180" width="90" height="50" rx="8" fill="#241338" stroke="#22c55e" stroke-width="2"/>
+    <text x="713" y="210" fill="#fff" font-size="12" text-anchor="middle">SMS Q</text>
+    <rect x="771" y="180" width="94" height="50" rx="8" fill="#241338" stroke="#22c55e" stroke-width="2"/>
+    <text x="818" y="210" fill="#fff" font-size="12" text-anchor="middle">Email Q</text>
+  </g>
+
+  <!-- Channel senders -->
+  <g>
+    <rect x="565" y="262" width="90" height="56" rx="8" fill="#1c1030" stroke="#ec4899" stroke-width="2"/>
+    <text x="610" y="286" fill="#fff" font-size="11" font-weight="600" text-anchor="middle">Push</text>
+    <text x="610" y="302" fill="#b7a6d6" font-size="10" text-anchor="middle">APNs/FCM</text>
+    <rect x="668" y="262" width="90" height="56" rx="8" fill="#1c1030" stroke="#ec4899" stroke-width="2"/>
+    <text x="713" y="286" fill="#fff" font-size="11" font-weight="600" text-anchor="middle">SMS</text>
+    <text x="713" y="302" fill="#b7a6d6" font-size="10" text-anchor="middle">Twilio</text>
+    <rect x="771" y="262" width="94" height="56" rx="8" fill="#1c1030" stroke="#ec4899" stroke-width="2"/>
+    <text x="818" y="286" fill="#fff" font-size="11" font-weight="600" text-anchor="middle">Email</text>
+    <text x="818" y="302" fill="#b7a6d6" font-size="10" text-anchor="middle">SES</text>
+  </g>
+
+  <!-- Devices -->
+  <g>
+    <rect x="565" y="352" width="300" height="56" rx="10" fill="#241338" stroke="#7c3aed" stroke-width="2"/>
+    <text x="715" y="376" fill="#fff" font-size="13" font-weight="600" text-anchor="middle">User Devices / Inboxes</text>
+    <text x="715" y="394" fill="#b7a6d6" font-size="11" text-anchor="middle">phones · browsers · mail</text>
+  </g>
+
+  <!-- Side stores -->
+  <g>
+    <rect x="210" y="190" width="150" height="56" rx="10" fill="#1c1030" stroke="#64748b" stroke-width="2"/>
+    <text x="285" y="214" fill="#fff" font-size="12" text-anchor="middle">Preferences DB</text>
+    <text x="285" y="231" fill="#b7a6d6" font-size="10" text-anchor="middle">opt-in · channels</text>
+
+    <rect x="210" y="262" width="150" height="56" rx="10" fill="#1c1030" stroke="#64748b" stroke-width="2"/>
+    <text x="285" y="286" fill="#fff" font-size="12" text-anchor="middle">Template Store</text>
+    <text x="285" y="303" fill="#b7a6d6" font-size="10" text-anchor="middle">i18n · versions</text>
+
+    <rect x="28" y="262" width="150" height="56" rx="10" fill="#1c1030" stroke="#64748b" stroke-width="2"/>
+    <text x="103" y="286" fill="#fff" font-size="12" text-anchor="middle">Dedupe / Idem</text>
+    <text x="103" y="303" fill="#b7a6d6" font-size="10" text-anchor="middle">Redis keys</text>
+  </g>
+
+  <!-- Flows -->
+  <line x1="168" y1="105" x2="208" y2="105" stroke="#a78bda" stroke-width="2" marker-end="url(#na)"/>
+  <line x1="360" y1="105" x2="403" y2="105" stroke="#a78bda" stroke-width="2" marker-end="url(#na)"/>
+  <line x1="525" y1="105" x2="563" y2="105" stroke="#a78bda" stroke-width="2" marker-end="url(#na)"/>
+  <line x1="610" y1="152" x2="610" y2="178" stroke="#22c55e" stroke-width="2" marker-end="url(#na)"/>
+  <line x1="713" y1="152" x2="713" y2="178" stroke="#22c55e" stroke-width="2" marker-end="url(#na)"/>
+  <line x1="818" y1="152" x2="818" y2="178" stroke="#22c55e" stroke-width="2" marker-end="url(#na)"/>
+  <line x1="610" y1="230" x2="610" y2="260" stroke="#ec4899" stroke-width="2" marker-end="url(#na)"/>
+  <line x1="713" y1="230" x2="713" y2="260" stroke="#ec4899" stroke-width="2" marker-end="url(#na)"/>
+  <line x1="818" y1="230" x2="818" y2="260" stroke="#ec4899" stroke-width="2" marker-end="url(#na)"/>
+  <line x1="610" y1="318" x2="610" y2="350" stroke="#7c3aed" stroke-width="2" marker-end="url(#na)"/>
+  <line x1="713" y1="318" x2="713" y2="350" stroke="#7c3aed" stroke-width="2" marker-end="url(#na)"/>
+  <line x1="818" y1="318" x2="818" y2="350" stroke="#7c3aed" stroke-width="2" marker-end="url(#na)"/>
+
+  <line x1="285" y1="140" x2="285" y2="188" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#na)"/>
+  <line x1="660" y1="120" x2="660" y2="120" stroke="#64748b" stroke-width="0"/>
+</svg>

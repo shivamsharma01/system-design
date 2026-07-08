@@ -1,0 +1,1 @@
+import{I as i,qa as t,zb as s}from"./chunk-F2T6WAGQ.js";var a=class r{sanitizer=i(s);transform(e){return this.sanitizer.bypassSecurityTrustResourceUrl(e)}static \u0275fac=function(n){return new(n||r)};static \u0275pipe=t({name:"safeResourceUrl",type:r,pure:!0})};export{a};

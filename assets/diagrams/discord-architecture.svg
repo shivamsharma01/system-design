@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 470" font-family="Inter, system-ui, sans-serif" role="img" aria-label="Discord real-time architecture">
+  <rect width="920" height="470" fill="#1e2024" rx="12"/>
+  <text x="460" y="34" fill="#ffffff" font-size="20" font-weight="700" text-anchor="middle">Discord: Real-Time Gateway, Guilds, Messages &amp; Voice</text>
+
+  <defs>
+    <marker id="dca" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#a3a9f7"/>
+    </marker>
+  </defs>
+
+  <!-- Clients -->
+  <g>
+    <rect x="28" y="180" width="120" height="110" rx="10" fill="#2b2d31" stroke="#5865f2" stroke-width="2"/>
+    <text x="88" y="216" fill="#fff" font-size="14" font-weight="600" text-anchor="middle">Clients</text>
+    <text x="88" y="238" fill="#b9bdc7" font-size="11" text-anchor="middle">desktop · web</text>
+    <text x="88" y="254" fill="#b9bdc7" font-size="11" text-anchor="middle">mobile</text>
+    <text x="88" y="272" fill="#b9bdc7" font-size="10" text-anchor="middle">WebSocket + WebRTC</text>
+  </g>
+
+  <!-- Gateway (WebSocket fanout) -->
+  <g>
+    <rect x="190" y="150" width="170" height="170" rx="12" fill="#26282c" stroke="#5865f2" stroke-width="2"/>
+    <text x="275" y="178" fill="#fff" font-size="14" font-weight="700" text-anchor="middle">Gateway (Elixir)</text>
+    <text x="275" y="200" fill="#b9bdc7" font-size="11" text-anchor="middle">persistent WebSocket</text>
+    <text x="275" y="217" fill="#b9bdc7" font-size="11" text-anchor="middle">session + heartbeat</text>
+    <text x="275" y="234" fill="#b9bdc7" font-size="11" text-anchor="middle">event fan-out</text>
+    <rect x="210" y="250" width="130" height="52" rx="8" fill="#2b2d31" stroke="#57f287" stroke-width="1.5"/>
+    <text x="275" y="271" fill="#fff" font-size="11" text-anchor="middle">guild processes</text>
+    <text x="275" y="288" fill="#b9bdc7" font-size="10" text-anchor="middle">(one per guild)</text>
+  </g>
+
+  <!-- Sessions / presence -->
+  <g>
+    <rect x="400" y="60" width="160" height="80" rx="10" fill="#26282c" stroke="#fee75c" stroke-width="2"/>
+    <text x="480" y="90" fill="#fff" font-size="13" font-weight="600" text-anchor="middle">Presence Service</text>
+    <text x="480" y="110" fill="#b9bdc7" font-size="11" text-anchor="middle">online/idle/dnd</text>
+    <text x="480" y="126" fill="#b9bdc7" font-size="11" text-anchor="middle">subscriptions</text>
+  </g>
+
+  <!-- Message service -->
+  <g>
+    <rect x="400" y="160" width="160" height="80" rx="10" fill="#26282c" stroke="#a3a9f7" stroke-width="2"/>
+    <text x="480" y="190" fill="#fff" font-size="13" font-weight="600" text-anchor="middle">Message Service</text>
+    <text x="480" y="210" fill="#b9bdc7" font-size="11" text-anchor="middle">send · edit · history</text>
+    <text x="480" y="226" fill="#b9bdc7" font-size="11" text-anchor="middle">Snowflake IDs</text>
+  </g>
+
+  <!-- Voice -->
+  <g>
+    <rect x="400" y="260" width="160" height="80" rx="10" fill="#26282c" stroke="#eb459e" stroke-width="2"/>
+    <text x="480" y="290" fill="#fff" font-size="13" font-weight="600" text-anchor="middle">Voice Service</text>
+    <text x="480" y="310" fill="#b9bdc7" font-size="11" text-anchor="middle">SFU media servers</text>
+    <text x="480" y="326" fill="#b9bdc7" font-size="11" text-anchor="middle">WebRTC (Rust)</text>
+  </g>
+
+  <!-- Cassandra messages -->
+  <g>
+    <rect x="610" y="160" width="170" height="80" rx="10" fill="#2b2d31" stroke="#f59e0b" stroke-width="2"/>
+    <text x="695" y="190" fill="#fff" font-size="13" font-weight="600" text-anchor="middle">Cassandra / Scylla</text>
+    <text x="695" y="210" fill="#b9bdc7" font-size="11" text-anchor="middle">messages by channel</text>
+    <text x="695" y="226" fill="#b9bdc7" font-size="11" text-anchor="middle">bucketed partitions</text>
+  </g>
+
+  <!-- Pub/Sub bus -->
+  <g>
+    <rect x="610" y="60" width="170" height="80" rx="10" fill="#2b2d31" stroke="#57f287" stroke-width="2"/>
+    <text x="695" y="90" fill="#fff" font-size="13" font-weight="600" text-anchor="middle">Pub/Sub Bus</text>
+    <text x="695" y="110" fill="#b9bdc7" font-size="11" text-anchor="middle">fan-out events to</text>
+    <text x="695" y="126" fill="#b9bdc7" font-size="11" text-anchor="middle">gateway sessions</text>
+  </g>
+
+  <!-- Voice media servers -->
+  <g>
+    <rect x="610" y="260" width="170" height="80" rx="10" fill="#2b2d31" stroke="#eb459e" stroke-width="2"/>
+    <text x="695" y="290" fill="#fff" font-size="13" font-weight="600" text-anchor="middle">Media Servers (SFU)</text>
+    <text x="695" y="310" fill="#b9bdc7" font-size="11" text-anchor="middle">selective forwarding</text>
+    <text x="695" y="326" fill="#b9bdc7" font-size="11" text-anchor="middle">region-based</text>
+  </g>
+
+  <!-- Flows -->
+  <line x1="148" y1="230" x2="188" y2="230" stroke="#a3a9f7" stroke-width="2" marker-end="url(#dca)"/>
+  <text x="168" y="222" fill="#b9bdc7" font-size="9" text-anchor="middle">WS</text>
+  <line x1="360" y1="200" x2="398" y2="195" stroke="#a3a9f7" stroke-width="2" marker-end="url(#dca)"/>
+  <line x1="360" y1="170" x2="398" y2="110" stroke="#fee75c" stroke-width="2" marker-end="url(#dca)"/>
+  <line x1="360" y1="270" x2="398" y2="295" stroke="#eb459e" stroke-width="2" marker-end="url(#dca)"/>
+  <line x1="560" y1="195" x2="608" y2="195" stroke="#f59e0b" stroke-width="2" marker-end="url(#dca)"/>
+  <line x1="560" y1="100" x2="608" y2="100" stroke="#57f287" stroke-width="2" marker-end="url(#dca)"/>
+  <line x1="560" y1="300" x2="608" y2="300" stroke="#eb459e" stroke-width="2" marker-end="url(#dca)"/>
+  <!-- pubsub back to gateway -->
+  <path d="M695 140 C695 360 360 300 360 280" fill="none" stroke="#57f287" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#dca)"/>
+  <text x="600" y="400" fill="#b9bdc7" font-size="10" text-anchor="middle">events fan out via pub/sub ’ gateway ’ subscribed clients</text>
+  <!-- voice direct media path -->
+  <path d="M88 290 C88 430 600 430 695 342" fill="none" stroke="#eb459e" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#dca)"/>
+  <text x="300" y="452" fill="#b9bdc7" font-size="10" text-anchor="middle">voice media flows client ” SFU directly (UDP), not through the gateway</text>
+</svg>
