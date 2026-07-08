@@ -12,6 +12,10 @@ jobs:
   build-deploy:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: frontend
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -21,13 +25,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install Dependencies
         run: npm ci
 
       - name: Build Angular
-        run: |
-          npm run build -- --configuration production
+        run: npm run build -- --configuration production
 
       - name: Add CNAME
         run: echo "mcart.space" > dist/frontend/browser/CNAME
@@ -36,4 +40,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: dist/frontend/browser
+          publish_dir: frontend/dist/frontend/browser
