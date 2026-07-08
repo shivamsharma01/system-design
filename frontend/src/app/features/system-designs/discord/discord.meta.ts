@@ -4,6 +4,7 @@ export const DISCORD_META: DesignMeta = {
   slug: 'discord',
   title: 'Design Discord',
   tagline: 'A community chat platform with servers, channels, voice, and real-time presence.',
+  section: 'system-design',
   category: 'Messaging',
   tags: [
     'real-time',

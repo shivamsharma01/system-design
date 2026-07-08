@@ -48,13 +48,19 @@ export class DesignPageComponent {
   protected readonly content = signal<DesignContent | null>(null);
   protected readonly loading = signal(true);
 
-  protected readonly crumbs = computed(() => [
-    { label: 'Home', link: '/' },
-    { label: this.content()?.meta.title ?? '…' },
-  ]);
+  protected readonly crumbs = computed(() => {
+    const meta = this.content()?.meta;
+    const section = meta ? this.registry.getSection(meta.section) : undefined;
+    return [
+      { label: 'Home', link: '/' },
+      ...(section ? [{ label: section.title }] : []),
+      { label: meta?.title ?? '…' },
+    ];
+  });
 
   protected readonly neighbors = computed(() => {
-    const slugs = this.registry.getOrderedSlugs();
+    const section = this.content()?.meta.section;
+    const slugs = this.registry.getOrderedSlugs(section);
     const index = slugs.indexOf(this.slug());
     return {
       previous: index > 0 ? this.registry.getMeta(slugs[index - 1]) : undefined,

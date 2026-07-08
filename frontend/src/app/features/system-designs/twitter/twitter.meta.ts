@@ -5,6 +5,7 @@ export const TWITTER_META: DesignMeta = {
   title: 'Design Twitter / X',
   tagline:
     'A social platform with timelines, fan-out, and trending topics for hundreds of millions of users.',
+  section: 'system-design',
   category: 'Social Network',
   tags: ['timeline', 'fan-out', 'feed', 'graph', 'ranking', 'trending'],
   technologies: ['Redis', 'Manhattan', 'Cassandra', 'Kafka', 'Elasticsearch', 'Snowflake'],

@@ -59,6 +59,7 @@ export const ${constName}: DesignMeta = {
   slug: '${slug}',
   title: '${title.replace(/'/g, "\\'")}',
   tagline: 'One-line summary of the system you are designing.',
+  section: 'system-design',
   category: 'Web Services',
   tags: ['tag-one', 'tag-two'],
   technologies: ['PostgreSQL', 'Redis'],

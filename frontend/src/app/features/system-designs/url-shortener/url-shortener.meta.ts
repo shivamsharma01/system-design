@@ -4,6 +4,7 @@ export const URL_SHORTENER_META: DesignMeta = {
   slug: 'url-shortener',
   title: 'Design a URL Shortener',
   tagline: 'A TinyURL/Bitly-style service that maps long URLs to short, shareable links at scale.',
+  section: 'system-design',
   category: 'Web Services',
   tags: ['hashing', 'key-generation', 'caching', 'read-heavy'],
   technologies: ['PostgreSQL', 'Redis', 'Base62', 'Snowflake IDs', 'CDN'],

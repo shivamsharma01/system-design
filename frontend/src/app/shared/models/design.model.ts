@@ -4,6 +4,16 @@ export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
 
 export type DesignStatus = 'published' | 'draft';
 
+/** Top-level catalog sections (peers: System Design, SOLID, Design Patterns). */
+export type ContentSectionId = 'system-design' | 'solid-principles' | 'design-patterns';
+
+export interface ContentSectionMeta {
+  id: ContentSectionId;
+  title: string;
+  description: string;
+  order: number;
+}
+
 /**
  * Standard section identifiers. Authors are free to use any of these (or custom
  * ids), but using the canonical set keeps navigation consistent across designs.
@@ -43,6 +53,8 @@ export interface DesignMeta {
   slug: string;
   title: string;
   tagline: string;
+  /** Top-level section this article belongs to. */
+  section: ContentSectionId;
   category: string;
   tags: string[];
   technologies: string[];

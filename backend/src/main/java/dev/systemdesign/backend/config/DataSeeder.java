@@ -24,6 +24,18 @@ public class DataSeeder {
       repository.saveAll(
           List.of(
               design(
+                  "interview-framework", "System Design Interview Framework",
+                  "The RESHADED strategy, time budgets, and how to tell system design apart from HLD, LLD, and machine coding.",
+                  "Interview Prep", "beginner", "published", 18, 110, "2026-06-30",
+                  List.of("interview", "framework", "RESHADED", "HLD", "LLD"),
+                  List.of("REST", "SQL", "NoSQL", "Kafka", "Redis")),
+              design(
+                  "solid-principles", "SOLID Design Principles",
+                  "Five object-oriented principles for maintainable code — with examples, violations, and interview Q&A.",
+                  "OOP Fundamentals", "intermediate", "published", 20, 105, "2026-07-04",
+                  List.of("solid", "oop", "lld", "srp", "ocp"),
+                  List.of("Java", "Python", "Interfaces", "Abstraction")),
+              design(
                   "netflix", "Design Netflix",
                   "A global video streaming platform serving billions of hours of content with low latency.",
                   "Media & Streaming", "advanced", "published", 22, 100, "2026-06-28",

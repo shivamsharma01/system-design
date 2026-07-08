@@ -16,7 +16,7 @@ export class SeoService {
   setDefault(): void {
     this.apply(
       SITE_NAME,
-      'An open-source platform for learning the system design of real-world applications.',
+      'An open-source platform for system design, SOLID principles, and interview prep.',
     );
   }
 

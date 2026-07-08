@@ -20,7 +20,7 @@ export interface Crumb {
             @if (crumb.link && !last) {
               <a [routerLink]="crumb.link">{{ crumb.label }}</a>
             } @else {
-              <span aria-current="page">{{ crumb.label }}</span>
+              <span [attr.aria-current]="last ? 'page' : null">{{ crumb.label }}</span>
             }
             @if (!last) {
               <app-icon name="chevron-right" [size]="14" />

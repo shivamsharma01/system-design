@@ -5,6 +5,7 @@ export const NETFLIX_META: DesignMeta = {
   title: 'Design Netflix',
   tagline:
     'A global video streaming platform serving billions of hours of content with low latency.',
+  section: 'system-design',
   category: 'Media & Streaming',
   tags: ['streaming', 'video', 'cdn', 'microservices', 'recommendation'],
   technologies: ['Cassandra', 'Kafka', 'EVCache', 'Open Connect CDN', 'AWS', 'Spring Boot'],

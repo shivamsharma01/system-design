@@ -5,6 +5,7 @@ export const SPOTIFY_META: DesignMeta = {
   title: 'Design Spotify',
   tagline:
     'A music-streaming platform with a massive catalog, low-latency audio delivery, playlists, and personalized discovery.',
+  section: 'system-design',
   category: 'Media & Streaming',
   tags: ['audio', 'streaming', 'recommendations', 'cdn', 'playlists', 'search'],
   technologies: ['Cassandra', 'PostgreSQL', 'CDN', 'Kafka', 'Elasticsearch', 'BigQuery'],

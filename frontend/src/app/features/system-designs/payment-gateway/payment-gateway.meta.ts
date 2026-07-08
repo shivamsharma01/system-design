@@ -5,6 +5,7 @@ export const PAYMENT_GATEWAY_META: DesignMeta = {
   title: 'Design Payment Gateway',
   tagline:
     'A Stripe-style payment gateway built for correctness: idempotency, a double-entry ledger, and exactly-once money movement.',
+  section: 'system-design',
   category: 'Web Services',
   tags: [
     'payments',

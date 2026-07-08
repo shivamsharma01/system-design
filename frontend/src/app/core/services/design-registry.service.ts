@@ -1,7 +1,13 @@
 import { Injectable } from '@angular/core';
+import { CONTENT_SECTIONS } from '../config/content-sections';
 import { DESIGN_REGISTRY } from '../config/design-registry';
 import { DesignRegistryEntry } from '../config/design-registry.model';
-import { DesignContent, DesignMeta } from '../../shared/models';
+import {
+  ContentSectionId,
+  ContentSectionMeta,
+  DesignContent,
+  DesignMeta,
+} from '../../shared/models';
 
 /**
  * Read access to the design catalog. Wraps `DESIGN_REGISTRY` so the rest of the
@@ -31,32 +37,53 @@ export class DesignRegistryService {
     return this.bySlug.has(slug);
   }
 
-  getCategories(): string[] {
-    return [...new Set(this.getAllMeta().map((m) => m.category))].sort();
+  /** Ordered top-level sections (System Design, SOLID, Design Patterns). */
+  getSections(): ContentSectionMeta[] {
+    return [...CONTENT_SECTIONS].sort((a, b) => a.order - b.order);
+  }
+
+  getSection(id: ContentSectionId): ContentSectionMeta | undefined {
+    return CONTENT_SECTIONS.find((s) => s.id === id);
+  }
+
+  getBySection(section: ContentSectionId): DesignMeta[] {
+    return this.getAllMeta().filter((m) => m.section === section);
+  }
+
+  /** Categories within a section (or all categories if section omitted). */
+  getCategories(section?: ContentSectionId): string[] {
+    const list = section ? this.getBySection(section) : this.getAllMeta();
+    return [...new Set(list.map((m) => m.category))].sort();
   }
 
   getTags(): string[] {
     return [...new Set(this.getAllMeta().flatMap((m) => m.tags))].sort();
   }
 
-  getByCategory(category: string): DesignMeta[] {
-    return this.getAllMeta().filter((m) => m.category === category);
+  getByCategory(category: string, section?: ContentSectionId): DesignMeta[] {
+    return (section ? this.getBySection(section) : this.getAllMeta()).filter(
+      (m) => m.category === category,
+    );
   }
 
-  getPopular(limit = 6): DesignMeta[] {
-    return [...this.getAllMeta()]
-      .sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0))
-      .slice(0, limit);
+  getPopular(limit = 6, section?: ContentSectionId): DesignMeta[] {
+    const list = section ? this.getBySection(section) : this.getAllMeta();
+    return [...list].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0)).slice(0, limit);
   }
 
-  getRecent(limit = 6): DesignMeta[] {
-    return [...this.getAllMeta()]
-      .sort((a, b) => b.dateAdded.localeCompare(a.dateAdded))
-      .slice(0, limit);
+  getRecent(limit = 6, section?: ContentSectionId): DesignMeta[] {
+    const list = section ? this.getBySection(section) : this.getAllMeta();
+    return [...list].sort((a, b) => b.dateAdded.localeCompare(a.dateAdded)).slice(0, limit);
   }
 
-  /** Ordered slugs, used to compute previous/next navigation. */
-  getOrderedSlugs(): string[] {
+  /**
+   * Ordered slugs for prev/next navigation, scoped to the same section when
+   * possible so readers stay within System Design or SOLID.
+   */
+  getOrderedSlugs(section?: ContentSectionId): string[] {
+    if (section) {
+      return this.entries.filter((e) => e.meta.section === section).map((e) => e.meta.slug);
+    }
     return this.entries.map((e) => e.meta.slug);
   }
 

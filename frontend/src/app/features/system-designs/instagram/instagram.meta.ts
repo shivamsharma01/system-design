@@ -4,6 +4,7 @@ export const INSTAGRAM_META: DesignMeta = {
   slug: 'instagram',
   title: 'Design Instagram',
   tagline: 'A photo and short-video sharing app with feeds, stories, and a social graph.',
+  section: 'system-design',
   category: 'Social Network',
   tags: ['feed', 'media', 'storage', 'graph', 'cdn', 'fan-out'],
   technologies: ['Cassandra', 'S3', 'CDN', 'Redis', 'PostgreSQL', 'Kafka'],

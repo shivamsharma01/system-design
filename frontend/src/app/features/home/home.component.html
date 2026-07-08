@@ -1,14 +1,12 @@
 <section class="hero">
   <div class="hero__inner">
-    <p class="hero__eyebrow">
-      <app-icon name="layers" [size]="16" /> Open-source system design library
-    </p>
+    <p class="hero__eyebrow"><app-icon name="layers" [size]="16" /> Open-source learning library</p>
     <h1 class="hero__title">
-      Learn how real-world systems are <span class="accent">designed to scale</span>.
+      Learn <span class="accent">system design</span>, SOLID, and patterns.
     </h1>
     <p class="hero__subtitle">
-      Deep-dive breakdowns of the architecture behind apps like Netflix, WhatsApp, and Uber — with
-      diagrams, trade-offs, capacity math, and interview prep.
+      Deep-dive architectures, object-oriented principles, and interview prep — with diagrams,
+      trade-offs, capacity math, and worked examples.
     </p>
     <div class="hero__stats">
       <span
@@ -26,9 +24,34 @@
 
 <section class="catalog">
   <div class="catalog__head">
-    <h2 class="catalog__title">Explore designs</h2>
-    <div class="catalog__filters" role="tablist" aria-label="Filter by category">
-      @for (category of categories; track category) {
+    <h2 class="catalog__title">Explore</h2>
+    <div class="catalog__filters" role="tablist" aria-label="Filter by section">
+      @for (section of sections; track section.id) {
+        <button
+          type="button"
+          class="filter filter--section"
+          role="tab"
+          [class.active]="selectedSection() === section.id"
+          [attr.aria-selected]="selectedSection() === section.id"
+          (click)="selectSection(section.id)"
+        >
+          {{ section.title }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (activeSectionMeta(); as sectionMeta) {
+    <p class="catalog__section-desc">{{ sectionMeta.description }}</p>
+  }
+
+  @if (selectedSection() === 'system-design' && categories().length > 1) {
+    <div
+      class="catalog__filters catalog__filters--secondary"
+      role="tablist"
+      aria-label="Filter by category"
+    >
+      @for (category of categories(); track category) {
         <button
           type="button"
           class="filter"
@@ -41,13 +64,19 @@
         </button>
       }
     </div>
-  </div>
+  }
 
   <div class="catalog__grid">
     @for (meta of filtered(); track meta.slug) {
       <app-design-card [meta]="meta" />
     } @empty {
-      <p class="catalog__empty">No designs in this category yet.</p>
+      <p class="catalog__empty">
+        @if (selectedSection() === 'design-patterns') {
+          Design patterns are coming soon. Check back later.
+        } @else {
+          No topics in this section yet.
+        }
+      </p>
     }
   </div>
 </section>

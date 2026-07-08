@@ -1,6 +1,8 @@
 import { DesignRegistryEntry } from './design-registry.model';
 
 // --- Design metadata (statically imported; tiny, used for cards + search) ---
+import { INTERVIEW_FRAMEWORK_META } from '../../features/system-designs/interview-framework/interview-framework.meta';
+import { SOLID_PRINCIPLES_META } from '../../features/system-designs/solid-principles/solid-principles.meta';
 import { NETFLIX_META } from '../../features/system-designs/netflix/netflix.meta';
 import { URL_SHORTENER_META } from '../../features/system-designs/url-shortener/url-shortener.meta';
 import { WHATSAPP_META } from '../../features/system-designs/whatsapp/whatsapp.meta';
@@ -28,6 +30,15 @@ import { DROPBOX_META } from '../../features/system-designs/dropbox/dropbox.meta
  * automates all of the above.
  */
 export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
+  {
+    meta: INTERVIEW_FRAMEWORK_META,
+    load: () =>
+      import('../../features/system-designs/interview-framework/interview-framework.content'),
+  },
+  {
+    meta: SOLID_PRINCIPLES_META,
+    load: () => import('../../features/system-designs/solid-principles/solid-principles.content'),
+  },
   {
     meta: NETFLIX_META,
     load: () => import('../../features/system-designs/netflix/netflix.content'),

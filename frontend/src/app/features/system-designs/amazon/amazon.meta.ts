@@ -5,6 +5,7 @@ export const AMAZON_META: DesignMeta = {
   title: 'Design Amazon',
   tagline:
     'A global e-commerce platform: catalog search, cart, inventory, checkout, and order fulfillment at massive scale.',
+  section: 'system-design',
   category: 'E-Commerce',
   tags: ['e-commerce', 'catalog', 'inventory', 'checkout', 'search', 'saga'],
   technologies: ['DynamoDB', 'Elasticsearch', 'Kafka', 'Redis', 'PostgreSQL', 'S3', 'CDN'],

@@ -10,6 +10,7 @@ const FUSE_OPTIONS: IFuseOptions<DesignMeta> = {
   keys: [
     { name: 'title', weight: 3 },
     { name: 'tagline', weight: 1.5 },
+    { name: 'section', weight: 1 },
     { name: 'category', weight: 1 },
     { name: 'tags', weight: 2 },
     { name: 'technologies', weight: 1.5 },

@@ -5,6 +5,7 @@ export const DISTRIBUTED_CACHE_META: DesignMeta = {
   title: 'Design a Distributed Cache',
   tagline:
     'A Redis/Memcached-style distributed cache with consistent hashing, replication, and eviction.',
+  section: 'system-design',
   category: 'Infrastructure',
   tags: [
     'caching',
