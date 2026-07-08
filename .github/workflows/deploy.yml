@@ -27,7 +27,7 @@ jobs:
 
       - name: Build Angular
         run: |
-          npm run build -- --configuration production --base-href=/system-design/
+          npm run build -- --configuration production
 
       - name: Add CNAME
         run: echo "mcart.space" > dist/frontend/browser/CNAME
