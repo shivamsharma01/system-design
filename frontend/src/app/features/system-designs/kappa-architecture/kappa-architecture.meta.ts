@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const KAPPA_ARCHITECTURE_META: DesignMeta = {
+  slug: 'kappa-architecture',
+  title: 'Kappa Architecture Pattern',
+  tagline:
+    'One streaming layer handles real-time and historical views via replay — simpler operations than Lambda when event logs are the source of truth.',
+  section: 'design-patterns',
+  category: 'ML & Data Pipeline',
+  tags: ['kappa', 'streaming', 'replay', 'event-log', 'analytics'],
+  technologies: ['Apache Kafka', 'Flink', 'ksqlDB', 'Pulsar'],
+  difficulty: 'advanced',
+  readingTimeMin: 13,
+  status: 'published',
+  keywords: ['stream replay', 'single pipeline', 'event sourcing', 'vs lambda', 'recompute'],
+  dateAdded: '2026-07-09',
+  popularity: 91,
+  icon: 'KA',
+  heroGradient: 'linear-gradient(135deg, #14b8a6 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

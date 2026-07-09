@@ -59,6 +59,7 @@ export class DesignRegistryService {
     'Architectural',
     'Cloud & Resilience',
     'Data & Messaging',
+    'ML & Data Pipeline',
   ];
 
   /** Categories within a section (or all categories if section omitted). */

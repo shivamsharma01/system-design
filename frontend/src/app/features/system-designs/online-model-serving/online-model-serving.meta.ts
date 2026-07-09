@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const ONLINE_MODEL_SERVING_META: DesignMeta = {
+  slug: 'online-model-serving',
+  title: 'Online Model Serving Pattern',
+  tagline:
+    'Low-latency inference APIs with TensorFlow Serving, TorchServe, or FastAPI — p99 SLOs, dynamic batching, and real-time fraud scoring.',
+  section: 'design-patterns',
+  category: 'ML & Data Pipeline',
+  tags: ['ml', 'inference', 'serving', 'latency', 'real-time'],
+  technologies: ['TensorFlow Serving', 'TorchServe', 'FastAPI', 'Triton', 'Kubernetes'],
+  difficulty: 'advanced',
+  readingTimeMin: 12,
+  status: 'published',
+  keywords: ['p99 latency', 'dynamic batching', 'model server', 'real-time inference'],
+  dateAdded: '2026-07-09',
+  popularity: 91,
+  icon: 'OS',
+  heroGradient: 'linear-gradient(135deg, #6366f1 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

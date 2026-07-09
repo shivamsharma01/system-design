@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const MODEL_REGISTRY_META: DesignMeta = {
+  slug: 'model-registry',
+  title: 'Model Registry Pattern',
+  tagline:
+    'Version, stage, and promote models from dev to staging to prod — MLflow, SageMaker Model Registry, lineage, and governed deployments.',
+  section: 'design-patterns',
+  category: 'ML & Data Pipeline',
+  tags: ['model-registry', 'mlops', 'mlflow', 'lineage', 'deployment'],
+  technologies: ['MLflow', 'SageMaker', 'Weights & Biases', 'Vertex AI'],
+  difficulty: 'intermediate',
+  readingTimeMin: 11,
+  status: 'published',
+  keywords: ['model versioning', 'staging', 'production', 'lineage', 'governance'],
+  dateAdded: '2026-07-09',
+  popularity: 89,
+  icon: 'RG',
+  heroGradient: 'linear-gradient(135deg, #a855f7 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

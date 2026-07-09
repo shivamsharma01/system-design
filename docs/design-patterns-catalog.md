@@ -163,22 +163,22 @@ A backlog of design patterns to turn into pages under the **Design Patterns** se
 
 ## ML and data-pipeline patterns
 
-- [ ] **Online Model Serving** — Serve low-latency predictions from a deployed model behind an API or embedded runtime. `slug: online-model-serving`
-- [ ] **Batch Inference** — Score large datasets offline on a schedule rather than per-request in real time. `slug: batch-inference`
-- [ ] **Feature Store** — Centralized repository for reusable, versioned features shared across training and serving. `slug: feature-store`
-- [ ] **Training-Serving Skew Prevention** — Ensure features computed at training time match those at inference time. `slug: training-serving-skew`
-- [ ] **Shadow Deployment** — Route production traffic to a new model in parallel without affecting user-facing responses. `slug: shadow-deployment`
-- [ ] **Champion-Challenger** — Compare a production model (champion) against a candidate (challenger) on live traffic metrics. `slug: champion-challenger`
-- [ ] **A/B Testing for Models** — Split users between model variants to measure business impact statistically. `slug: ab-testing-models`
-- [ ] **Model Gateway** — Unified entry point for routing inference requests across multiple models and versions. `slug: model-gateway`
-- [ ] **Ensemble Routing** — Combine predictions from multiple models (voting, stacking, weighted average). `slug: ensemble-routing`
-- [ ] **Drift Detection** — Monitor data and prediction distributions to detect when retraining is needed. `slug: drift-detection`
-- [ ] **Lambda Architecture** — Combine batch (accurate) and speed (real-time) layers for comprehensive analytics views. `slug: lambda-architecture`
-- [ ] **Kappa Architecture** — Process all data through a single streaming layer; replay streams for corrections. `slug: kappa-architecture`
-- [ ] **ETL / ELT Pipeline** — Extract, transform (or load-first), and load data into warehouses or lakes. `slug: etl-pipeline`
-- [ ] **Feature Pipeline** — Automated flow from raw data to engineered features ready for training or serving. `slug: feature-pipeline`
-- [ ] **Model Registry** — Version, stage, and govern trained models through their lifecycle (dev → staging → prod). `slug: model-registry`
-- [ ] **Feedback Loop (Closed-Loop ML)** — Capture production outcomes to continuously improve models over time. `slug: ml-feedback-loop`
+- [x] **Online Model Serving** — Serve low-latency predictions from a deployed model behind an API or embedded runtime. `slug: online-model-serving`
+- [x] **Batch Inference** — Score large datasets offline on a schedule rather than per-request in real time. `slug: batch-inference`
+- [x] **Feature Store** — Centralized repository for reusable, versioned features shared across training and serving. `slug: feature-store`
+- [x] **Training-Serving Skew Prevention** — Ensure features computed at training time match those at inference time. `slug: training-serving-skew`
+- [x] **Shadow Deployment** — Route production traffic to a new model in parallel without affecting user-facing responses. `slug: shadow-deployment`
+- [x] **Champion-Challenger** — Compare a production model (champion) against a candidate (challenger) on live traffic metrics. `slug: champion-challenger`
+- [x] **A/B Testing for Models** — Split users between model variants to measure business impact statistically. `slug: ab-testing-models`
+- [x] **Model Gateway** — Unified entry point for routing inference requests across multiple models and versions. `slug: model-gateway`
+- [x] **Ensemble Routing** — Combine predictions from multiple models (voting, stacking, weighted average). `slug: ensemble-routing`
+- [x] **Drift Detection** — Monitor data and prediction distributions to detect when retraining is needed. `slug: drift-detection`
+- [x] **Lambda Architecture** — Combine batch (accurate) and speed (real-time) layers for comprehensive analytics views. `slug: lambda-architecture`
+- [x] **Kappa Architecture** — Process all data through a single streaming layer; replay streams for corrections. `slug: kappa-architecture`
+- [x] **ETL / ELT Pipeline** — Extract, transform (or load-first), and load data into warehouses or lakes. `slug: etl-pipeline`
+- [x] **Feature Pipeline** — Automated flow from raw data to engineered features ready for training or serving. `slug: feature-pipeline`
+- [x] **Model Registry** — Version, stage, and govern trained models through their lifecycle (dev → staging → prod). `slug: model-registry`
+- [x] **Feedback Loop (Closed-Loop ML)** — Capture production outcomes to continuously improve models over time. `slug: ml-feedback-loop`
 
 ---
 

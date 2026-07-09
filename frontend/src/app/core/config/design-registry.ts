@@ -71,6 +71,22 @@ import { WIRE_TAP_META } from '../../features/system-designs/wire-tap/wire-tap.m
 import { MESSAGE_TRANSLATOR_META } from '../../features/system-designs/message-translator/message-translator.meta';
 import { POLLING_CONSUMER_META } from '../../features/system-designs/polling-consumer/polling-consumer.meta';
 import { EVENTUAL_CONSISTENCY_META } from '../../features/system-designs/eventual-consistency/eventual-consistency.meta';
+import { ONLINE_MODEL_SERVING_META } from '../../features/system-designs/online-model-serving/online-model-serving.meta';
+import { BATCH_INFERENCE_META } from '../../features/system-designs/batch-inference/batch-inference.meta';
+import { FEATURE_STORE_META } from '../../features/system-designs/feature-store/feature-store.meta';
+import { TRAINING_SERVING_SKEW_META } from '../../features/system-designs/training-serving-skew/training-serving-skew.meta';
+import { SHADOW_DEPLOYMENT_META } from '../../features/system-designs/shadow-deployment/shadow-deployment.meta';
+import { CHAMPION_CHALLENGER_META } from '../../features/system-designs/champion-challenger/champion-challenger.meta';
+import { AB_TESTING_MODELS_META } from '../../features/system-designs/ab-testing-models/ab-testing-models.meta';
+import { MODEL_GATEWAY_META } from '../../features/system-designs/model-gateway/model-gateway.meta';
+import { ENSEMBLE_ROUTING_META } from '../../features/system-designs/ensemble-routing/ensemble-routing.meta';
+import { DRIFT_DETECTION_META } from '../../features/system-designs/drift-detection/drift-detection.meta';
+import { LAMBDA_ARCHITECTURE_META } from '../../features/system-designs/lambda-architecture/lambda-architecture.meta';
+import { KAPPA_ARCHITECTURE_META } from '../../features/system-designs/kappa-architecture/kappa-architecture.meta';
+import { ETL_PIPELINE_META } from '../../features/system-designs/etl-pipeline/etl-pipeline.meta';
+import { FEATURE_PIPELINE_META } from '../../features/system-designs/feature-pipeline/feature-pipeline.meta';
+import { MODEL_REGISTRY_META } from '../../features/system-designs/model-registry/model-registry.meta';
+import { ML_FEEDBACK_LOOP_META } from '../../features/system-designs/ml-feedback-loop/ml-feedback-loop.meta';
 import { NETFLIX_META } from '../../features/system-designs/netflix/netflix.meta';
 import { URL_SHORTENER_META } from '../../features/system-designs/url-shortener/url-shortener.meta';
 import { WHATSAPP_META } from '../../features/system-designs/whatsapp/whatsapp.meta';
@@ -392,6 +408,74 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
     meta: EVENTUAL_CONSISTENCY_META,
     load: () =>
       import('../../features/system-designs/eventual-consistency/eventual-consistency.content'),
+  },
+  {
+    meta: ONLINE_MODEL_SERVING_META,
+    load: () =>
+      import('../../features/system-designs/online-model-serving/online-model-serving.content'),
+  },
+  {
+    meta: BATCH_INFERENCE_META,
+    load: () => import('../../features/system-designs/batch-inference/batch-inference.content'),
+  },
+  {
+    meta: FEATURE_STORE_META,
+    load: () => import('../../features/system-designs/feature-store/feature-store.content'),
+  },
+  {
+    meta: TRAINING_SERVING_SKEW_META,
+    load: () =>
+      import('../../features/system-designs/training-serving-skew/training-serving-skew.content'),
+  },
+  {
+    meta: SHADOW_DEPLOYMENT_META,
+    load: () => import('../../features/system-designs/shadow-deployment/shadow-deployment.content'),
+  },
+  {
+    meta: CHAMPION_CHALLENGER_META,
+    load: () =>
+      import('../../features/system-designs/champion-challenger/champion-challenger.content'),
+  },
+  {
+    meta: AB_TESTING_MODELS_META,
+    load: () => import('../../features/system-designs/ab-testing-models/ab-testing-models.content'),
+  },
+  {
+    meta: MODEL_GATEWAY_META,
+    load: () => import('../../features/system-designs/model-gateway/model-gateway.content'),
+  },
+  {
+    meta: ENSEMBLE_ROUTING_META,
+    load: () => import('../../features/system-designs/ensemble-routing/ensemble-routing.content'),
+  },
+  {
+    meta: DRIFT_DETECTION_META,
+    load: () => import('../../features/system-designs/drift-detection/drift-detection.content'),
+  },
+  {
+    meta: LAMBDA_ARCHITECTURE_META,
+    load: () =>
+      import('../../features/system-designs/lambda-architecture/lambda-architecture.content'),
+  },
+  {
+    meta: KAPPA_ARCHITECTURE_META,
+    load: () => import('../../features/system-designs/kappa-architecture/kappa-architecture.content'),
+  },
+  {
+    meta: ETL_PIPELINE_META,
+    load: () => import('../../features/system-designs/etl-pipeline/etl-pipeline.content'),
+  },
+  {
+    meta: FEATURE_PIPELINE_META,
+    load: () => import('../../features/system-designs/feature-pipeline/feature-pipeline.content'),
+  },
+  {
+    meta: MODEL_REGISTRY_META,
+    load: () => import('../../features/system-designs/model-registry/model-registry.content'),
+  },
+  {
+    meta: ML_FEEDBACK_LOOP_META,
+    load: () => import('../../features/system-designs/ml-feedback-loop/ml-feedback-loop.content'),
   },
   {
     meta: NETFLIX_META,
