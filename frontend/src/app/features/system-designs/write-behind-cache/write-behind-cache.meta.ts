@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const WRITE_BEHIND_CACHE_META: DesignMeta = {
+  slug: 'write-behind-cache',
+  title: 'Write-Behind (Write-Back) Cache Pattern',
+  tagline:
+    'Acknowledge writes to the cache immediately and flush to the database asynchronously — higher throughput with explicit durability trade-offs.',
+  section: 'design-patterns',
+  category: 'Distributed Systems',
+  tags: ['write-behind', 'write-back', 'async-flush', 'cache', 'durability'],
+  technologies: ['Redis', 'Caffeine', 'Kafka', 'Hazelcast'],
+  difficulty: 'advanced',
+  readingTimeMin: 14,
+  status: 'published',
+  keywords: ['write-back', 'async persistence', 'durability trade-off', 'batch flush'],
+  dateAdded: '2026-07-10',
+  popularity: 73,
+  icon: 'WB',
+  heroGradient: 'linear-gradient(135deg, #db2777 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

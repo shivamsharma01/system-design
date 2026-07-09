@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const COMPETING_CONSUMERS_META: DesignMeta = {
+  slug: 'competing-consumers',
+  title: 'Competing Consumers Pattern',
+  tagline:
+    'Scale message processing horizontally — multiple workers pull from the same queue or Kafka consumer group so each message is handled by exactly one instance.',
+  section: 'design-patterns',
+  category: 'Distributed Systems',
+  tags: ['competing-consumers', 'horizontal-scaling', 'kafka', 'sqs', 'worker-pool'],
+  technologies: ['Kafka consumer groups', 'Amazon SQS', 'RabbitMQ', 'Azure Service Bus'],
+  difficulty: 'intermediate',
+  readingTimeMin: 12,
+  status: 'published',
+  keywords: ['consumer group', 'work queue', 'parallel processing', 'load distribution'],
+  dateAdded: '2026-07-10',
+  popularity: 106,
+  icon: 'CP',
+  heroGradient: 'linear-gradient(135deg, #0ea5e9 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

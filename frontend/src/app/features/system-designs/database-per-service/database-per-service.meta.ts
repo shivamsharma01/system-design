@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const DATABASE_PER_SERVICE_META: DesignMeta = {
+  slug: 'database-per-service',
+  title: 'Database per Service Pattern',
+  tagline:
+    'Each microservice owns its private database — no shared schema. Cross-service data flows through APIs and events, not cross-DB joins.',
+  section: 'design-patterns',
+  category: 'Distributed Systems',
+  tags: ['database-per-service', 'microservices', 'data-ownership', 'decoupling'],
+  technologies: ['PostgreSQL', 'MongoDB', 'Kafka', 'Debezium CDC', 'Saga'],
+  difficulty: 'beginner',
+  readingTimeMin: 12,
+  status: 'published',
+  keywords: ['private database', 'data isolation', 'bounded context', 'no shared DB'],
+  dateAdded: '2026-07-10',
+  popularity: 112,
+  icon: 'DP',
+  heroGradient: 'linear-gradient(135deg, #f59e0b 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

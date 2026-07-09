@@ -87,6 +87,39 @@ import { ETL_PIPELINE_META } from '../../features/system-designs/etl-pipeline/et
 import { FEATURE_PIPELINE_META } from '../../features/system-designs/feature-pipeline/feature-pipeline.meta';
 import { MODEL_REGISTRY_META } from '../../features/system-designs/model-registry/model-registry.meta';
 import { ML_FEEDBACK_LOOP_META } from '../../features/system-designs/ml-feedback-loop/ml-feedback-loop.meta';
+import { API_GATEWAY_META } from '../../features/system-designs/api-gateway/api-gateway.meta';
+import { BACKEND_FOR_FRONTEND_META } from '../../features/system-designs/backend-for-frontend/backend-for-frontend.meta';
+import { SERVICE_DISCOVERY_META } from '../../features/system-designs/service-discovery/service-discovery.meta';
+import { CIRCUIT_BREAKER_META } from '../../features/system-designs/circuit-breaker/circuit-breaker.meta';
+import { BULKHEAD_META } from '../../features/system-designs/bulkhead/bulkhead.meta';
+import { RETRY_BACKOFF_META } from '../../features/system-designs/retry-backoff/retry-backoff.meta';
+import { SAGA_META } from '../../features/system-designs/saga/saga.meta';
+import { TRANSACTIONAL_OUTBOX_META } from '../../features/system-designs/transactional-outbox/transactional-outbox.meta';
+import { INBOX_PATTERN_META } from '../../features/system-designs/inbox-pattern/inbox-pattern.meta';
+import { CQRS_META } from '../../features/system-designs/cqrs/cqrs.meta';
+import { EVENT_SOURCING_META } from '../../features/system-designs/event-sourcing/event-sourcing.meta';
+import { SIDECAR_META } from '../../features/system-designs/sidecar/sidecar.meta';
+import { AMBASSADOR_META } from '../../features/system-designs/ambassador/ambassador.meta';
+import { ANTI_CORRUPTION_LAYER_META } from '../../features/system-designs/anti-corruption-layer/anti-corruption-layer.meta';
+import { STRANGLER_FIG_META } from '../../features/system-designs/strangler-fig/strangler-fig.meta';
+import { DATABASE_PER_SERVICE_META } from '../../features/system-designs/database-per-service/database-per-service.meta';
+import { SHARED_NOTHING_META } from '../../features/system-designs/shared-nothing/shared-nothing.meta';
+import { LEADER_ELECTION_META } from '../../features/system-designs/leader-election/leader-election.meta';
+import { TWO_PHASE_COMMIT_META } from '../../features/system-designs/two-phase-commit/two-phase-commit.meta';
+import { THREE_PHASE_COMMIT_META } from '../../features/system-designs/three-phase-commit/three-phase-commit.meta';
+import { IDEMPOTENT_CONSUMER_META } from '../../features/system-designs/idempotent-consumer/idempotent-consumer.meta';
+import { COMPETING_CONSUMERS_META } from '../../features/system-designs/competing-consumers/competing-consumers.meta';
+import { SCATTER_GATHER_META } from '../../features/system-designs/scatter-gather/scatter-gather.meta';
+import { THROTTLING_META } from '../../features/system-designs/throttling/throttling.meta';
+import { RATE_LIMITER_PATTERN_META } from '../../features/system-designs/rate-limiter-pattern/rate-limiter-pattern.meta';
+import { CACHE_ASIDE_META } from '../../features/system-designs/cache-aside/cache-aside.meta';
+import { READ_WRITE_THROUGH_CACHE_META } from '../../features/system-designs/read-write-through-cache/read-write-through-cache.meta';
+import { WRITE_BEHIND_CACHE_META } from '../../features/system-designs/write-behind-cache/write-behind-cache.meta';
+import { MATERIALIZED_VIEW_META } from '../../features/system-designs/materialized-view/materialized-view.meta';
+import { SHARDING_PATTERN_META } from '../../features/system-designs/sharding-pattern/sharding-pattern.meta';
+import { CONSISTENT_HASHING_META } from '../../features/system-designs/consistent-hashing/consistent-hashing.meta';
+import { QUORUM_META } from '../../features/system-designs/quorum/quorum.meta';
+import { GOSSIP_PROTOCOL_META } from '../../features/system-designs/gossip-protocol/gossip-protocol.meta';
 import { NETFLIX_META } from '../../features/system-designs/netflix/netflix.meta';
 import { URL_SHORTENER_META } from '../../features/system-designs/url-shortener/url-shortener.meta';
 import { WHATSAPP_META } from '../../features/system-designs/whatsapp/whatsapp.meta';
@@ -476,6 +509,148 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   {
     meta: ML_FEEDBACK_LOOP_META,
     load: () => import('../../features/system-designs/ml-feedback-loop/ml-feedback-loop.content'),
+  },
+  {
+    meta: API_GATEWAY_META,
+    load: () => import('../../features/system-designs/api-gateway/api-gateway.content'),
+  },
+  {
+    meta: BACKEND_FOR_FRONTEND_META,
+    load: () =>
+      import('../../features/system-designs/backend-for-frontend/backend-for-frontend.content'),
+  },
+  {
+    meta: SERVICE_DISCOVERY_META,
+    load: () => import('../../features/system-designs/service-discovery/service-discovery.content'),
+  },
+  {
+    meta: CIRCUIT_BREAKER_META,
+    load: () => import('../../features/system-designs/circuit-breaker/circuit-breaker.content'),
+  },
+  {
+    meta: BULKHEAD_META,
+    load: () => import('../../features/system-designs/bulkhead/bulkhead.content'),
+  },
+  {
+    meta: RETRY_BACKOFF_META,
+    load: () => import('../../features/system-designs/retry-backoff/retry-backoff.content'),
+  },
+  {
+    meta: SAGA_META,
+    load: () => import('../../features/system-designs/saga/saga.content'),
+  },
+  {
+    meta: TRANSACTIONAL_OUTBOX_META,
+    load: () =>
+      import('../../features/system-designs/transactional-outbox/transactional-outbox.content'),
+  },
+  {
+    meta: INBOX_PATTERN_META,
+    load: () => import('../../features/system-designs/inbox-pattern/inbox-pattern.content'),
+  },
+  {
+    meta: CQRS_META,
+    load: () => import('../../features/system-designs/cqrs/cqrs.content'),
+  },
+  {
+    meta: EVENT_SOURCING_META,
+    load: () => import('../../features/system-designs/event-sourcing/event-sourcing.content'),
+  },
+  {
+    meta: SIDECAR_META,
+    load: () => import('../../features/system-designs/sidecar/sidecar.content'),
+  },
+  {
+    meta: AMBASSADOR_META,
+    load: () => import('../../features/system-designs/ambassador/ambassador.content'),
+  },
+  {
+    meta: ANTI_CORRUPTION_LAYER_META,
+    load: () =>
+      import('../../features/system-designs/anti-corruption-layer/anti-corruption-layer.content'),
+  },
+  {
+    meta: STRANGLER_FIG_META,
+    load: () => import('../../features/system-designs/strangler-fig/strangler-fig.content'),
+  },
+  {
+    meta: DATABASE_PER_SERVICE_META,
+    load: () =>
+      import('../../features/system-designs/database-per-service/database-per-service.content'),
+  },
+  {
+    meta: SHARED_NOTHING_META,
+    load: () => import('../../features/system-designs/shared-nothing/shared-nothing.content'),
+  },
+  {
+    meta: LEADER_ELECTION_META,
+    load: () => import('../../features/system-designs/leader-election/leader-election.content'),
+  },
+  {
+    meta: TWO_PHASE_COMMIT_META,
+    load: () => import('../../features/system-designs/two-phase-commit/two-phase-commit.content'),
+  },
+  {
+    meta: THREE_PHASE_COMMIT_META,
+    load: () =>
+      import('../../features/system-designs/three-phase-commit/three-phase-commit.content'),
+  },
+  {
+    meta: IDEMPOTENT_CONSUMER_META,
+    load: () =>
+      import('../../features/system-designs/idempotent-consumer/idempotent-consumer.content'),
+  },
+  {
+    meta: COMPETING_CONSUMERS_META,
+    load: () =>
+      import('../../features/system-designs/competing-consumers/competing-consumers.content'),
+  },
+  {
+    meta: SCATTER_GATHER_META,
+    load: () => import('../../features/system-designs/scatter-gather/scatter-gather.content'),
+  },
+  {
+    meta: THROTTLING_META,
+    load: () => import('../../features/system-designs/throttling/throttling.content'),
+  },
+  {
+    meta: RATE_LIMITER_PATTERN_META,
+    load: () =>
+      import('../../features/system-designs/rate-limiter-pattern/rate-limiter-pattern.content'),
+  },
+  {
+    meta: CACHE_ASIDE_META,
+    load: () => import('../../features/system-designs/cache-aside/cache-aside.content'),
+  },
+  {
+    meta: READ_WRITE_THROUGH_CACHE_META,
+    load: () =>
+      import('../../features/system-designs/read-write-through-cache/read-write-through-cache.content'),
+  },
+  {
+    meta: WRITE_BEHIND_CACHE_META,
+    load: () => import('../../features/system-designs/write-behind-cache/write-behind-cache.content'),
+  },
+  {
+    meta: MATERIALIZED_VIEW_META,
+    load: () => import('../../features/system-designs/materialized-view/materialized-view.content'),
+  },
+  {
+    meta: SHARDING_PATTERN_META,
+    load: () => import('../../features/system-designs/sharding-pattern/sharding-pattern.content'),
+  },
+  {
+    meta: CONSISTENT_HASHING_META,
+    load: () =>
+      import('../../features/system-designs/consistent-hashing/consistent-hashing.content'),
+  },
+  {
+    meta: QUORUM_META,
+    load: () => import('../../features/system-designs/quorum/quorum.content'),
+  },
+  {
+    meta: GOSSIP_PROTOCOL_META,
+    load: () => import('../../features/system-designs/gossip-protocol/gossip-protocol.content'),
   },
   {
     meta: NETFLIX_META,

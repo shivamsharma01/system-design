@@ -21,7 +21,7 @@ export const CONTENT_SECTIONS: ContentSectionMeta[] = [
     id: 'design-patterns',
     title: 'Design Patterns',
     description:
-      'GoF, concurrency, architectural, cloud, messaging, and ML/data-pipeline patterns.',
+      'GoF, concurrency, architectural, distributed, cloud, messaging, and ML patterns.',
     order: 3,
   },
 ];

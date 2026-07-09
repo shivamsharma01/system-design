@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const SHARDING_PATTERN_META: DesignMeta = {
+  slug: 'sharding-pattern',
+  title: 'Sharding Pattern',
+  tagline:
+    'Partition data across independent nodes by shard key — scale writes and storage while managing hot shards, cross-shard queries, resharding migrations, and consistent hashing routing.',
+  section: 'design-patterns',
+  category: 'Distributed Systems',
+  tags: ['sharding', 'partitioning', 'horizontal-scaling', 'shard-key', 'distributed-database'],
+  technologies: ['Vitess', 'MongoDB', 'Cassandra', 'DynamoDB', 'PostgreSQL Citus'],
+  difficulty: 'advanced',
+  readingTimeMin: 13,
+  status: 'published',
+  keywords: ['shard key', 'hot shard', 'resharding', 'range vs hash partition', 'consistent hashing'],
+  dateAdded: '2026-07-10',
+  popularity: 113,
+  icon: 'SK',
+  heroGradient: 'linear-gradient(135deg, #f59e0b 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

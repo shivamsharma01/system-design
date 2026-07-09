@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const EVENT_SOURCING_META: DesignMeta = {
+  slug: 'event-sourcing',
+  title: 'Event Sourcing Pattern',
+  tagline:
+    'Persist state as an append-only sequence of domain events — rebuild aggregates, audit every change, and accelerate reads with snapshots.',
+  section: 'design-patterns',
+  category: 'Distributed Systems',
+  tags: ['event-sourcing', 'append-only', 'audit', 'snapshots', 'domain-events'],
+  technologies: ['EventStoreDB', 'Kafka', 'Axon', 'PostgreSQL'],
+  difficulty: 'advanced',
+  readingTimeMin: 15,
+  status: 'published',
+  keywords: ['event store', 'aggregate replay', 'snapshot', 'temporal query'],
+  dateAdded: '2026-07-10',
+  popularity: 98,
+  icon: 'ES',
+  heroGradient: 'linear-gradient(135deg, #eab308 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const SHARED_NOTHING_META: DesignMeta = {
+  slug: 'shared-nothing',
+  title: 'Shared Nothing Architecture Pattern',
+  tagline:
+    'Scale by adding independent nodes with no shared memory or disk — each unit is self-contained, unlike shared-disk clusters that contend on storage.',
+  section: 'design-patterns',
+  category: 'Distributed Systems',
+  tags: ['shared-nothing', 'scalability', 'horizontal-scaling', 'distributed-systems'],
+  technologies: ['Cassandra', 'DynamoDB', 'Kafka', 'Kubernetes', 'CockroachDB'],
+  difficulty: 'advanced',
+  readingTimeMin: 13,
+  status: 'published',
+  keywords: ['shared nothing', 'horizontal scale', 'partition tolerance', 'shared disk'],
+  dateAdded: '2026-07-10',
+  popularity: 102,
+  icon: 'SN',
+  heroGradient: 'linear-gradient(135deg, #ec4899 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

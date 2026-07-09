@@ -86,39 +86,39 @@ A backlog of design patterns to turn into pages under the **Design Patterns** se
 
 ## Distributed systems and microservices
 
-- [ ] **API Gateway** — Single entry point that routes, authenticates, rate-limits, and aggregates calls to backend services. `slug: api-gateway`
-- [ ] **Backend for Frontend (BFF)** — Dedicated API layer per client type (web, mobile) shaped to that client's needs. `slug: backend-for-frontend`
-- [ ] **Service Discovery** — Dynamically locate service instances (client-side or server-side registry) instead of hard-coded endpoints. `slug: service-discovery`
-- [ ] **Circuit Breaker** — Stop calling a failing dependency and fail fast until it recovers, preventing cascade failures. `slug: circuit-breaker`
-- [ ] **Bulkhead** — Isolate resources (thread pools, connections) so failure in one area does not exhaust the whole system. `slug: bulkhead`
-- [ ] **Retry with Exponential Backoff** — Retry transient failures with increasing delays and jitter to avoid thundering herds. `slug: retry-backoff`
-- [ ] **Saga** — Coordinate a long-running distributed transaction as a sequence of local transactions with compensating actions. `slug: saga`
-- [ ] **Transactional Outbox** — Atomically write domain events to an outbox table in the same DB transaction, then publish asynchronously. `slug: transactional-outbox`
-- [ ] **Inbox Pattern** — Deduplicate incoming messages idempotently before processing to handle at-least-once delivery. `slug: inbox-pattern`
-- [ ] **CQRS (Command Query Responsibility Segregation)** — Separate read and write models optimized for their respective workloads. `slug: cqrs`
-- [ ] **Event Sourcing** — Persist state as an append-only sequence of events rather than overwriting current state. `slug: event-sourcing`
-- [ ] **Sidecar** — Deploy a helper process alongside the main application container (e.g. proxy, logging agent). `slug: sidecar`
-- [ ] **Ambassador** — Offload common connectivity concerns (retries, TLS, routing) to a local proxy sidecar. `slug: ambassador`
-- [ ] **Anti-Corruption Layer** — Translate between your domain model and an external or legacy system's model at the boundary. `slug: anti-corruption-layer`
-- [ ] **Strangler Fig** — Incrementally replace a legacy system by routing traffic to new services until the old system can be retired. `slug: strangler-fig`
-- [ ] **Database per Service** — Each microservice owns its private datastore; no direct cross-service DB access. `slug: database-per-service`
-- [ ] **Shared Nothing Architecture** — Nodes share no memory or disk; scale by adding independent units. `slug: shared-nothing`
-- [ ] **Leader Election** — Choose one coordinator among distributed nodes (e.g. via Raft, ZooKeeper). `slug: leader-election`
-- [ ] **Two-Phase Commit (2PC)** — Distributed atomic commit protocol; simple but blocking and not partition-tolerant. `slug: two-phase-commit`
-- [ ] **Three-Phase Commit (3PC)** — Reduces blocking of 2PC with an extra pre-commit phase; still rarely used in practice. `slug: three-phase-commit`
-- [ ] **Idempotent Consumer** — Design message handlers so duplicate delivery produces the same result as once-only delivery. `slug: idempotent-consumer`
-- [ ] **Competing Consumers** — Multiple consumers pull from the same queue to scale processing horizontally. `slug: competing-consumers`
-- [ ] **Scatter-Gather** — Broadcast a request to multiple services and aggregate their responses into one reply. `slug: scatter-gather`
-- [ ] **Throttling** — Limit the rate of requests or resource consumption to protect the system under load. `slug: throttling`
-- [ ] **Rate Limiter** — Enforce per-client or per-tenant request quotas at the edge or service layer. `slug: rate-limiter-pattern`
-- [ ] **Cache-Aside** — Application loads data into cache on miss and invalidates or updates on writes. `slug: cache-aside`
-- [ ] **Read-Through / Write-Through Cache** — Cache sits in front of the store and loads or writes through to the backing database. `slug: read-write-through-cache`
-- [ ] **Write-Behind (Write-Back) Cache** — Acknowledge writes to cache immediately and flush to the store asynchronously. `slug: write-behind-cache`
-- [ ] **Materialized View** — Precompute and store query results optimized for read-heavy access patterns. `slug: materialized-view`
-- [ ] **Sharding** — Partition data across nodes by a shard key to scale storage and throughput horizontally. `slug: sharding-pattern`
-- [ ] **Consistent Hashing** — Distribute keys across nodes with minimal remapping when nodes are added or removed. `slug: consistent-hashing`
-- [ ] **Quorum** — Require a minimum number of replica acknowledgements for reads/writes to balance consistency and availability. `slug: quorum`
-- [ ] **Gossip Protocol** — Nodes spread cluster state by periodically exchanging information with random peers. `slug: gossip-protocol`
+- [x] **API Gateway** — Single entry point that routes, authenticates, rate-limits, and aggregates calls to backend services. `slug: api-gateway`
+- [x] **Backend for Frontend (BFF)** — Dedicated API layer per client type (web, mobile) shaped to that client's needs. `slug: backend-for-frontend`
+- [x] **Service Discovery** — Dynamically locate service instances (client-side or server-side registry) instead of hard-coded endpoints. `slug: service-discovery`
+- [x] **Circuit Breaker** — Stop calling a failing dependency and fail fast until it recovers, preventing cascade failures. `slug: circuit-breaker`
+- [x] **Bulkhead** — Isolate resources (thread pools, connections) so failure in one area does not exhaust the whole system. `slug: bulkhead`
+- [x] **Retry with Exponential Backoff** — Retry transient failures with increasing delays and jitter to avoid thundering herds. `slug: retry-backoff`
+- [x] **Saga** — Coordinate a long-running distributed transaction as a sequence of local transactions with compensating actions. `slug: saga`
+- [x] **Transactional Outbox** — Atomically write domain events to an outbox table in the same DB transaction, then publish asynchronously. `slug: transactional-outbox`
+- [x] **Inbox Pattern** — Deduplicate incoming messages idempotently before processing to handle at-least-once delivery. `slug: inbox-pattern`
+- [x] **CQRS (Command Query Responsibility Segregation)** — Separate read and write models optimized for their respective workloads. `slug: cqrs`
+- [x] **Event Sourcing** — Persist state as an append-only sequence of events rather than overwriting current state. `slug: event-sourcing`
+- [x] **Sidecar** — Deploy a helper process alongside the main application container (e.g. proxy, logging agent). `slug: sidecar`
+- [x] **Ambassador** — Offload common connectivity concerns (retries, TLS, routing) to a local proxy sidecar. `slug: ambassador`
+- [x] **Anti-Corruption Layer** — Translate between your domain model and an external or legacy system's model at the boundary. `slug: anti-corruption-layer`
+- [x] **Strangler Fig** — Incrementally replace a legacy system by routing traffic to new services until the old system can be retired. `slug: strangler-fig`
+- [x] **Database per Service** — Each microservice owns its private datastore; no direct cross-service DB access. `slug: database-per-service`
+- [x] **Shared Nothing Architecture** — Nodes share no memory or disk; scale by adding independent units. `slug: shared-nothing`
+- [x] **Leader Election** — Choose one coordinator among distributed nodes (e.g. via Raft, ZooKeeper). `slug: leader-election`
+- [x] **Two-Phase Commit (2PC)** — Distributed atomic commit protocol; simple but blocking and not partition-tolerant. `slug: two-phase-commit`
+- [x] **Three-Phase Commit (3PC)** — Reduces blocking of 2PC with an extra pre-commit phase; still rarely used in practice. `slug: three-phase-commit`
+- [x] **Idempotent Consumer** — Design message handlers so duplicate delivery produces the same result as once-only delivery. `slug: idempotent-consumer`
+- [x] **Competing Consumers** — Multiple consumers pull from the same queue to scale processing horizontally. `slug: competing-consumers`
+- [x] **Scatter-Gather** — Broadcast a request to multiple services and aggregate their responses into one reply. `slug: scatter-gather`
+- [x] **Throttling** — Limit the rate of requests or resource consumption to protect the system under load. `slug: throttling`
+- [x] **Rate Limiter** — Enforce per-client or per-tenant request quotas at the edge or service layer. `slug: rate-limiter-pattern`
+- [x] **Cache-Aside** — Application loads data into cache on miss and invalidates or updates on writes. `slug: cache-aside`
+- [x] **Read-Through / Write-Through Cache** — Cache sits in front of the store and loads or writes through to the backing database. `slug: read-write-through-cache`
+- [x] **Write-Behind (Write-Back) Cache** — Acknowledge writes to cache immediately and flush to the store asynchronously. `slug: write-behind-cache`
+- [x] **Materialized View** — Precompute and store query results optimized for read-heavy access patterns. `slug: materialized-view`
+- [x] **Sharding** — Partition data across nodes by a shard key to scale storage and throughput horizontally. `slug: sharding-pattern`
+- [x] **Consistent Hashing** — Distribute keys across nodes with minimal remapping when nodes are added or removed. `slug: consistent-hashing`
+- [x] **Quorum** — Require a minimum number of replica acknowledgements for reads/writes to balance consistency and availability. `slug: quorum`
+- [x] **Gossip Protocol** — Nodes spread cluster state by periodically exchanging information with random peers. `slug: gossip-protocol`
 - [ ] **Load Balancing** — Distribute traffic across multiple instances using round-robin, least-connections, or consistent hashing. `slug: load-balancing-pattern`
 - [ ] **Service Mesh** — Infrastructure layer for service-to-service communication (mTLS, retries, observability). `slug: service-mesh`
 - [ ] **Event-Driven Microservices** — Services communicate via asynchronous events rather than synchronous RPC chains. `slug: event-driven-microservices`

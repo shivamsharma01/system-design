@@ -57,6 +57,7 @@ export class DesignRegistryService {
     'Behavioral',
     'Concurrency',
     'Architectural',
+    'Distributed Systems',
     'Cloud & Resilience',
     'Data & Messaging',
     'ML & Data Pipeline',

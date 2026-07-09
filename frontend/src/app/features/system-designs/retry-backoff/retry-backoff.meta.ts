@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const RETRY_BACKOFF_META: DesignMeta = {
+  slug: 'retry-backoff',
+  title: 'Retry with Exponential Backoff Pattern',
+  tagline:
+    'Retry transient failures with increasing delays, jitter, and max attempts — paired with idempotency keys to avoid duplicate side effects.',
+  section: 'design-patterns',
+  category: 'Distributed Systems',
+  tags: ['retry', 'backoff', 'jitter', 'idempotency', 'resilience'],
+  technologies: ['Resilience4j', 'AWS SDK', 'gRPC retry policy', 'Spring Retry'],
+  difficulty: 'beginner',
+  readingTimeMin: 12,
+  status: 'published',
+  keywords: ['exponential backoff', 'jitter', 'max attempts', 'idempotent retry'],
+  dateAdded: '2026-07-10',
+  popularity: 89,
+  icon: 'RX',
+  heroGradient: 'linear-gradient(135deg, #a855f7 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

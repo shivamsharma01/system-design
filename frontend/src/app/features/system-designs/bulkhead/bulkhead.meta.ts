@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const BULKHEAD_META: DesignMeta = {
+  slug: 'bulkhead',
+  title: 'Bulkhead Pattern',
+  tagline:
+    'Isolate thread pools, connection pools, and queues so one slow dependency cannot exhaust shared resources — ship compartment resilience.',
+  section: 'design-patterns',
+  category: 'Distributed Systems',
+  tags: ['bulkhead', 'isolation', 'thread-pool', 'resilience', 'resource-limits'],
+  technologies: ['Resilience4j', 'HikariCP', 'Kubernetes quotas', 'Semaphore pools'],
+  difficulty: 'intermediate',
+  readingTimeMin: 12,
+  status: 'published',
+  keywords: ['resource isolation', 'thread pool partition', 'connection pool', 'failure containment'],
+  dateAdded: '2026-07-10',
+  popularity: 86,
+  icon: 'BH',
+  heroGradient: 'linear-gradient(135deg, #6366f1 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

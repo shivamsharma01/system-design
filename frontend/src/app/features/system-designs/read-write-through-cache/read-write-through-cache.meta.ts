@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const READ_WRITE_THROUGH_CACHE_META: DesignMeta = {
+  slug: 'read-write-through-cache',
+  title: 'Read-Through / Write-Through Cache Pattern',
+  tagline:
+    'The cache layer sits in front of the database — loads on miss and writes synchronously through to the store so callers stay simple.',
+  section: 'design-patterns',
+  category: 'Distributed Systems',
+  tags: ['read-through', 'write-through', 'cache', 'synchronous-write', 'redis'],
+  technologies: ['Redis', 'Hazelcast', 'AWS ElastiCache', 'Caffeine LoadingCache'],
+  difficulty: 'advanced',
+  readingTimeMin: 13,
+  status: 'published',
+  keywords: ['read-through', 'write-through', 'cache loader', 'synchronous persistence'],
+  dateAdded: '2026-07-10',
+  popularity: 85,
+  icon: 'RT',
+  heroGradient: 'linear-gradient(135deg, #2563eb 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};
