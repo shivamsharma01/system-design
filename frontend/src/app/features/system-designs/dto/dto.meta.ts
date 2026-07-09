@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const DTO_META: DesignMeta = {
+  slug: 'dto',
+  title: 'DTO Pattern',
+  tagline:
+    'Plain data carriers across boundaries — API payloads, layer boundaries, and why entities should not leak to clients.',
+  section: 'design-patterns',
+  category: 'Architectural',
+  tags: ['dto', 'architectural', 'api', 'lld', 'serialization'],
+  technologies: ['Java', 'REST', 'JSON'],
+  difficulty: 'beginner',
+  readingTimeMin: 10,
+  status: 'published',
+  keywords: ['data transfer object', 'api contract', 'mapping'],
+  dateAdded: '2026-07-09',
+  popularity: 91,
+  icon: 'DT',
+  heroGradient: 'linear-gradient(135deg, #0ea5e9 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

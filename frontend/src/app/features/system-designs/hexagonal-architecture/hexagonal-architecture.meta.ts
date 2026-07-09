@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const HEXAGONAL_ARCHITECTURE_META: DesignMeta = {
+  slug: 'hexagonal-architecture',
+  title: 'Hexagonal Architecture',
+  tagline:
+    'Ports and adapters isolate the domain — swap databases, UIs, and message buses without rewriting core logic.',
+  section: 'design-patterns',
+  category: 'Architectural',
+  tags: ['hexagonal', 'ports-adapters', 'architectural', 'lld', 'clean-architecture'],
+  technologies: ['Java', 'Spring', 'Domain Core'],
+  difficulty: 'intermediate',
+  readingTimeMin: 14,
+  status: 'published',
+  keywords: ['ports and adapters', 'clean architecture', 'inbound outbound ports'],
+  dateAdded: '2026-07-09',
+  popularity: 92,
+  icon: 'HX',
+  heroGradient: 'linear-gradient(135deg, #f97316 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

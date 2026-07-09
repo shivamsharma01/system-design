@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const DOUBLE_CHECKED_LOCKING_META: DesignMeta = {
+  slug: 'double-checked-locking',
+  title: 'Double-Checked Locking Pattern',
+  tagline:
+    'Lazy init with less lock contention — volatile, the Java memory model, and safer alternatives interviewers compare.',
+  section: 'design-patterns',
+  category: 'Concurrency',
+  tags: ['double-checked-locking', 'concurrency', 'singleton', 'lld', 'volatile'],
+  technologies: ['Java', 'volatile', 'Singleton'],
+  difficulty: 'intermediate',
+  readingTimeMin: 12,
+  status: 'published',
+  keywords: ['dcl', 'lazy singleton', 'happens before', 'initialization on demand'],
+  dateAdded: '2026-07-09',
+  popularity: 90,
+  icon: 'DC',
+  heroGradient: 'linear-gradient(135deg, #f59e0b 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

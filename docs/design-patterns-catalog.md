@@ -56,31 +56,31 @@ A backlog of design patterns to turn into pages under the **Design Patterns** se
 
 ## Concurrency
 
-- [ ] **Producer-Consumer** — Decouple producers and consumers with a bounded buffer or queue between them. `slug: producer-consumer`
-- [ ] **Thread Pool** — Reuse a fixed set of worker threads to execute many short-lived tasks efficiently. `slug: thread-pool`
-- [ ] **Read-Write Lock** — Allow multiple concurrent readers or one exclusive writer to improve read-heavy workloads. `slug: read-write-lock`
-- [ ] **Double-Checked Locking** — Reduce synchronization overhead when lazily initializing a singleton in a multi-threaded environment. `slug: double-checked-locking`
-- [ ] **Actor Model** — Encapsulate state and behavior in actors that communicate only via asynchronous messages. `slug: actor-model`
-- [ ] **Future / Promise** — Represent the result of an asynchronous computation that will be available later. `slug: future-promise`
-- [ ] **Balking** — Only act on an object when it is in a particular state; otherwise return immediately. `slug: balking`
-- [ ] **Guarded Suspension** — Suspend a thread until a precondition is met before proceeding with an operation. `slug: guarded-suspension`
+- [x] **Producer-Consumer** — Decouple producers and consumers with a bounded buffer or queue between them. `slug: producer-consumer`
+- [x] **Thread Pool** — Reuse a fixed set of worker threads to execute many short-lived tasks efficiently. `slug: thread-pool`
+- [x] **Read-Write Lock** — Allow multiple concurrent readers or one exclusive writer to improve read-heavy workloads. `slug: read-write-lock`
+- [x] **Double-Checked Locking** — Reduce synchronization overhead when lazily initializing a singleton in a multi-threaded environment. `slug: double-checked-locking`
+- [x] **Actor Model** — Encapsulate state and behavior in actors that communicate only via asynchronous messages. `slug: actor-model`
+- [x] **Future / Promise** — Represent the result of an asynchronous computation that will be available later. `slug: future-promise`
+- [x] **Balking** — Only act on an object when it is in a particular state; otherwise return immediately. `slug: balking`
+- [x] **Guarded Suspension** — Suspend a thread until a precondition is met before proceeding with an operation. `slug: guarded-suspension`
 
 ---
 
 ## Architectural and enterprise
 
-- [ ] **Model-View-Controller (MVC)** — Separate UI, business logic, and data into three cooperating components. `slug: mvc`
-- [ ] **Model-View-Presenter (MVP)** — View is passive; presenter handles UI logic and talks to the model. `slug: mvp`
-- [ ] **Model-View-ViewModel (MVVM)** — Bind view to view-model for declarative UI with two-way data binding. `slug: mvvm`
-- [ ] **Layered Architecture** — Organize the system into horizontal layers (presentation, domain, data) with strict dependencies. `slug: layered-architecture`
-- [ ] **Hexagonal Architecture (Ports and Adapters)** — Isolate core domain logic from external systems via explicit ports and adapters. `slug: hexagonal-architecture`
-- [ ] **Repository** — Mediate between domain and data mapping layers with a collection-like interface for aggregates. `slug: repository`
-- [ ] **Unit of Work** — Track changes to multiple objects during a business transaction and commit them atomically. `slug: unit-of-work`
-- [ ] **Data Transfer Object (DTO)** — Carry data between processes or layers without business logic. `slug: dto`
-- [ ] **Active Record** — An object that wraps a database row and includes both data access and domain logic. `slug: active-record`
-- [ ] **Service Locator** — Provide a registry to look up service implementations (prefer dependency injection in new code). `slug: service-locator`
-- [ ] **Dependency Injection** — Supply dependencies from outside rather than constructing them inside a class. `slug: dependency-injection`
-- [ ] **Domain-Driven Design (DDD) building blocks** — Entities, value objects, aggregates, and bounded contexts for complex domains. `slug: domain-driven-design`
+- [x] **Model-View-Controller (MVC)** — Separate UI, business logic, and data into three cooperating components. `slug: mvc`
+- [x] **Model-View-Presenter (MVP)** — View is passive; presenter handles UI logic and talks to the model. `slug: mvp`
+- [x] **Model-View-ViewModel (MVVM)** — Bind view to view-model for declarative UI with two-way data binding. `slug: mvvm`
+- [x] **Layered Architecture** — Organize the system into horizontal layers (presentation, domain, data) with strict dependencies. `slug: layered-architecture`
+- [x] **Hexagonal Architecture (Ports and Adapters)** — Isolate core domain logic from external systems via explicit ports and adapters. `slug: hexagonal-architecture`
+- [x] **Repository** — Mediate between domain and data mapping layers with a collection-like interface for aggregates. `slug: repository`
+- [x] **Unit of Work** — Track changes to multiple objects during a business transaction and commit them atomically. `slug: unit-of-work`
+- [x] **Data Transfer Object (DTO)** — Carry data between processes or layers without business logic. `slug: dto`
+- [x] **Active Record** — An object that wraps a database row and includes both data access and domain logic. `slug: active-record`
+- [x] **Service Locator** — Provide a registry to look up service implementations (prefer dependency injection in new code). `slug: service-locator`
+- [x] **Dependency Injection** — Supply dependencies from outside rather than constructing them inside a class. `slug: dependency-injection`
+- [x] **Domain-Driven Design (DDD) building blocks** — Entities, value objects, aggregates, and bounded contexts for complex domains. `slug: domain-driven-design`
 
 ---
 

@@ -1,0 +1,27 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const DOMAIN_DRIVEN_DESIGN_META: DesignMeta = {
+  slug: 'domain-driven-design',
+  title: 'Domain-Driven Design Building Blocks',
+  tagline:
+    'Entities, value objects, aggregates, and bounded contexts — the vocabulary for complex business domains.',
+  section: 'design-patterns',
+  category: 'Architectural',
+  tags: ['ddd', 'architectural', 'domain', 'lld', 'aggregates'],
+  technologies: ['Java', 'Domain Modeling', 'Microservices'],
+  difficulty: 'advanced',
+  readingTimeMin: 16,
+  status: 'published',
+  keywords: [
+    'entity',
+    'value object',
+    'aggregate',
+    'bounded context',
+    'ubiquitous language',
+  ],
+  dateAdded: '2026-07-09',
+  popularity: 95,
+  icon: 'DD',
+  heroGradient: 'linear-gradient(135deg, #8b5cf6 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const BALKING_META: DesignMeta = {
+  slug: 'balking',
+  title: 'Balking Pattern',
+  tagline:
+    'Act only when the object is in the right state — otherwise return immediately. Autosave, idempotent starts, and fail-fast concurrency.',
+  section: 'design-patterns',
+  category: 'Concurrency',
+  tags: ['balking', 'concurrency', 'state', 'lld', 'fail-fast'],
+  technologies: ['Java', 'Synchronization', 'State'],
+  difficulty: 'beginner',
+  readingTimeMin: 10,
+  status: 'published',
+  keywords: ['balk', 'guard condition', 'idempotent', 'already running'],
+  dateAdded: '2026-07-09',
+  popularity: 76,
+  icon: 'BK',
+  heroGradient: 'linear-gradient(135deg, #64748b 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

@@ -16,6 +16,26 @@ import { DECORATOR_META } from '../../features/system-designs/decorator/decorato
 import { FACADE_META } from '../../features/system-designs/facade/facade.meta';
 import { FLYWEIGHT_META } from '../../features/system-designs/flyweight/flyweight.meta';
 import { PROXY_META } from '../../features/system-designs/proxy/proxy.meta';
+import { PRODUCER_CONSUMER_META } from '../../features/system-designs/producer-consumer/producer-consumer.meta';
+import { THREAD_POOL_META } from '../../features/system-designs/thread-pool/thread-pool.meta';
+import { READ_WRITE_LOCK_META } from '../../features/system-designs/read-write-lock/read-write-lock.meta';
+import { DOUBLE_CHECKED_LOCKING_META } from '../../features/system-designs/double-checked-locking/double-checked-locking.meta';
+import { ACTOR_MODEL_META } from '../../features/system-designs/actor-model/actor-model.meta';
+import { FUTURE_PROMISE_META } from '../../features/system-designs/future-promise/future-promise.meta';
+import { BALKING_META } from '../../features/system-designs/balking/balking.meta';
+import { GUARDED_SUSPENSION_META } from '../../features/system-designs/guarded-suspension/guarded-suspension.meta';
+import { MVC_META } from '../../features/system-designs/mvc/mvc.meta';
+import { MVP_META } from '../../features/system-designs/mvp/mvp.meta';
+import { MVVM_META } from '../../features/system-designs/mvvm/mvvm.meta';
+import { LAYERED_ARCHITECTURE_META } from '../../features/system-designs/layered-architecture/layered-architecture.meta';
+import { HEXAGONAL_ARCHITECTURE_META } from '../../features/system-designs/hexagonal-architecture/hexagonal-architecture.meta';
+import { REPOSITORY_META } from '../../features/system-designs/repository/repository.meta';
+import { UNIT_OF_WORK_META } from '../../features/system-designs/unit-of-work/unit-of-work.meta';
+import { DTO_META } from '../../features/system-designs/dto/dto.meta';
+import { ACTIVE_RECORD_META } from '../../features/system-designs/active-record/active-record.meta';
+import { SERVICE_LOCATOR_META } from '../../features/system-designs/service-locator/service-locator.meta';
+import { DEPENDENCY_INJECTION_META } from '../../features/system-designs/dependency-injection/dependency-injection.meta';
+import { DOMAIN_DRIVEN_DESIGN_META } from '../../features/system-designs/domain-driven-design/domain-driven-design.meta';
 import { NETFLIX_META } from '../../features/system-designs/netflix/netflix.meta';
 import { URL_SHORTENER_META } from '../../features/system-designs/url-shortener/url-shortener.meta';
 import { WHATSAPP_META } from '../../features/system-designs/whatsapp/whatsapp.meta';
@@ -103,6 +123,92 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   {
     meta: PROXY_META,
     load: () => import('../../features/system-designs/proxy/proxy.content'),
+  },
+  {
+    meta: PRODUCER_CONSUMER_META,
+    load: () => import('../../features/system-designs/producer-consumer/producer-consumer.content'),
+  },
+  {
+    meta: THREAD_POOL_META,
+    load: () => import('../../features/system-designs/thread-pool/thread-pool.content'),
+  },
+  {
+    meta: READ_WRITE_LOCK_META,
+    load: () => import('../../features/system-designs/read-write-lock/read-write-lock.content'),
+  },
+  {
+    meta: DOUBLE_CHECKED_LOCKING_META,
+    load: () =>
+      import('../../features/system-designs/double-checked-locking/double-checked-locking.content'),
+  },
+  {
+    meta: ACTOR_MODEL_META,
+    load: () => import('../../features/system-designs/actor-model/actor-model.content'),
+  },
+  {
+    meta: FUTURE_PROMISE_META,
+    load: () => import('../../features/system-designs/future-promise/future-promise.content'),
+  },
+  {
+    meta: BALKING_META,
+    load: () => import('../../features/system-designs/balking/balking.content'),
+  },
+  {
+    meta: GUARDED_SUSPENSION_META,
+    load: () =>
+      import('../../features/system-designs/guarded-suspension/guarded-suspension.content'),
+  },
+  {
+    meta: MVC_META,
+    load: () => import('../../features/system-designs/mvc/mvc.content'),
+  },
+  {
+    meta: MVP_META,
+    load: () => import('../../features/system-designs/mvp/mvp.content'),
+  },
+  {
+    meta: MVVM_META,
+    load: () => import('../../features/system-designs/mvvm/mvvm.content'),
+  },
+  {
+    meta: LAYERED_ARCHITECTURE_META,
+    load: () =>
+      import('../../features/system-designs/layered-architecture/layered-architecture.content'),
+  },
+  {
+    meta: HEXAGONAL_ARCHITECTURE_META,
+    load: () =>
+      import('../../features/system-designs/hexagonal-architecture/hexagonal-architecture.content'),
+  },
+  {
+    meta: REPOSITORY_META,
+    load: () => import('../../features/system-designs/repository/repository.content'),
+  },
+  {
+    meta: UNIT_OF_WORK_META,
+    load: () => import('../../features/system-designs/unit-of-work/unit-of-work.content'),
+  },
+  {
+    meta: DTO_META,
+    load: () => import('../../features/system-designs/dto/dto.content'),
+  },
+  {
+    meta: ACTIVE_RECORD_META,
+    load: () => import('../../features/system-designs/active-record/active-record.content'),
+  },
+  {
+    meta: SERVICE_LOCATOR_META,
+    load: () => import('../../features/system-designs/service-locator/service-locator.content'),
+  },
+  {
+    meta: DEPENDENCY_INJECTION_META,
+    load: () =>
+      import('../../features/system-designs/dependency-injection/dependency-injection.content'),
+  },
+  {
+    meta: DOMAIN_DRIVEN_DESIGN_META,
+    load: () =>
+      import('../../features/system-designs/domain-driven-design/domain-driven-design.content'),
   },
   {
     meta: NETFLIX_META,
