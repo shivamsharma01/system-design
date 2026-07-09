@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const EVENT_DRIVEN_ARCHITECTURE_META: DesignMeta = {
+  slug: 'event-driven-architecture',
+  title: 'Event-Driven Architecture',
+  tagline:
+    'Services react to events instead of synchronous calls — loose coupling, async workflows, and the shift from request-response.',
+  section: 'design-patterns',
+  category: 'Data & Messaging',
+  tags: ['eda', 'events', 'async', 'microservices', 'architecture'],
+  technologies: ['Kafka', 'EventBridge', 'Spring Events', 'CQRS'],
+  difficulty: 'advanced',
+  readingTimeMin: 14,
+  status: 'published',
+  keywords: ['event sourcing', 'choreography', 'saga', 'reactive'],
+  dateAdded: '2026-07-09',
+  popularity: 95,
+  icon: 'ED',
+  heroGradient: 'linear-gradient(135deg, #ec4899 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

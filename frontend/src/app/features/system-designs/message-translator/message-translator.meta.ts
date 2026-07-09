@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const MESSAGE_TRANSLATOR_META: DesignMeta = {
+  slug: 'message-translator',
+  title: 'Message Translator Pattern',
+  tagline:
+    'Convert message schema or format between systems — the adapter layer for legacy APIs, JSON/XML, and domain models.',
+  section: 'design-patterns',
+  category: 'Data & Messaging',
+  tags: ['translator', 'schema', 'integration', 'adapter'],
+  technologies: ['Apache Camel', 'Kafka Connect', 'MapStruct', 'AWS AppSync'],
+  difficulty: 'intermediate',
+  readingTimeMin: 12,
+  status: 'published',
+  keywords: ['format conversion', 'schema mapping', 'envelope wrapper'],
+  dateAdded: '2026-07-09',
+  popularity: 84,
+  icon: 'MT',
+  heroGradient: 'linear-gradient(135deg, #eab308 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

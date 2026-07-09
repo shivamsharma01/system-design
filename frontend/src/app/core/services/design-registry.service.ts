@@ -58,6 +58,7 @@ export class DesignRegistryService {
     'Concurrency',
     'Architectural',
     'Cloud & Resilience',
+    'Data & Messaging',
   ];
 
   /** Categories within a section (or all categories if section omitted). */

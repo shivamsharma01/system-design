@@ -1,0 +1,189 @@
+import { DesignContent } from '../../../shared/models';
+import { PUBLISH_SUBSCRIBE_META } from './publish-subscribe.meta';
+
+const content: DesignContent = {
+  meta: PUBLISH_SUBSCRIBE_META,
+  sections: [
+    {
+      id: 'overview',
+      title: 'Overview',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            '**Publish-Subscribe (Pub/Sub)** decouples message **publishers** from **subscribers** through an intermediary **topic** or **event bus**. Publishers emit events without knowing who consumes them; subscribers register interest and receive copies independently. This enables fan-out, scaling, and loose coupling across services.',
+        },
+        {
+          type: 'callout',
+          variant: 'info',
+          title: 'Core idea',
+          body: 'Unlike point-to-point queues (one consumer per message), pub/sub **broadcasts** to all interested subscribers. Kafka topics, AWS SNS, and Google Pub/Sub are canonical implementations.',
+        },
+        {
+          type: 'table',
+          caption: 'Pub/Sub vs point-to-point.',
+          headers: ['Aspect', 'Pub/Sub', 'Point-to-point queue'],
+          rows: [
+            ['Delivery', 'Each subscriber gets a copy', 'One consumer processes each message'],
+            ['Coupling', 'Publisher unaware of subscribers', 'Producer often knows the queue name'],
+            ['Use case', 'Notifications, event fan-out', 'Work distribution, job queues'],
+            ['Example', 'OrderPlaced → email, inventory, analytics', 'ResizeImage job → one worker'],
+          ],
+        },
+      ],
+    },
+    {
+      id: 'concept',
+      title: 'Concept and analogy',
+      blocks: [
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Real-world analogy',
+          body: 'A **food-delivery app notification board**: when an order is placed, the restaurant tablet, the driver app, and the customer SMS service all hear the same announcement — but none of them had to call each other directly.',
+        },
+        {
+          type: 'mermaid',
+          caption: 'One publisher, many independent subscribers.',
+          definition: `flowchart LR
+  P[Order Service] --> T[(orders.placed topic)]
+  T --> S1[Inventory Service]
+  T --> S2[Notification Service]
+  T --> S3[Analytics Pipeline]`,
+        },
+      ],
+    },
+    {
+      id: 'where-used',
+      title: 'Where it is used',
+      blocks: [
+        {
+          type: 'table',
+          headers: ['Domain', 'Example'],
+          rows: [
+            ['E-commerce', 'OrderPlaced event → warehouse, billing, email, recommendations'],
+            ['Banking', 'TransactionPosted → fraud scoring, statements, audit log'],
+            ['Streaming', 'Netflix playback events → recommendations, billing, QoS metrics'],
+            ['Microservices', 'Domain events on Kafka between bounded contexts'],
+            ['Mobile push', 'SNS / FCM topic subscriptions by user segment'],
+            ['IoT', 'Sensor readings published to per-device or per-region topics'],
+          ],
+        },
+      ],
+    },
+    {
+      id: 'implementation',
+      title: 'Implementation',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Publishers send to a **topic** with a key (for partitioning) and a serialized payload. Subscribers join a **consumer group** (Kafka) or subscribe to a topic ARN (SNS). For reliable delivery alongside a database write, teams often pair pub/sub with a **Transactional Outbox** — atomically saving the event and business data, then publishing from the outbox relay.',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'OrderEventPublisher.java',
+          code: `@Service
+public class OrderEventPublisher {
+  private final KafkaTemplate<String, OrderPlacedEvent> kafka;
+
+  public OrderEventPublisher(KafkaTemplate<String, OrderPlacedEvent> kafka) {
+    this.kafka = kafka;
+  }
+
+  public void publish(Order order) {
+    OrderPlacedEvent event = new OrderPlacedEvent(
+        order.getId(), order.getCustomerId(), order.getTotal(), Instant.now());
+    // key = customerId keeps related orders on same partition
+    kafka.send("orders.placed", order.getCustomerId(), event);
+  }
+}
+
+@Component
+public class InventorySubscriber {
+  @KafkaListener(topics = "orders.placed", groupId = "inventory")
+  public void onOrderPlaced(OrderPlacedEvent event) {
+    inventoryService.reserve(event.orderId(), event.items());
+  }
+}`,
+        },
+        {
+          type: 'callout',
+          variant: 'warning',
+          title: 'Ordering and duplicates',
+          body: 'Pub/sub is usually **at-least-once**. Subscribers must be **idempotent**. Per-partition ordering (Kafka) applies only within a key — not globally across the topic.',
+        },
+        {
+          type: 'prosCons',
+          title: 'Trade-offs',
+          pros: [
+            'Loose coupling — add subscribers without changing publishers.',
+            'Natural fan-out for notifications and side effects.',
+            'Scales horizontally with partitioned topics.',
+          ],
+          cons: [
+            'Harder to trace end-to-end than synchronous calls.',
+            'Eventual consistency between publisher and subscribers.',
+            'Duplicate delivery requires idempotent handlers.',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'interview-questions',
+      title: 'Interview Questions',
+      blocks: [
+        {
+          type: 'interviewQa',
+          items: [
+            {
+              question: 'Pub/Sub vs message queue — when do you pick each?',
+              answer:
+                'Use a **queue** when exactly one worker should process a job (resize image). Use **pub/sub** when multiple independent services must react to the same event (order placed → inventory + email + analytics).',
+            },
+            {
+              question: 'How does Kafka implement pub/sub?',
+              answer:
+                'Producers write to **topics** partitioned by key. **Consumer groups** each receive all partitions — different groups get independent copies. Same group shares partition work.',
+            },
+            {
+              question: 'What happens if a subscriber is down?',
+              answer:
+                'Messages are **retained** (Kafka retention, SNS retries to SQS). The subscriber catches up on restart. Design for **at-least-once** and idempotent processing.',
+            },
+            {
+              question: 'How do you guarantee an event is published after a DB commit?',
+              answer:
+                'Use the **Transactional Outbox** pattern: write the business row and an outbox row in one transaction; a separate relay publishes to the topic. Avoid dual-write (DB + Kafka) without coordination.',
+            },
+            {
+              question: 'How do you handle a slow subscriber?',
+              answer:
+                'Monitor **consumer lag**. Scale consumers within the group, increase partitions, or decouple with a dedicated queue per slow subscriber fed from the topic.',
+            },
+            {
+              question: 'SNS vs SQS in AWS?',
+              answer:
+                '**SNS** is pub/sub fan-out (push to many endpoints). **SQS** is a point-to-point queue. Common pattern: SNS topic → multiple SQS queues (one per subscriber).',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'summary',
+      title: 'Summary',
+      blocks: [
+        {
+          type: 'callout',
+          variant: 'summary',
+          title: 'Key takeaways',
+          body: '1. Pub/sub **decouples** publishers from subscribers via topics.\n2. Real uses: **Kafka, SNS, order/notification fan-out**.\n3. Expect **at-least-once** delivery — design idempotent consumers.\n4. Pair with **Transactional Outbox** when DB and event must stay consistent.',
+        },
+      ],
+    },
+  ],
+};
+
+export default content;

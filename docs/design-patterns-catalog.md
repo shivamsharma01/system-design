@@ -145,19 +145,19 @@ A backlog of design patterns to turn into pages under the **Design Patterns** se
 
 *Cross-ref:* **Transactional Outbox** — see [Distributed systems and microservices](#distributed-systems-and-microservices).
 
-- [ ] **Publish-Subscribe** — Publishers emit events to a topic; subscribers receive without knowing each other. `slug: publish-subscribe`
-- [ ] **Event-Driven Architecture** — System behavior is driven by the production, detection, and consumption of events. `slug: event-driven-architecture`
-- [ ] **Pipes and Filters** — Chain processing steps where each filter transforms a stream of data passed through pipes. `slug: pipes-and-filters`
-- [ ] **Claim Check** — Store large message payloads externally and pass a reference (claim check) through the messaging system. `slug: claim-check`
-- [ ] **Message Router** — Route messages to different channels or consumers based on content or headers. `slug: message-router`
-- [ ] **Content-Based Router** — Inspect message body or metadata to decide the destination channel. `slug: content-based-router`
-- [ ] **Message Filter** — Drop or pass messages based on criteria before they reach consumers. `slug: message-filter`
-- [ ] **Aggregator** — Combine multiple related messages into a single composite message. `slug: aggregator`
-- [ ] **Dead Letter Channel** — Route messages that cannot be processed successfully to a separate queue for inspection. `slug: dead-letter-channel`
-- [ ] **Wire Tap** — Copy messages to a monitoring channel without affecting the main flow. `slug: wire-tap`
-- [ ] **Message Translator** — Convert message format between systems with incompatible schemas. `slug: message-translator`
-- [ ] **Polling Consumer** — Consumer periodically checks the source for new messages (vs push-based delivery). `slug: polling-consumer`
-- [ ] **Eventual Consistency** — Accept temporary inconsistency across replicas in exchange for availability and partition tolerance. `slug: eventual-consistency`
+- [x] **Publish-Subscribe** — Publishers emit events to a topic; subscribers receive without knowing each other. `slug: publish-subscribe`
+- [x] **Event-Driven Architecture** — System behavior is driven by the production, detection, and consumption of events. `slug: event-driven-architecture`
+- [x] **Pipes and Filters** — Chain processing steps where each filter transforms a stream of data passed through pipes. `slug: pipes-and-filters`
+- [x] **Claim Check** — Store large message payloads externally and pass a reference (claim check) through the messaging system. `slug: claim-check`
+- [x] **Message Router** — Route messages to different channels or consumers based on content or headers. `slug: message-router`
+- [x] **Content-Based Router** — Inspect message body or metadata to decide the destination channel. `slug: content-based-router`
+- [x] **Message Filter** — Drop or pass messages based on criteria before they reach consumers. `slug: message-filter`
+- [x] **Aggregator** — Combine multiple related messages into a single composite message. `slug: aggregator`
+- [x] **Dead Letter Channel** — Route messages that cannot be processed successfully to a separate queue for inspection. `slug: dead-letter-channel`
+- [x] **Wire Tap** — Copy messages to a monitoring channel without affecting the main flow. `slug: wire-tap`
+- [x] **Message Translator** — Convert message format between systems with incompatible schemas. `slug: message-translator`
+- [x] **Polling Consumer** — Consumer periodically checks the source for new messages (vs push-based delivery). `slug: polling-consumer`
+- [x] **Eventual Consistency** — Accept temporary inconsistency across replicas in exchange for availability and partition tolerance. `slug: eventual-consistency`
 
 ---
 

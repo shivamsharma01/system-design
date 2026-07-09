@@ -58,6 +58,19 @@ import { CANARY_RELEASE_META } from '../../features/system-designs/canary-releas
 import { FEATURE_TOGGLE_META } from '../../features/system-designs/feature-toggle/feature-toggle.meta';
 import { CHAOS_ENGINEERING_META } from '../../features/system-designs/chaos-engineering/chaos-engineering.meta';
 import { AUTOSCALING_META } from '../../features/system-designs/autoscaling/autoscaling.meta';
+import { PUBLISH_SUBSCRIBE_META } from '../../features/system-designs/publish-subscribe/publish-subscribe.meta';
+import { EVENT_DRIVEN_ARCHITECTURE_META } from '../../features/system-designs/event-driven-architecture/event-driven-architecture.meta';
+import { PIPES_AND_FILTERS_META } from '../../features/system-designs/pipes-and-filters/pipes-and-filters.meta';
+import { CLAIM_CHECK_META } from '../../features/system-designs/claim-check/claim-check.meta';
+import { MESSAGE_ROUTER_META } from '../../features/system-designs/message-router/message-router.meta';
+import { CONTENT_BASED_ROUTER_META } from '../../features/system-designs/content-based-router/content-based-router.meta';
+import { MESSAGE_FILTER_META } from '../../features/system-designs/message-filter/message-filter.meta';
+import { AGGREGATOR_META } from '../../features/system-designs/aggregator/aggregator.meta';
+import { DEAD_LETTER_CHANNEL_META } from '../../features/system-designs/dead-letter-channel/dead-letter-channel.meta';
+import { WIRE_TAP_META } from '../../features/system-designs/wire-tap/wire-tap.meta';
+import { MESSAGE_TRANSLATOR_META } from '../../features/system-designs/message-translator/message-translator.meta';
+import { POLLING_CONSUMER_META } from '../../features/system-designs/polling-consumer/polling-consumer.meta';
+import { EVENTUAL_CONSISTENCY_META } from '../../features/system-designs/eventual-consistency/eventual-consistency.meta';
 import { NETFLIX_META } from '../../features/system-designs/netflix/netflix.meta';
 import { URL_SHORTENER_META } from '../../features/system-designs/url-shortener/url-shortener.meta';
 import { WHATSAPP_META } from '../../features/system-designs/whatsapp/whatsapp.meta';
@@ -323,6 +336,62 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   {
     meta: AUTOSCALING_META,
     load: () => import('../../features/system-designs/autoscaling/autoscaling.content'),
+  },
+  {
+    meta: PUBLISH_SUBSCRIBE_META,
+    load: () => import('../../features/system-designs/publish-subscribe/publish-subscribe.content'),
+  },
+  {
+    meta: EVENT_DRIVEN_ARCHITECTURE_META,
+    load: () =>
+      import('../../features/system-designs/event-driven-architecture/event-driven-architecture.content'),
+  },
+  {
+    meta: PIPES_AND_FILTERS_META,
+    load: () => import('../../features/system-designs/pipes-and-filters/pipes-and-filters.content'),
+  },
+  {
+    meta: CLAIM_CHECK_META,
+    load: () => import('../../features/system-designs/claim-check/claim-check.content'),
+  },
+  {
+    meta: MESSAGE_ROUTER_META,
+    load: () => import('../../features/system-designs/message-router/message-router.content'),
+  },
+  {
+    meta: CONTENT_BASED_ROUTER_META,
+    load: () =>
+      import('../../features/system-designs/content-based-router/content-based-router.content'),
+  },
+  {
+    meta: MESSAGE_FILTER_META,
+    load: () => import('../../features/system-designs/message-filter/message-filter.content'),
+  },
+  {
+    meta: AGGREGATOR_META,
+    load: () => import('../../features/system-designs/aggregator/aggregator.content'),
+  },
+  {
+    meta: DEAD_LETTER_CHANNEL_META,
+    load: () =>
+      import('../../features/system-designs/dead-letter-channel/dead-letter-channel.content'),
+  },
+  {
+    meta: WIRE_TAP_META,
+    load: () => import('../../features/system-designs/wire-tap/wire-tap.content'),
+  },
+  {
+    meta: MESSAGE_TRANSLATOR_META,
+    load: () => import('../../features/system-designs/message-translator/message-translator.content'),
+  },
+  {
+    meta: POLLING_CONSUMER_META,
+    load: () => import('../../features/system-designs/polling-consumer/polling-consumer.content'),
+  },
+  {
+    meta: EVENTUAL_CONSISTENCY_META,
+    load: () =>
+      import('../../features/system-designs/eventual-consistency/eventual-consistency.content'),
   },
   {
     meta: NETFLIX_META,
