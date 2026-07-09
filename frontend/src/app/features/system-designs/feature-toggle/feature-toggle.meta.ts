@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const FEATURE_TOGGLE_META: DesignMeta = {
+  slug: 'feature-toggle',
+  title: 'Feature Toggle Pattern',
+  tagline:
+    'Turn features on/off at runtime — dark launches, kill switches, experiments, and trunk-based development.',
+  section: 'design-patterns',
+  category: 'Cloud & Resilience',
+  tags: ['feature-toggle', 'feature-flag', 'cloud', 'devops', 'hld'],
+  technologies: ['LaunchDarkly', 'Unleash', 'Config'],
+  difficulty: 'beginner',
+  readingTimeMin: 12,
+  status: 'published',
+  keywords: ['feature flag', 'kill switch', 'dark launch', 'experimentation'],
+  dateAdded: '2026-07-09',
+  popularity: 95,
+  icon: 'FT',
+  heroGradient: 'linear-gradient(135deg, #3b82f6 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const BLUE_GREEN_DEPLOYMENT_META: DesignMeta = {
+  slug: 'blue-green-deployment',
+  title: 'Blue-Green Deployment Pattern',
+  tagline:
+    'Two identical environments, one atomic traffic switch — zero-downtime releases and instant rollback.',
+  section: 'design-patterns',
+  category: 'Cloud & Resilience',
+  tags: ['blue-green', 'cloud', 'deployment', 'devops', 'hld'],
+  technologies: ['Kubernetes', 'Load Balancers', 'CI/CD'],
+  difficulty: 'intermediate',
+  readingTimeMin: 12,
+  status: 'published',
+  keywords: ['zero downtime', 'cutover', 'rollback', 'two environments'],
+  dateAdded: '2026-07-09',
+  popularity: 90,
+  icon: 'BG',
+  heroGradient: 'linear-gradient(135deg, #06b6d4 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

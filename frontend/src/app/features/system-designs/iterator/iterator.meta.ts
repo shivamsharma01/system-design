@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const ITERATOR_META: DesignMeta = {
+  slug: 'iterator',
+  title: 'Iterator Pattern',
+  tagline:
+    'Traverse a collection without exposing its structure — Java Iterable, custom trees, and lazy sequences.',
+  section: 'design-patterns',
+  category: 'Behavioral',
+  tags: ['iterator', 'behavioral', 'gof', 'lld', 'collections'],
+  technologies: ['Java', 'Collections', 'Streams'],
+  difficulty: 'beginner',
+  readingTimeMin: 10,
+  status: 'published',
+  keywords: ['hasNext next', 'traversal', 'iterable', 'cursor'],
+  dateAdded: '2026-07-09',
+  popularity: 84,
+  icon: 'IT',
+  heroGradient: 'linear-gradient(135deg, #14b8a6 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const MEDIATOR_META: DesignMeta = {
+  slug: 'mediator',
+  title: 'Mediator Pattern',
+  tagline:
+    'Centralize messy object chatter — chat rooms, UI dialogs, and air-traffic-style coordination.',
+  section: 'design-patterns',
+  category: 'Behavioral',
+  tags: ['mediator', 'behavioral', 'gof', 'lld', 'decoupling'],
+  technologies: ['Java', 'UI', 'Messaging'],
+  difficulty: 'intermediate',
+  readingTimeMin: 12,
+  status: 'published',
+  keywords: ['hub spoke', 'colleague', 'decouple communication'],
+  dateAdded: '2026-07-09',
+  popularity: 85,
+  icon: 'MD',
+  heroGradient: 'linear-gradient(135deg, #ec4899 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

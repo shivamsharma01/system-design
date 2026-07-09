@@ -38,19 +38,19 @@ A backlog of design patterns to turn into pages under the **Design Patterns** se
 
 ## Behavioral (GoF)
 
-- [ ] **Chain of Responsibility** — Pass a request along a chain of handlers until one handles it. `slug: chain-of-responsibility`
-- [ ] **Command** — Encapsulate a request as an object so you can parameterize, queue, log, and undo operations. `slug: command`
-- [ ] **Iterator** — Access elements of a collection sequentially without exposing its internal structure. `slug: iterator`
-- [ ] **Mediator** — Centralize complex communications between objects to reduce tangled dependencies. `slug: mediator`
-- [ ] **Memento** — Capture and externalize an object's internal state so it can be restored later. `slug: memento`
-- [ ] **Observer** — Define a one-to-many dependency so observers are notified when subject state changes. `slug: observer`
-- [ ] **State** — Allow an object to alter its behavior when its internal state changes. `slug: state`
-- [ ] **Strategy** — Define a family of interchangeable algorithms and make them swappable at runtime. `slug: strategy`
-- [ ] **Template Method** — Define the skeleton of an algorithm in a base class, letting subclasses override specific steps. `slug: template-method`
-- [ ] **Visitor** — Separate algorithms from the object structure they operate on via double dispatch. `slug: visitor`
-- [ ] **Interpreter** — Define a grammar for a language and an interpreter to evaluate sentences in that language. `slug: interpreter`
-- [ ] **Null Object** — Provide a do-nothing default object instead of null checks everywhere. `slug: null-object`
-- [ ] **Specification** — Encapsulate business rules as composable, testable predicate objects. `slug: specification`
+- [x] **Chain of Responsibility** — Pass a request along a chain of handlers until one handles it. `slug: chain-of-responsibility`
+- [x] **Command** — Encapsulate a request as an object so you can parameterize, queue, log, and undo operations. `slug: command`
+- [x] **Iterator** — Access elements of a collection sequentially without exposing its internal structure. `slug: iterator`
+- [x] **Mediator** — Centralize complex communications between objects to reduce tangled dependencies. `slug: mediator`
+- [x] **Memento** — Capture and externalize an object's internal state so it can be restored later. `slug: memento`
+- [x] **Observer** — Define a one-to-many dependency so observers are notified when subject state changes. `slug: observer`
+- [x] **State** — Allow an object to alter its behavior when its internal state changes. `slug: state`
+- [x] **Strategy** — Define a family of interchangeable algorithms and make them swappable at runtime. `slug: strategy`
+- [x] **Template Method** — Define the skeleton of an algorithm in a base class, letting subclasses override specific steps. `slug: template-method`
+- [x] **Visitor** — Separate algorithms from the object structure they operate on via double dispatch. `slug: visitor`
+- [x] **Interpreter** — Define a grammar for a language and an interpreter to evaluate sentences in that language. `slug: interpreter`
+- [x] **Null Object** — Provide a do-nothing default object instead of null checks everywhere. `slug: null-object`
+- [x] **Specification** — Encapsulate business rules as composable, testable predicate objects. `slug: specification`
 
 ---
 
@@ -129,15 +129,15 @@ A backlog of design patterns to turn into pages under the **Design Patterns** se
 
 *Cross-refs:* **Circuit Breaker** and **Bulkhead** are listed under [Distributed systems and microservices](#distributed-systems-and-microservices).
 
-- [ ] **Health Check** — Expose liveness/readiness endpoints so orchestrators route traffic only to healthy instances. `slug: health-check`
-- [ ] **Timeout** — Bound wait time on every remote call to prevent threads and resources from hanging indefinitely. `slug: timeout`
-- [ ] **Fail Fast** — Detect errors early and return immediately instead of retrying hopeless operations. `slug: fail-fast`
-- [ ] **Graceful Degradation** — Reduce functionality (non-critical features) rather than failing entirely when dependencies are impaired. `slug: graceful-degradation`
-- [ ] **Blue-Green Deployment** — Run two identical environments; switch traffic atomically for zero-downtime releases. `slug: blue-green-deployment`
-- [ ] **Canary Release** — Roll out a new version to a small percentage of traffic before full promotion. `slug: canary-release`
-- [ ] **Feature Toggle (Feature Flag)** — Enable or disable functionality at runtime without redeploying code. `slug: feature-toggle`
-- [ ] **Chaos Engineering** — Intentionally inject failures in production to validate resilience assumptions. `slug: chaos-engineering`
-- [ ] **Autoscaling** — Automatically add or remove instances based on CPU, queue depth, or custom metrics. `slug: autoscaling`
+- [x] **Health Check** — Expose liveness/readiness endpoints so orchestrators route traffic only to healthy instances. `slug: health-check`
+- [x] **Timeout** — Bound wait time on every remote call to prevent threads and resources from hanging indefinitely. `slug: timeout`
+- [x] **Fail Fast** — Detect errors early and return immediately instead of retrying hopeless operations. `slug: fail-fast`
+- [x] **Graceful Degradation** — Reduce functionality (non-critical features) rather than failing entirely when dependencies are impaired. `slug: graceful-degradation`
+- [x] **Blue-Green Deployment** — Run two identical environments; switch traffic atomically for zero-downtime releases. `slug: blue-green-deployment`
+- [x] **Canary Release** — Roll out a new version to a small percentage of traffic before full promotion. `slug: canary-release`
+- [x] **Feature Toggle (Feature Flag)** — Enable or disable functionality at runtime without redeploying code. `slug: feature-toggle`
+- [x] **Chaos Engineering** — Intentionally inject failures in production to validate resilience assumptions. `slug: chaos-engineering`
+- [x] **Autoscaling** — Automatically add or remove instances based on CPU, queue depth, or custom metrics. `slug: autoscaling`
 
 ---
 

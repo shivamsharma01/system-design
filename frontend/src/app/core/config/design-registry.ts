@@ -16,6 +16,19 @@ import { DECORATOR_META } from '../../features/system-designs/decorator/decorato
 import { FACADE_META } from '../../features/system-designs/facade/facade.meta';
 import { FLYWEIGHT_META } from '../../features/system-designs/flyweight/flyweight.meta';
 import { PROXY_META } from '../../features/system-designs/proxy/proxy.meta';
+import { CHAIN_OF_RESPONSIBILITY_META } from '../../features/system-designs/chain-of-responsibility/chain-of-responsibility.meta';
+import { COMMAND_META } from '../../features/system-designs/command/command.meta';
+import { ITERATOR_META } from '../../features/system-designs/iterator/iterator.meta';
+import { MEDIATOR_META } from '../../features/system-designs/mediator/mediator.meta';
+import { MEMENTO_META } from '../../features/system-designs/memento/memento.meta';
+import { OBSERVER_META } from '../../features/system-designs/observer/observer.meta';
+import { STATE_META } from '../../features/system-designs/state/state.meta';
+import { STRATEGY_META } from '../../features/system-designs/strategy/strategy.meta';
+import { TEMPLATE_METHOD_META } from '../../features/system-designs/template-method/template-method.meta';
+import { VISITOR_META } from '../../features/system-designs/visitor/visitor.meta';
+import { INTERPRETER_META } from '../../features/system-designs/interpreter/interpreter.meta';
+import { NULL_OBJECT_META } from '../../features/system-designs/null-object/null-object.meta';
+import { SPECIFICATION_META } from '../../features/system-designs/specification/specification.meta';
 import { PRODUCER_CONSUMER_META } from '../../features/system-designs/producer-consumer/producer-consumer.meta';
 import { THREAD_POOL_META } from '../../features/system-designs/thread-pool/thread-pool.meta';
 import { READ_WRITE_LOCK_META } from '../../features/system-designs/read-write-lock/read-write-lock.meta';
@@ -36,6 +49,15 @@ import { ACTIVE_RECORD_META } from '../../features/system-designs/active-record/
 import { SERVICE_LOCATOR_META } from '../../features/system-designs/service-locator/service-locator.meta';
 import { DEPENDENCY_INJECTION_META } from '../../features/system-designs/dependency-injection/dependency-injection.meta';
 import { DOMAIN_DRIVEN_DESIGN_META } from '../../features/system-designs/domain-driven-design/domain-driven-design.meta';
+import { HEALTH_CHECK_META } from '../../features/system-designs/health-check/health-check.meta';
+import { TIMEOUT_META } from '../../features/system-designs/timeout/timeout.meta';
+import { FAIL_FAST_META } from '../../features/system-designs/fail-fast/fail-fast.meta';
+import { GRACEFUL_DEGRADATION_META } from '../../features/system-designs/graceful-degradation/graceful-degradation.meta';
+import { BLUE_GREEN_DEPLOYMENT_META } from '../../features/system-designs/blue-green-deployment/blue-green-deployment.meta';
+import { CANARY_RELEASE_META } from '../../features/system-designs/canary-release/canary-release.meta';
+import { FEATURE_TOGGLE_META } from '../../features/system-designs/feature-toggle/feature-toggle.meta';
+import { CHAOS_ENGINEERING_META } from '../../features/system-designs/chaos-engineering/chaos-engineering.meta';
+import { AUTOSCALING_META } from '../../features/system-designs/autoscaling/autoscaling.meta';
 import { NETFLIX_META } from '../../features/system-designs/netflix/netflix.meta';
 import { URL_SHORTENER_META } from '../../features/system-designs/url-shortener/url-shortener.meta';
 import { WHATSAPP_META } from '../../features/system-designs/whatsapp/whatsapp.meta';
@@ -125,6 +147,59 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
     load: () => import('../../features/system-designs/proxy/proxy.content'),
   },
   {
+    meta: CHAIN_OF_RESPONSIBILITY_META,
+    load: () =>
+      import('../../features/system-designs/chain-of-responsibility/chain-of-responsibility.content'),
+  },
+  {
+    meta: COMMAND_META,
+    load: () => import('../../features/system-designs/command/command.content'),
+  },
+  {
+    meta: ITERATOR_META,
+    load: () => import('../../features/system-designs/iterator/iterator.content'),
+  },
+  {
+    meta: MEDIATOR_META,
+    load: () => import('../../features/system-designs/mediator/mediator.content'),
+  },
+  {
+    meta: MEMENTO_META,
+    load: () => import('../../features/system-designs/memento/memento.content'),
+  },
+  {
+    meta: OBSERVER_META,
+    load: () => import('../../features/system-designs/observer/observer.content'),
+  },
+  {
+    meta: STATE_META,
+    load: () => import('../../features/system-designs/state/state.content'),
+  },
+  {
+    meta: STRATEGY_META,
+    load: () => import('../../features/system-designs/strategy/strategy.content'),
+  },
+  {
+    meta: TEMPLATE_METHOD_META,
+    load: () => import('../../features/system-designs/template-method/template-method.content'),
+  },
+  {
+    meta: VISITOR_META,
+    load: () => import('../../features/system-designs/visitor/visitor.content'),
+  },
+  {
+    meta: INTERPRETER_META,
+    load: () => import('../../features/system-designs/interpreter/interpreter.content'),
+  },
+  {
+    meta: NULL_OBJECT_META,
+    load: () => import('../../features/system-designs/null-object/null-object.content'),
+  },
+  {
+    meta: SPECIFICATION_META,
+    load: () => import('../../features/system-designs/specification/specification.content'),
+  },
+  {
     meta: PRODUCER_CONSUMER_META,
     load: () => import('../../features/system-designs/producer-consumer/producer-consumer.content'),
   },
@@ -209,6 +284,45 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
     meta: DOMAIN_DRIVEN_DESIGN_META,
     load: () =>
       import('../../features/system-designs/domain-driven-design/domain-driven-design.content'),
+  },
+  {
+    meta: HEALTH_CHECK_META,
+    load: () => import('../../features/system-designs/health-check/health-check.content'),
+  },
+  {
+    meta: TIMEOUT_META,
+    load: () => import('../../features/system-designs/timeout/timeout.content'),
+  },
+  {
+    meta: FAIL_FAST_META,
+    load: () => import('../../features/system-designs/fail-fast/fail-fast.content'),
+  },
+  {
+    meta: GRACEFUL_DEGRADATION_META,
+    load: () =>
+      import('../../features/system-designs/graceful-degradation/graceful-degradation.content'),
+  },
+  {
+    meta: BLUE_GREEN_DEPLOYMENT_META,
+    load: () =>
+      import('../../features/system-designs/blue-green-deployment/blue-green-deployment.content'),
+  },
+  {
+    meta: CANARY_RELEASE_META,
+    load: () => import('../../features/system-designs/canary-release/canary-release.content'),
+  },
+  {
+    meta: FEATURE_TOGGLE_META,
+    load: () => import('../../features/system-designs/feature-toggle/feature-toggle.content'),
+  },
+  {
+    meta: CHAOS_ENGINEERING_META,
+    load: () =>
+      import('../../features/system-designs/chaos-engineering/chaos-engineering.content'),
+  },
+  {
+    meta: AUTOSCALING_META,
+    load: () => import('../../features/system-designs/autoscaling/autoscaling.content'),
   },
   {
     meta: NETFLIX_META,

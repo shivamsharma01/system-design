@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const HEALTH_CHECK_META: DesignMeta = {
+  slug: 'health-check',
+  title: 'Health Check Pattern',
+  tagline:
+    'Liveness and readiness probes so orchestrators route traffic only to healthy instances — Kubernetes, load balancers, and interview essentials.',
+  section: 'design-patterns',
+  category: 'Cloud & Resilience',
+  tags: ['health-check', 'cloud', 'resilience', 'kubernetes', 'ops'],
+  technologies: ['Kubernetes', 'Spring Actuator', 'Load Balancers'],
+  difficulty: 'beginner',
+  readingTimeMin: 11,
+  status: 'published',
+  keywords: ['liveness', 'readiness', 'startup probe', 'actuator'],
+  dateAdded: '2026-07-09',
+  popularity: 94,
+  icon: 'HC',
+  heroGradient: 'linear-gradient(135deg, #22c55e 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

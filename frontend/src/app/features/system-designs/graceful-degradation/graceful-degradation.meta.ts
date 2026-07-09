@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const GRACEFUL_DEGRADATION_META: DesignMeta = {
+  slug: 'graceful-degradation',
+  title: 'Graceful Degradation Pattern',
+  tagline:
+    'Keep the core experience alive when dependencies fail — fallbacks, cached reads, and feature shedding under load.',
+  section: 'design-patterns',
+  category: 'Cloud & Resilience',
+  tags: ['graceful-degradation', 'cloud', 'resilience', 'fallback', 'hld'],
+  technologies: ['Java', 'Caching', 'Feature Flags'],
+  difficulty: 'intermediate',
+  readingTimeMin: 12,
+  status: 'published',
+  keywords: ['fallback', 'feature shedding', 'partial availability', 'cache stale'],
+  dateAdded: '2026-07-09',
+  popularity: 91,
+  icon: 'GD',
+  heroGradient: 'linear-gradient(135deg, #8b5cf6 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

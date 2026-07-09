@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const AUTOSCALING_META: DesignMeta = {
+  slug: 'autoscaling',
+  title: 'Autoscaling Pattern',
+  tagline:
+    'Add and remove capacity from metrics — HPA, queue-depth scaling, cool-downs, and the limits of scale-out.',
+  section: 'design-patterns',
+  category: 'Cloud & Resilience',
+  tags: ['autoscaling', 'cloud', 'scalability', 'kubernetes', 'hld'],
+  technologies: ['Kubernetes HPA', 'AWS ASG', 'Metrics'],
+  difficulty: 'intermediate',
+  readingTimeMin: 13,
+  status: 'published',
+  keywords: ['horizontal scaling', 'hpa', 'scale to zero', 'cool down'],
+  dateAdded: '2026-07-09',
+  popularity: 94,
+  icon: 'AS',
+  heroGradient: 'linear-gradient(135deg, #14b8a6 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

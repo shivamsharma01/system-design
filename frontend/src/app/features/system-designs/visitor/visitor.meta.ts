@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const VISITOR_META: DesignMeta = {
+  slug: 'visitor',
+  title: 'Visitor Pattern',
+  tagline:
+    'Add operations to object structures without changing them — compilers, document exporters, and AST walks.',
+  section: 'design-patterns',
+  category: 'Behavioral',
+  tags: ['visitor', 'behavioral', 'gof', 'lld', 'double-dispatch'],
+  technologies: ['Java', 'Compilers', 'Documents'],
+  difficulty: 'advanced',
+  readingTimeMin: 13,
+  status: 'published',
+  keywords: ['double dispatch', 'accept visit', 'ast'],
+  dateAdded: '2026-07-09',
+  popularity: 78,
+  icon: 'VS',
+  heroGradient: 'linear-gradient(135deg, #a855f7 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};
