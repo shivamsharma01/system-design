@@ -5,8 +5,8 @@ export const NOTIFICATION_SYSTEM_META: DesignMeta = {
   title: 'Design a Notification System',
   tagline:
     'A multi-channel notification service delivering push, SMS, and email at scale with deduplication.',
-  section: 'system-design',
-  category: 'Infrastructure',
+  section: 'high-level-design',
+  category: 'Messaging',
   tags: [
     'messaging',
     'fan-out',

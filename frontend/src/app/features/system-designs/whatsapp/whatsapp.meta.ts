@@ -5,7 +5,7 @@ export const WHATSAPP_META: DesignMeta = {
   title: 'Design WhatsApp',
   tagline:
     'A real-time messaging platform with end-to-end encryption, presence, and group chats for billions of users.',
-  section: 'system-design',
+  section: 'high-level-design',
   category: 'Messaging',
   tags: ['real-time', 'websockets', 'messaging', 'e2e-encryption', 'presence', 'store-and-forward'],
   technologies: ['WebSocket', 'Erlang', 'Kafka', 'Cassandra', 'Redis', 'Protobuf', 'APNs/FCM'],

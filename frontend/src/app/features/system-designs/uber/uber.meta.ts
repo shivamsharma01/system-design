@@ -5,8 +5,8 @@ export const UBER_META: DesignMeta = {
   title: 'Design Uber',
   tagline:
     'A ride-hailing platform matching riders and drivers in real time using geospatial indexing.',
-  section: 'system-design',
-  category: 'Location Services',
+  section: 'high-level-design',
+  category: 'Location & Mobility',
   tags: ['geospatial', 'matching', 'real-time', 'maps', 'dispatch', 'state-machine'],
   technologies: ['H3', 'Geohash', 'Kafka', 'Redis', 'PostGIS', 'WebSocket'],
   difficulty: 'advanced',

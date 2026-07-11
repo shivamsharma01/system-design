@@ -5,8 +5,8 @@ export const DROPBOX_META: DesignMeta = {
   title: 'Design Dropbox',
   tagline:
     'A file hosting and sync service: chunking, deduplication, delta sync, and conflict-free multi-device collaboration.',
-  section: 'system-design',
-  category: 'Storage',
+  section: 'high-level-design',
+  category: 'Storage & Cache',
   tags: ['file-sync', 'storage', 'chunking', 'deduplication', 'delta-sync', 'metadata'],
   technologies: ['S3', 'MySQL', 'Kafka', 'Redis', 'Block Storage', 'gRPC'],
   difficulty: 'advanced',

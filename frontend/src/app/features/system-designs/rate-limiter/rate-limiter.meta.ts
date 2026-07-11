@@ -5,8 +5,8 @@ export const RATE_LIMITER_META: DesignMeta = {
   title: 'Design a Rate Limiter',
   tagline:
     'A distributed rate limiter protecting APIs using token bucket and sliding window algorithms.',
-  section: 'system-design',
-  category: 'Infrastructure',
+  section: 'high-level-design',
+  category: 'Fundamentals',
   tags: [
     'algorithms',
     'distributed',

@@ -4,7 +4,7 @@ export const YOUTUBE_META: DesignMeta = {
   slug: 'youtube',
   title: 'Design YouTube',
   tagline: 'A video-sharing platform handling massive uploads, transcoding, and global delivery.',
-  section: 'system-design',
+  section: 'high-level-design',
   category: 'Media & Streaming',
   tags: ['video', 'transcoding', 'cdn', 'upload', 'streaming', 'recommendations'],
   technologies: ['Bigtable', 'Vitess', 'CDN', 'FFmpeg', 'Kafka', 'Elasticsearch'],
