@@ -36,6 +36,66 @@ public class DataSeeder {
                   List.of("solid", "oop", "lld", "srp", "ocp"),
                   List.of("Java", "Python", "Interfaces", "Abstraction")),
               design(
+                  "parking-lot", "Design a Parking Lot",
+                  "A classic OOP interview problem: multi-floor spots, tickets, pricing strategies, and the concurrency trap everyone forgets.",
+                  "Classic Systems", "intermediate", "published", 22, 120, "2026-07-11",
+                  List.of("parking-lot", "lld", "oop", "strategy", "factory"),
+                  List.of("Java", "OOP", "Strategy", "Factory")),
+              design(
+                  "elevator-system", "Design an Elevator System",
+                  "Hall calls, car calls, and dispatch across multiple cars — the state machines and scheduling strategies interviewers probe hardest.",
+                  "Classic Systems", "intermediate", "published", 22, 118, "2026-07-11",
+                  List.of("elevator", "lld", "oop", "state-machine", "scheduling"),
+                  List.of("Java", "OOP", "State", "Strategy")),
+              design(
+                  "atm-system", "Design an ATM System",
+                  "A cash-dispensing machine LLD classic: card + PIN auth, account balances, greedy denomination dispensing, and a clean state machine.",
+                  "Classic Systems", "intermediate", "published", 22, 112, "2026-07-11",
+                  List.of("lld", "atm", "state-machine", "oop", "banking"),
+                  List.of("Java", "OOP", "State Pattern", "Strategy Pattern")),
+              design(
+                  "library-management", "Design a Library Management System",
+                  "Books, barcoded copies, loans, reservations, and overdue fines — a catalog-and-lending LLD with Strategy and Observer.",
+                  "Classic Systems", "intermediate", "published", 21, 108, "2026-07-11",
+                  List.of("lld", "library", "oop", "strategy-pattern", "observer-pattern"),
+                  List.of("Java", "OOP", "Strategy Pattern", "Observer Pattern")),
+              design(
+                  "cab-booking", "Design a Cab Booking System",
+                  "An Uber-like ride-hailing LLD: rider/driver matching, trip state machine, and pluggable pricing — class design, not microservices.",
+                  "Classic Systems", "advanced", "published", 23, 115, "2026-07-11",
+                  List.of("lld", "cab-booking", "oop", "state-pattern", "matching"),
+                  List.of("Java", "OOP", "State Pattern", "Strategy Pattern")),
+              design(
+                  "chess-game", "Design a Chess Game",
+                  "An 8x8 board, a polymorphic piece hierarchy, and check/checkmate/stalemate detection — one of the deepest OOP design interviews you will face.",
+                  "Games & Simulations", "advanced", "published", 24, 116, "2026-07-11",
+                  List.of("chess", "lld", "oop", "game", "strategy"),
+                  List.of("Java", "OOP", "Design Patterns")),
+              design(
+                  "snake-and-ladder", "Design Snake and Ladder",
+                  "A classic warm-up LLD: board, dice as a swappable strategy, snakes and ladders as O(1) jump maps, and a clean turn-based game loop.",
+                  "Games & Simulations", "intermediate", "published", 18, 110, "2026-07-11",
+                  List.of("snake-and-ladder", "lld", "oop", "game", "strategy"),
+                  List.of("Java", "OOP", "Design Patterns")),
+              design(
+                  "lru-cache-lld", "Design an LRU Cache",
+                  "O(1) get/put with a HashMap + doubly linked list — the coding-round favorite that doubles as a class-design interview.",
+                  "Data Structures", "intermediate", "published", 18, 125, "2026-07-11",
+                  List.of("lru-cache", "lld", "hashmap", "linked-list", "caching"),
+                  List.of("Java", "HashMap", "LinkedHashMap", "ConcurrentHashMap")),
+              design(
+                  "movie-ticket-booking", "Design Movie Ticket Booking",
+                  "BookMyShow/Fandango-style LLD: cities, cinemas, shows, seat maps, temporary holds, and race-free booking.",
+                  "Marketplace", "advanced", "published", 22, 122, "2026-07-11",
+                  List.of("movie-booking", "lld", "concurrency", "seat-locking", "bookmyshow"),
+                  List.of("Java", "Concurrency", "Distributed Locks", "Redis")),
+              design(
+                  "splitwise", "Design Splitwise",
+                  "Groups, expenses, and settle-up — expense split strategies, per-user balance sheets, and the debt-simplification algorithm.",
+                  "Marketplace", "advanced", "published", 20, 119, "2026-07-11",
+                  List.of("splitwise", "lld", "strategy-pattern", "factory-pattern", "balances"),
+                  List.of("Java", "Graph Algorithms", "PriorityQueue")),
+              design(
                   "singleton", "Singleton Pattern",
                   "One shared instance for the whole app — config, logging, and connection managers, plus the pitfalls interviewers love.",
                   "Creational", "beginner", "published", 12, 96, "2026-07-09",
@@ -752,19 +812,19 @@ public class DataSeeder {
               design(
                   "url-shortener", "Design a URL Shortener",
                   "A TinyURL/Bitly-style service that maps long URLs to short links at scale.",
-                  "Web Services", "beginner", "published", 14, 95, "2026-06-28",
+                  "Fundamentals", "beginner", "published", 14, 95, "2026-06-28",
                   List.of("hashing", "key-generation", "caching"),
                   List.of("PostgreSQL", "Redis", "Base62")),
               design(
                   "uber", "Design Uber",
                   "A ride-hailing platform matching riders and drivers in real time.",
-                  "Location Services", "advanced", "draft", 20, 90, "2026-06-28",
+                  "Location & Mobility", "advanced", "draft", 20, 90, "2026-06-28",
                   List.of("geospatial", "matching", "real-time"),
                   List.of("Geohash", "Kafka", "Redis", "PostGIS")),
               design(
                   "twitter", "Design Twitter / X",
                   "A social platform with timelines, fan-out, and trending topics.",
-                  "Social Network", "advanced", "draft", 19, 88, "2026-06-28",
+                  "Social & Feeds", "advanced", "draft", 19, 88, "2026-06-28",
                   List.of("timeline", "fan-out", "feed"),
                   List.of("Redis", "Manhattan", "Kafka")),
               design(
@@ -776,7 +836,7 @@ public class DataSeeder {
               design(
                   "instagram", "Design Instagram",
                   "A photo and short-video sharing app with feeds, stories, and a social graph.",
-                  "Social Network", "intermediate", "draft", 17, 86, "2026-06-28",
+                  "Social & Feeds", "intermediate", "draft", 17, 86, "2026-06-28",
                   List.of("feed", "media", "storage"),
                   List.of("Cassandra", "S3", "CDN")),
               design(
@@ -788,19 +848,25 @@ public class DataSeeder {
               design(
                   "rate-limiter", "Design a Rate Limiter",
                   "A distributed rate limiter protecting APIs using token bucket and sliding window.",
-                  "Infrastructure", "intermediate", "draft", 13, 82, "2026-06-28",
+                  "Fundamentals", "intermediate", "draft", 13, 82, "2026-06-28",
                   List.of("algorithms", "distributed", "throttling"),
                   List.of("Redis", "Lua", "Envoy")),
               design(
                   "notification-system", "Design a Notification System",
                   "A multi-channel notification service delivering push, SMS, and email at scale.",
-                  "Infrastructure", "intermediate", "draft", 15, 80, "2026-06-28",
+                  "Messaging", "intermediate", "draft", 15, 80, "2026-06-28",
                   List.of("messaging", "fan-out", "queues"),
                   List.of("Kafka", "Redis", "APNs", "FCM")),
               design(
+                  "dropbox", "Design Dropbox",
+                  "A cloud file-storage and sync service with chunking, metadata, and conflict handling.",
+                  "Storage & Cache", "advanced", "published", 18, 83, "2026-06-28",
+                  List.of("storage", "sync", "chunking", "metadata"),
+                  List.of("S3", "MySQL", "Kafka", "Block Storage")),
+              design(
                   "distributed-cache", "Design a Distributed Cache",
                   "A Redis/Memcached-style distributed cache with consistent hashing and eviction.",
-                  "Infrastructure", "advanced", "draft", 16, 78, "2026-06-28",
+                  "Storage & Cache", "advanced", "draft", 16, 78, "2026-06-28",
                   List.of("caching", "consistent-hashing", "replication"),
                   List.of("Consistent Hashing", "LRU", "Gossip"))));
     };

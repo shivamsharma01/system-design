@@ -36,6 +36,62 @@ const content: DesignContent = {
       ],
     },
     {
+      id: 'clarifying-questions',
+      title: 'Clarifying Questions',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'A "notification system" can mean a dozen different systems. Spend the first **3-5 minutes** pinning down channels, scale, and delivery guarantees before you draw a single box — this is the single highest-leverage thing you can do in this interview.',
+        },
+        {
+          type: 'table',
+          caption: 'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
+          headers: ['Question', 'Why it matters / sample assumption'],
+          rows: [
+            [
+              'Which channels — push, SMS, email, in-app, or all of them?',
+              'Assume all four; design one common pipeline with a pluggable per-channel sender so the answer generalizes.',
+            ],
+            [
+              'What is the traffic mix — mostly transactional (OTP, receipts) or bulk/marketing campaigns?',
+              'Assume both, and call out that they need **separate priority lanes** so a campaign never delays an OTP.',
+            ],
+            [
+              'What scale — users, notifications/day, peak burst multiplier?',
+              'Assume ~500M users, ~2B notifications/day, with a ~10× burst for a big campaign or breaking-news event.',
+            ],
+            [
+              'What delivery guarantee is expected — best-effort, at-least-once, or "feels exactly-once"?',
+              'At-least-once transport with an **idempotency/dedupe key** so the user experiences exactly-once — this shapes the whole design.',
+            ],
+            [
+              'Do we need to respect user preferences, opt-outs, and quiet hours?',
+              'Yes, and opt-out is treated as a hard compliance requirement, not a soft preference.',
+            ],
+            [
+              'Is templating / i18n in scope, or do callers send fully-rendered content?',
+              'Assume templates with variable substitution and locale support, rendered by the platform close to send time.',
+            ],
+            [
+              'Are we integrating with real third-party providers (APNs/FCM, Twilio, SES), and should we assume they are unreliable?',
+              'Yes — assume providers rate-limit and occasionally fail, which is why the design needs retries, DLQ, and failover.',
+            ],
+            [
+              'Do we need delivery/open tracking and analytics, or just "did the API accept the request"?',
+              'Assume basic status tracking (sent/delivered/opened/failed) is required; deep analytics/attribution is out of scope.',
+            ],
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Say your assumptions out loud',
+          body: 'State each assumption as you make it: "I will assume at-least-once delivery and build idempotency on top, since exactly-once transport is not achievable across an HTTP call to a third-party provider." This turns a potentially open-ended prompt into a scoped problem both of you agree on.',
+        },
+      ],
+    },
+    {
       id: 'functional-requirements',
       title: 'Functional Requirements',
       blocks: [
@@ -710,6 +766,21 @@ dedupe: { store: redis, ttl: 24h }`,
               question: 'What does "delivered" actually mean, and how do you track it?',
               answer:
                 '"Sent" = handed to the provider; "delivered/opened" come later via provider **webhooks/receipts** and update the record asynchronously. Some channels (email) never confirm delivery. Treat tracking as **best-effort eventual** data; never block the send path waiting on a receipt.',
+            },
+            {
+              question: 'How would you rate-limit sends per provider and per user?',
+              answer:
+                'Use a **token-bucket** counter in Redis for each dimension: one bucket per provider (so total send rate stays under the contractual limit) and one per (user, category) for frequency capping. Refill at a fixed rate, spend a token per send, and reject/queue when empty. Two independent buckets let you protect the provider relationship and the user experience separately.',
+            },
+            {
+              question: 'What database would you choose for notification records and why?',
+              answer:
+                'A wide-column, append-heavy store like **Cassandra**: the workload is high-volume writes keyed by notification id, rarely updated except a status transition, and naturally TTL-able. A relational DB would work at moderate scale but needs sharding middleware to match Cassandra\'s native horizontal write scalability at billions of rows/day. Preferences, which are read far more than written and need strong consistency for opt-out, stay on a relational/document store instead.',
+            },
+            {
+              question: 'How do you scale to a 10× traffic spike (e.g. Black Friday)?',
+              answer:
+                'The durable queue (Kafka) absorbs the spike by design — the API keeps accepting at low latency while consumer lag temporarily rises. Autoscale processing workers and channel senders on **queue depth/consumer lag**, not CPU. Because transactional and bulk traffic run on separate topics/pools, the spike (almost always bulk/marketing) never starves OTPs. Pre-warm worker capacity ahead of known events (e.g. a scheduled campaign) rather than reacting purely to autoscaling lag.',
             },
           ],
         },

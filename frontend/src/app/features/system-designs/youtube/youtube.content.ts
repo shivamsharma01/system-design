@@ -42,6 +42,54 @@ const content: DesignContent = {
       ],
     },
     {
+      id: 'clarifying-questions',
+      title: 'Clarifying Questions',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'YouTube is one of the broadest interview prompts — upload, transcode, stream, search, recommend, comment, monetize. Narrow it hard in the first few minutes to the upload/transcode/watch core, and explicitly park search, ads, and Content ID as out of scope.',
+        },
+        {
+          type: 'table',
+          caption: 'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
+          headers: ['Question', 'Why it matters / sample assumption'],
+          rows: [
+            [
+              'Are we designing upload + transcode + watch, or also search/recommendations/live?',
+              'Scope to upload, transcode, and watch as the core; treat search and recommendations as a smaller follow-up section, and exclude live streaming and Content ID entirely.',
+            ],
+            [
+              'What upload volume and video length are we targeting?',
+              'Assume ~500 hours of video uploaded per minute, arbitrary length — this scale is exactly what forces chunk-level parallel transcoding rather than a single serial encode.',
+            ],
+            [
+              'How quickly must a video be watchable after upload?',
+              'Assume "within a few minutes" is acceptable — publish a low/medium rendition first, fill in higher resolutions in the background.',
+            ],
+            [
+              'Do we need exact view counts in real time?',
+              'No — approximate, eventually-consistent, monotonically increasing counts are fine; this is what avoids a hot-key meltdown on viral videos.',
+            ],
+            [
+              'Is adaptive bitrate streaming (ABR) required, or a single fixed quality?',
+              'Assume ABR is required (industry standard) — the client picks the rendition based on measured bandwidth, which is why the pipeline must produce a full quality ladder.',
+            ],
+            [
+              'Should uploads be resumable (large files over unreliable networks)?',
+              'Yes — assume chunked, resumable uploads so a dropped connection does not restart a multi-GB upload from zero.',
+            ],
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'State assumptions out loud',
+          body: 'Say explicitly: "I will focus on upload, transcoding, and watch; treat search/recommendations as a brief follow-up; and assume approximate view counts are acceptable." This shows you have identified the dominant problems (ingest firehose, parallel transcoding, hot-key view counting) rather than trying to design the entire product shallowly.',
+        },
+      ],
+    },
+    {
       id: 'functional-requirements',
       title: 'Functional Requirements',
       blocks: [
@@ -806,6 +854,26 @@ healthCheck:
               question: 'What should recommendations optimize for?',
               answer:
                 'Predicted **watch time / satisfaction**, not raw clicks — optimizing for clicks breeds clickbait. Generate candidates (co-watch graph, history, trending), rank with an ML model offline, cache per-user candidate sets, and diversify/filter for quality.',
+            },
+            {
+              question: 'Why chunk at keyframe boundaries specifically, rather than arbitrary byte ranges?',
+              answer:
+                'Video compression relies on keyframes (I-frames) as independently decodable reference points; frames in between (P/B-frames) are deltas relative to a keyframe. Splitting anywhere else would produce chunks that cannot be decoded independently. Cutting at keyframe boundaries is what makes **parallel, independent encoding** of chunks possible in the first place.',
+            },
+            {
+              question: 'How do you support resumable uploads technically?',
+              answer:
+                'The client uploads in fixed-size chunks with sequence numbers; the server tracks which chunks have been durably received (e.g. in a small per-upload-session record) and exposes an endpoint to query the last received offset. On reconnect, the client asks "what do you have?" and resumes from there instead of restarting — similar to how HTTP range requests or multipart upload APIs (e.g. S3 multipart) work.',
+            },
+            {
+              question: 'How would you prioritize transcoding jobs when the queue is backed up (e.g. a traffic spike)?',
+              answer:
+                "Prioritize by expected impact: videos from large/verified channels, videos already queued the longest (avoid starvation), and the **lowest rendition first** for every video (so everything becomes minimally watchable quickly) before spending compute on 4K for less-viewed content. This is a scheduling problem on top of the transcoding DAG, not a change to the pipeline architecture itself.",
+            },
+            {
+              question: 'How do you know which rendition to serve a given viewer?',
+              answer:
+                "The client-side ABR player continuously measures **downlink bandwidth and buffer health**, then requests the highest rendition it can sustain without stalling, switching up or down between segments as conditions change. The server's job is just to expose the manifest listing available renditions — the adaptive decision itself is a client-side algorithm.",
             },
           ],
         },

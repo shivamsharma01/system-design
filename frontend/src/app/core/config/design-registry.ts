@@ -3,6 +3,16 @@ import { DesignRegistryEntry } from './design-registry.model';
 // --- Design metadata (statically imported; tiny, used for cards + search) ---
 import { INTERVIEW_FRAMEWORK_META } from '../../features/system-designs/interview-framework/interview-framework.meta';
 import { SOLID_PRINCIPLES_META } from '../../features/system-designs/solid-principles/solid-principles.meta';
+import { PARKING_LOT_META } from '../../features/system-designs/parking-lot/parking-lot.meta';
+import { ELEVATOR_SYSTEM_META } from '../../features/system-designs/elevator-system/elevator-system.meta';
+import { ATM_SYSTEM_META } from '../../features/system-designs/atm-system/atm-system.meta';
+import { LIBRARY_MANAGEMENT_META } from '../../features/system-designs/library-management/library-management.meta';
+import { CAB_BOOKING_META } from '../../features/system-designs/cab-booking/cab-booking.meta';
+import { CHESS_GAME_META } from '../../features/system-designs/chess-game/chess-game.meta';
+import { SNAKE_AND_LADDER_META } from '../../features/system-designs/snake-and-ladder/snake-and-ladder.meta';
+import { LRU_CACHE_LLD_META } from '../../features/system-designs/lru-cache-lld/lru-cache-lld.meta';
+import { MOVIE_TICKET_BOOKING_META } from '../../features/system-designs/movie-ticket-booking/movie-ticket-booking.meta';
+import { SPLITWISE_META } from '../../features/system-designs/splitwise/splitwise.meta';
 import { SINGLETON_META } from '../../features/system-designs/singleton/singleton.meta';
 import { FACTORY_METHOD_META } from '../../features/system-designs/factory-method/factory-method.meta';
 import { ABSTRACT_FACTORY_META } from '../../features/system-designs/abstract-factory/abstract-factory.meta';
@@ -155,6 +165,47 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   {
     meta: SOLID_PRINCIPLES_META,
     load: () => import('../../features/system-designs/solid-principles/solid-principles.content'),
+  },
+  {
+    meta: PARKING_LOT_META,
+    load: () => import('../../features/system-designs/parking-lot/parking-lot.content'),
+  },
+  {
+    meta: ELEVATOR_SYSTEM_META,
+    load: () => import('../../features/system-designs/elevator-system/elevator-system.content'),
+  },
+  {
+    meta: ATM_SYSTEM_META,
+    load: () => import('../../features/system-designs/atm-system/atm-system.content'),
+  },
+  {
+    meta: LIBRARY_MANAGEMENT_META,
+    load: () => import('../../features/system-designs/library-management/library-management.content'),
+  },
+  {
+    meta: CAB_BOOKING_META,
+    load: () => import('../../features/system-designs/cab-booking/cab-booking.content'),
+  },
+  {
+    meta: CHESS_GAME_META,
+    load: () => import('../../features/system-designs/chess-game/chess-game.content'),
+  },
+  {
+    meta: SNAKE_AND_LADDER_META,
+    load: () => import('../../features/system-designs/snake-and-ladder/snake-and-ladder.content'),
+  },
+  {
+    meta: LRU_CACHE_LLD_META,
+    load: () => import('../../features/system-designs/lru-cache-lld/lru-cache-lld.content'),
+  },
+  {
+    meta: MOVIE_TICKET_BOOKING_META,
+    load: () =>
+      import('../../features/system-designs/movie-ticket-booking/movie-ticket-booking.content'),
+  },
+  {
+    meta: SPLITWISE_META,
+    load: () => import('../../features/system-designs/splitwise/splitwise.content'),
   },
   {
     meta: SINGLETON_META,

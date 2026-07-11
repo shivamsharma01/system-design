@@ -35,6 +35,62 @@ const content: DesignContent = {
       ],
     },
     {
+      id: 'clarifying-questions',
+      title: 'Clarifying Questions',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            '"Design a distributed cache" can mean a generic Redis clone or a purpose-built cache for one workload. Spend the first **3-5 minutes** pinning down the use case and non-functional priorities before drawing the ring diagram.',
+        },
+        {
+          type: 'table',
+          caption: 'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
+          headers: ['Question', 'Why it matters / sample assumption'],
+          rows: [
+            [
+              'Is this a general-purpose cache, or built for a specific workload (e.g. session store, leaderboard)?',
+              'General-purpose GET/SET/DELETE with TTL — like designing a Redis/Memcached-style cluster from scratch.',
+            ],
+            [
+              'What scale — working set size, ops/sec, average entry size?',
+              'Assume ~1TB working set, ~1M ops/sec cluster-wide, ~1KB average entry — this drives the node count and replication factor math.',
+            ],
+            [
+              'Does data need to survive a restart (persistence), or is it acceptable to lose it and repopulate from source?',
+              'It is a cache, not a database — losing data on restart is acceptable; the source of truth lives elsewhere.',
+            ],
+            [
+              'What consistency is required between the cache and the backing database?',
+              'Eventually consistent, bounded by TTL, using cache-aside with invalidate-on-write — not strict consistency.',
+            ],
+            [
+              'Is a specific eviction policy expected (LRU/LFU), or is choosing and justifying one part of the exercise?',
+              'Default to LRU and justify it; mention LFU/W-TinyLFU as a follow-up for scan-resistant workloads.',
+            ],
+            [
+              'Single region or must the cache serve multiple regions with low latency everywhere?',
+              'Start single-region; mention cross-region replication or per-region clusters as a scaling extension.',
+            ],
+            [
+              'How important is defending against hot keys / cache stampedes for this workload?',
+              'Assume it matters (a viral key or expiring popular key is a realistic interview follow-up) — design request coalescing and TTL jitter in from the start.',
+            ],
+            [
+              'Should clients talk directly to cache nodes (smart client), or through a proxy?',
+              'Assume a smart client (avoids an extra hop); mention proxy-based routing (twemproxy) as the simpler alternative for thin clients.',
+            ],
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Say your assumptions out loud',
+          body: 'For example: "I will treat this cache as AP — available and fast, tolerating staleness — since the source of truth lives in the database and cache data is always recoverable." Stating the CAP trade-off up front anchors every later decision (async replication, eviction, invalidation) and shows the interviewer you are choosing deliberately, not by default.',
+        },
+      ],
+    },
+    {
       id: 'functional-requirements',
       title: 'Functional Requirements',
       blocks: [
@@ -716,6 +772,23 @@ autoscaling:
               question: 'How do nodes detect failures without a central coordinator?',
               answer:
                 'A **gossip protocol**: each node periodically exchanges health/topology with random peers, so failure knowledge spreads in logarithmic time. Pair it with **heartbeats + a phi-accrual detector** to output an adaptive suspicion level and avoid flapping on transient slowness.',
+            },
+            {
+              question: 'When would you choose LFU over LRU (or vice versa)?',
+              answer:
+                '**LRU** is the right default for most access patterns and is O(1) to implement with a hash map + doubly-linked list. **LFU** (or an approximation like W-TinyLFU) wins when the workload includes large one-time scans that would otherwise evict genuinely popular keys under LRU — it tracks actual access frequency so a one-hit-wonder cannot displace a hot key. The cost is more bookkeeping (frequency counters, decay) and a less intuitive eviction order to reason about operationally.',
+            },
+            {
+              question:
+                'How would you extend a single-region cache cluster to serve multiple regions?',
+              answer:
+                'Run an independent cache cluster per region (own ring, own nodes) so regional latency stays low and a region outage stays contained — this mirrors how the backing databases are usually partitioned geographically too. For data that must be shared across regions, replicate asynchronously between clusters or accept that each region warms its own cache independently from the source of truth. Avoid a single global ring: cross-region hops would defeat the whole point of sub-millisecond latency.',
+            },
+            {
+              question:
+                'How do you decide how much memory to allocate per node and how many nodes you need?',
+              answer:
+                'Start from the working set size and replication factor: `nodes = ceil(workingSet × RF / ramPerNode)`, then check the per-node throughput implied by dividing total ops/sec across that many nodes against a single node\'s realistic capacity (100k+ ops/sec for a tuned in-memory store). Leave headroom (20-30%) for uneven key distribution and growth, and re-derive the numbers whenever the working set or replication factor changes — this is the same capacity-estimation exercise as sizing any other tier, just bound by RAM instead of disk.',
             },
           ],
         },

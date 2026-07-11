@@ -35,6 +35,62 @@ const content: DesignContent = {
       ],
     },
     {
+      id: 'clarifying-questions',
+      title: 'Clarifying Questions',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'A ride-hailing prompt hides several genuinely different sub-problems (geospatial search, dispatch, pricing, payments). Use the first **3-5 minutes** to agree on which ones you are actually designing, then state your assumptions and get to the whiteboard.',
+        },
+        {
+          type: 'table',
+          caption: 'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
+          headers: ['Question', 'Why it matters / sample assumption'],
+          rows: [
+            [
+              'What scale — concurrent online drivers, trips/day, how many cities?',
+              'Assume ~5M concurrent drivers, ~20M trips/day, global (10,000+ cities) — this is what justifies an in-memory geospatial index over a DB query.',
+            ],
+            [
+              'Should the design cover matching/dispatch, or also pricing and payments end to end?',
+              'Focus depth on location indexing + matching + trip state machine; cover pricing (surge) and payments at a design level without full ledger detail.',
+            ],
+            [
+              'How precise/fresh must driver location be — real-time to the second, or a few seconds of staleness acceptable?',
+              'A few seconds of staleness is fine (~4s ping interval) — this is what makes an AP, in-memory index acceptable instead of a strongly consistent store.',
+            ],
+            [
+              'Should matching rank by straight-line distance or real ETA over roads?',
+              'Rank by ETA over the road network via a maps/routing service — straight-line distance is a naive first pass worth mentioning and then improving on.',
+            ],
+            [
+              'Is surge/dynamic pricing in scope?',
+              'Yes, at a level of "compute a per-area multiplier from demand/supply and lock the quote at request time" — not a full pricing ML model.',
+            ],
+            [
+              'What consistency is required for trip assignment — can two drivers ever be offered/accept the same trip?',
+              'No — trip assignment and payment must be strongly consistent (CP); location and surge can be eventually consistent (AP).',
+            ],
+            [
+              'Do we need to support scheduled/advance rides, or only on-demand?',
+              'On-demand only for the core design; scheduled rides are a reasonable extension to mention but not build out.',
+            ],
+            [
+              'Is this single-region or must it work globally with local failover?',
+              'Assume global, but note that ride-hailing is naturally regional — a rider is only ever matched with a driver in the same city, which becomes the sharding key.',
+            ],
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Say your assumptions out loud',
+          body: 'Narrate trade-offs as you commit to them: "I will treat location as eventually consistent since a driver a couple seconds stale is fine, but trip assignment and payment need to be strongly consistent — I will design those two halves differently." This shows you understand *why* the system mixes consistency models rather than reciting it.',
+        },
+      ],
+    },
+    {
       id: 'functional-requirements',
       title: 'Functional Requirements',
       blocks: [
@@ -812,6 +868,23 @@ healthCheck:
               question: 'How do you keep an in-progress trip alive during failures?',
               answer:
                 'Persist trip state durably and make regions fail over independently; degrade non-critical features (surge, precise ETA) rather than dropping the trip. Idempotent transitions mean a retried state update after a blip is safe.',
+            },
+            {
+              question:
+                'Why use H3/S2/geohash instead of a spatial index (e.g. R-tree) in a relational database?',
+              answer:
+                'A cell-based index turns "find nearby drivers" into a **hash lookup plus a small neighbor scan** in an in-memory store — microseconds, at millions of writes/sec from GPS pings. An R-tree in a relational database is a fine data structure for range queries, but the DB round-trip and lock/transaction overhead cannot sustain a firehose of location updates at this write rate. Cell indexing trades some precision for the throughput the workload actually needs.',
+            },
+            {
+              question: 'How do you handle a rider requesting near a shard/city boundary?',
+              answer:
+                'If matching shards strictly by city, a rider near the boundary might miss drivers who are technically in the neighboring shard. Query a small set of **neighboring shards** in addition to the home shard whenever the request falls within a buffer distance of a boundary, and merge candidate lists before ranking by ETA. This is the same "query cell + neighbors" idea as the geospatial index, one level up.',
+            },
+            {
+              question:
+                'How would you extend the design to batch matching (assign multiple trips at once)?',
+              answer:
+                "Instead of matching each request the instant it arrives, batch requests and available drivers over a short window (e.g. a few seconds) and solve a **bipartite matching / assignment problem** (minimizing total ETA or maximizing throughput) rather than greedily matching one at a time. This trades a small amount of latency for materially better global matching quality, especially in dense areas — it's the natural follow-up once the interviewer sees you understand the greedy version's limitations.",
             },
           ],
         },

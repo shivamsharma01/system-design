@@ -35,6 +35,54 @@ const content: DesignContent = {
       ],
     },
     {
+      id: 'clarifying-questions',
+      title: 'Clarifying Questions',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Instagram bundles two genuinely different problems — media storage/delivery and feed construction. Spend the first few minutes separating them and scoping out Stories/DMs/Explore, or the design will sprawl before you reach either core problem in depth.',
+        },
+        {
+          type: 'table',
+          caption: 'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
+          headers: ['Question', 'Why it matters / sample assumption'],
+          rows: [
+            [
+              'Are we designing photos only, video only, or both?',
+              'Assume both photos and short videos (Reels-style); note that video adds transcoding complexity similar to the YouTube design, and focus depth on photos unless told otherwise.',
+            ],
+            [
+              'Is Direct Messaging, Explore/recommendations, or Stories in scope?',
+              'Scope to upload + feed + basic engagement; treat DMs as "see the WhatsApp/chat design", Explore/recs as a brief follow-up, and Stories as a smaller stated feature (TTL data).',
+            ],
+            [
+              'What is the follower distribution — flat, or with celebrity accounts?',
+              'Assume a skewed power-law graph like Twitter — most users have few followers, a small number have tens of millions — this is what forces a hybrid fan-out for the feed.',
+            ],
+            [
+              'How many resolutions/formats must each upload be available in?',
+              'Assume a handful of responsive sizes (thumbnail, feed, full) in 1-2 modern formats (WebP/AVIF) — enough to discuss the processing pipeline without over-specifying codecs.',
+            ],
+            [
+              'Must the feed be perfectly chronological or can it be ranked?',
+              'Assume ranked by default, same as the Twitter/YouTube designs, with a chronological fallback for ranking-service outages.',
+            ],
+            [
+              'How fresh must the feed be after upload, and how fast must upload-to-visible be?',
+              'Assume seconds-to-low-minutes end-to-end (uploading → processed → fanned out) is acceptable, since transcoding is inherently asynchronous.',
+            ],
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'State assumptions out loud',
+          body: 'Say explicitly: "I will treat this as two planes — media storage/delivery and feed construction — and scope out DMs and the full recommendation model." Naming the two-plane split up front signals you have already spotted the two hardest sub-problems, which is exactly what the interviewer wants to hear.',
+        },
+      ],
+    },
+    {
       id: 'functional-requirements',
       title: 'Functional Requirements',
       blocks: [
@@ -788,6 +836,26 @@ healthCheck:
               question: 'How do you keep media delivery cheap and fast globally?',
               answer:
                 'Aggressive **CDN caching** with immutable, content-hashed URLs (95%+ hit ratio), responsive sizes + modern formats (WebP/AVIF), and tiered storage that moves cold media to cheaper classes. Origin is only touched on a cache miss.',
+            },
+            {
+              question: 'Why separate the media plane from the metadata/feed plane instead of one unified service?',
+              answer:
+                'They have opposite scaling profiles: media is huge, immutable, write-once/read-many bytes best served by object storage + CDN; metadata/feed is tiny, mutable, relational-ish records best served by databases and caches. Coupling them would force one system to compromise — e.g. a database trying to stream gigabytes, or a CDN trying to do transactional writes. Separating lets each scale on its own axis.',
+            },
+            {
+              question: 'How do you prevent duplicate uploads of the same photo from wasting storage?',
+              answer:
+                "Hash the uploaded blob's content and check a content-hash index before storing a new copy; if a match exists, reference the existing blob (dedup by content, not by user intent). This is an optimization, not a requirement — call it out as a nice-to-have if storage cost is raised as a concern.",
+            },
+            {
+              question: 'What happens if a follow happens right as someone is fanning out a new post?',
+              answer:
+                'Fan-out uses a **snapshot** of the follower list taken when the event is processed; a follow that lands a moment later is not retroactively applied to that one post. This is an accepted, brief inconsistency — the next post correctly reflects the updated graph. Perfect correctness here is not worth the coordination cost.',
+            },
+            {
+              question: 'How would you extend this design to support Reels (short video) alongside photos?',
+              answer:
+                'Route video uploads through a transcoding pipeline analogous to the YouTube design (chunk, encode into an ABR ladder, package for adaptive streaming) instead of simple image resizing. The feed/metadata plane is largely unchanged — a post just carries a `mediaType` and points at either an image variant set or a video manifest.',
             },
           ],
         },

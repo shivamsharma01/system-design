@@ -1,0 +1,29 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const ELEVATOR_SYSTEM_META: DesignMeta = {
+  slug: 'elevator-system',
+  title: 'Design an Elevator System',
+  tagline:
+    'Hall calls, car calls, and dispatch across multiple cars — the state machines and scheduling strategies interviewers probe hardest.',
+  section: 'low-level-design',
+  category: 'Classic Systems',
+  tags: ['elevator', 'lld', 'oop', 'state-machine', 'scheduling', 'concurrency'],
+  technologies: ['Java', 'OOP', 'State', 'Strategy'],
+  difficulty: 'intermediate',
+  readingTimeMin: 22,
+  status: 'published',
+  keywords: [
+    'elevator system design',
+    'elevator lld',
+    'elevator scheduling algorithm',
+    'scan look algorithm',
+    'elevator dispatch',
+    'elevator state machine',
+    'object oriented design interview',
+  ],
+  dateAdded: '2026-07-11',
+  popularity: 118,
+  icon: 'EV',
+  heroGradient: 'linear-gradient(135deg, #7c2d92 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

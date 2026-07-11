@@ -1,0 +1,30 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const LIBRARY_MANAGEMENT_META: DesignMeta = {
+  slug: 'library-management',
+  title: 'Design a Library Management System',
+  tagline:
+    'Books, barcoded copies, loans, reservations, and overdue fines — a catalog-and-lending LLD with Strategy and Observer.',
+  section: 'low-level-design',
+  category: 'Classic Systems',
+  tags: ['lld', 'oop', 'strategy-pattern', 'observer-pattern', 'catalog', 'lending'],
+  technologies: ['Java', 'OOP', 'Strategy Pattern', 'Observer Pattern'],
+  difficulty: 'intermediate',
+  readingTimeMin: 21,
+  status: 'published',
+  keywords: [
+    'library management system design',
+    'library lld',
+    'book catalog search',
+    'book item barcode',
+    'loan and reservation',
+    'fine calculation strategy',
+    'overdue notification observer',
+    'librarian member roles',
+  ],
+  dateAdded: '2026-07-11',
+  popularity: 108,
+  icon: 'LB',
+  heroGradient: 'linear-gradient(135deg, #7c3aed 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

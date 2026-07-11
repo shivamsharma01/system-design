@@ -22,6 +22,58 @@ const content: DesignContent = {
       ],
     },
     {
+      id: 'clarifying-questions',
+      title: 'Clarifying Questions',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            "Spend the first 3–5 minutes narrowing scope before drawing anything. A URL shortener sounds trivial, but the answers here decide key length, whether you need a reverse-lookup index, and how hard caching/analytics have to work — interviewers are watching for this instinct, not just the final diagram.",
+        },
+        {
+          type: 'table',
+          caption: 'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
+          headers: ['Question', 'Why it matters / sample assumption'],
+          rows: [
+            [
+              'What scale are we designing for (URLs created/day, redirects/day)?',
+              'Assume ~100M new URLs/month and a 100:1 read:write ratio — this alone justifies a cache and drives the key-length math.',
+            ],
+            [
+              'How long should short URLs remain valid — forever, or with expiration?',
+              'Assume most links never expire, but support an optional `expiresAt`; expired links free up storage and can even free up the key.',
+            ],
+            [
+              'Do we need custom/vanity aliases (e.g. `/promo2026`)?',
+              'Yes, as an optional feature — it changes the write path (must check availability) but not the core redirect path.',
+            ],
+            [
+              'Do we need click analytics (counts, geography, referrer)?',
+              'Basic click counts only, updated asynchronously off the hot redirect path — full analytics is a stated non-goal.',
+            ],
+            [
+              'Should the same long URL always map to the same short URL?',
+              'No — assume distinct requests can get distinct codes (simplifies the write path); mention a reverse-index as an optional dedup optimization.',
+            ],
+            [
+              'Do short codes need to be unguessable (security-sensitive links)?',
+              'Assume yes for anything user-generated — add randomness/shuffling on top of the key-generation scheme so codes are not sequentially enumerable.',
+            ],
+            [
+              'Is this single-region or globally distributed?',
+              'Start single-region for the core design; call out multi-region replication and a CDN edge cache as a scaling extension.',
+            ],
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Say your assumptions out loud',
+          body: 'Even when the interviewer says "you decide," state the assumption explicitly ("I will assume a 100:1 read:write ratio and no dedup on identical URLs") before moving on. It shows deliberate scoping rather than guessing, and gives the interviewer a chance to correct you early — much cheaper than redesigning later.',
+        },
+      ],
+    },
+    {
       id: 'functional-requirements',
       title: 'Functional Requirements',
       blocks: [
@@ -105,6 +157,16 @@ const content: DesignContent = {
             'Because reads dominate 100:1, an LRU cache of the hottest links absorbs the vast majority of redirects, keeping the database load and latency low.',
           icon: 'database',
           tags: ['cache', 'LRU', 'read-heavy'],
+        },
+        {
+          type: 'bestPractices',
+          title: 'Caching strategy for the redirect path',
+          practices: [
+            '**Cache-aside**: on a redirect, check Redis first; on a miss, read the DB and populate the cache.',
+            '**LRU eviction** with a TTL (e.g. 24h + jitter) so the hottest links stay resident and memory stays bounded.',
+            '**Invalidate on write**: a delete or update to a short URL evicts (or overwrites) its cache entry immediately so stale redirects are never served.',
+            '**Warm popular keys** proactively if a link is expected to go viral (e.g. shared by a large account) to avoid a thundering-herd cache miss.',
+          ],
         },
       ],
     },
@@ -233,6 +295,41 @@ def encode(num: int) -> str:
             'A single global counter is a bottleneck → use ranges per server.',
           ],
         },
+        {
+          type: 'markdown',
+          value: 'Three concrete strategies come up in interviews. Compare them directly:',
+        },
+        {
+          type: 'table',
+          caption: 'Key-generation strategies compared.',
+          headers: ['Strategy', 'How it works', 'Pros', 'Cons'],
+          rows: [
+            [
+              'Hash + truncate (MD5/SHA-256, first 7 chars)',
+              'Hash the long URL, Base62-encode a prefix of the digest.',
+              'Deterministic — same URL always yields the same code, trivial dedup.',
+              'Truncated hashes collide; needs a collision-check-and-retry loop on write.',
+            ],
+            [
+              'Global counter + Base62',
+              'An auto-incrementing ID (DB sequence or Redis `INCR`) is Base62-encoded.',
+              'Zero collisions by construction; simple to reason about.',
+              'Sequential → guessable/enumerable; a single counter is a write bottleneck at scale.',
+            ],
+            [
+              'Snowflake-style distributed ID',
+              '64-bit ID packs a timestamp + machine/shard ID + local sequence, generated independently per node.',
+              'No central bottleneck, roughly time-sortable, scales horizontally with more nodes.',
+              'IDs are longer once Base62-encoded (~9-11 chars) unless you accept a shorter custom bit layout.',
+            ],
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'info',
+          title: 'What most interviewers want to hear',
+          body: 'Lead with **counter + Base62** for its simplicity and zero-collision guarantee, mention the **single-counter bottleneck**, then fix it with either **pre-allocated ID ranges per server** (a lightweight Key Generation Service) or **Snowflake IDs** for a fully distributed, coordination-free generator. Bringing up all three and picking one with a stated reason is stronger than silently defaulting to one.',
+        },
       ],
     },
     {
@@ -294,6 +391,36 @@ def encode(num: int) -> str:
               question: 'How do you handle the same long URL submitted twice?',
               answer:
                 'Optionally store a reverse index (hash of long URL → short code) and return the existing code. This is a product decision; many shorteners intentionally create a fresh code per request for analytics.',
+            },
+            {
+              question: 'Why is this system so much more read-heavy than write-heavy, and how does that shape the design?',
+              answer:
+                'Every URL is created once but clicked many times over its life — a 100:1 (or higher) read:write ratio is typical. This pushes every design decision toward optimizing the **redirect path**: an LRU cache absorbs most reads, 301s let CDNs/browsers cache further, and analytics are moved off the hot path entirely. The write path (create) can afford to be comparatively expensive since it happens rarely.',
+            },
+            {
+              question: 'How would you shard the database as it grows?',
+              answer:
+                'Shard by a hash of `short_code` (consistent hashing) so lookups stay O(1) — a request for `/aZ9kQ` hashes straight to its shard without a directory lookup. If key generation uses per-shard counter ranges, the shard can even be encoded implicitly in the key, avoiding a separate routing table.',
+            },
+            {
+              question: 'What happens if two requests try to create the same custom alias at the same time?',
+              answer:
+                'Enforce uniqueness with a database constraint (`UNIQUE` on `short_code`) and let the second `INSERT` fail, returning a 409 Conflict to the client. Relying on a "check-then-insert" without the constraint is a race condition — the constraint is the real source of truth, not an application-level check.',
+            },
+            {
+              question: 'How do you avoid a hot cache-miss storm on a viral link right after creation?',
+              answer:
+                'On write, proactively populate the cache (write-through) instead of waiting for the first read to miss. For links expected to spike (e.g. shared by a large account), pre-warm the cache. This trades a slightly slower write for protecting the database from a burst of concurrent misses on the same key.',
+            },
+            {
+              question: 'How would you support link expiration efficiently, at scale?',
+              answer:
+                "Store `expires_at` and check it on read (cheap, no background job needed) rather than a cron sweep for most cases. For reclaiming storage/keys at scale, run a low-priority batch job that deletes expired rows and evicts the corresponding cache entries; it does not need to be real-time.",
+            },
+            {
+              question: 'Is strong consistency required anywhere in this system?',
+              answer:
+                'Not on the read path — a slightly stale cached redirect is harmless. The one place consistency matters is **key uniqueness on write**: two creates must never be assigned the same code. A DB `UNIQUE` constraint (or a coordination-free scheme like Snowflake IDs) gives that guarantee without needing distributed locks.',
             },
           ],
         },

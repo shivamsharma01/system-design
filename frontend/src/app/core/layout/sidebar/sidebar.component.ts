@@ -32,6 +32,8 @@ export class SidebarComponent {
   /** Sections expanded by default: System Design open, others open if they have content. */
   protected readonly expanded = signal<Record<ContentSectionId, boolean>>({
     'system-design': true,
+    'high-level-design': true,
+    'low-level-design': true,
     'solid-principles': true,
     'design-patterns': true,
   });

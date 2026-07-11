@@ -37,7 +37,7 @@ export class DesignRegistryService {
     return this.bySlug.has(slug);
   }
 
-  /** Ordered top-level sections (System Design, SOLID, Design Patterns). */
+  /** Ordered top-level sections (System Design, HLD, LLD, SOLID, Design Patterns). */
   getSections(): ContentSectionMeta[] {
     return [...CONTENT_SECTIONS].sort((a, b) => a.order - b.order);
   }
@@ -63,14 +63,40 @@ export class DesignRegistryService {
     'ML & Data Pipeline',
   ];
 
+  /** Preferred order for Low Level Design problem categories. */
+  private static readonly LLD_CATEGORY_ORDER = [
+    'Classic Systems',
+    'Games & Simulations',
+    'Data Structures',
+    'Marketplace',
+  ];
+
+  /** Preferred order for High Level Design interview categories. */
+  private static readonly HLD_CATEGORY_ORDER = [
+    'Fundamentals',
+    'Social & Feeds',
+    'Media & Streaming',
+    'Messaging',
+    'Location & Mobility',
+    'Storage & Cache',
+  ];
+
   /** Categories within a section (or all categories if section omitted). */
   getCategories(section?: ContentSectionId): string[] {
     const list = section ? this.getBySection(section) : this.getAllMeta();
     const categories = [...new Set(list.map((m) => m.category))];
-    if (section === 'design-patterns') {
+    const order =
+      section === 'design-patterns'
+        ? DesignRegistryService.PATTERN_CATEGORY_ORDER
+        : section === 'low-level-design'
+          ? DesignRegistryService.LLD_CATEGORY_ORDER
+          : section === 'high-level-design'
+            ? DesignRegistryService.HLD_CATEGORY_ORDER
+            : null;
+    if (order) {
       return categories.sort((a, b) => {
-        const ai = DesignRegistryService.PATTERN_CATEGORY_ORDER.indexOf(a);
-        const bi = DesignRegistryService.PATTERN_CATEGORY_ORDER.indexOf(b);
+        const ai = order.indexOf(a);
+        const bi = order.indexOf(b);
         const ao = ai === -1 ? Number.MAX_SAFE_INTEGER : ai;
         const bo = bi === -1 ? Number.MAX_SAFE_INTEGER : bi;
         return ao !== bo ? ao - bo : a.localeCompare(b);

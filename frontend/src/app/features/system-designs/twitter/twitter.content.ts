@@ -35,6 +35,54 @@ const content: DesignContent = {
       ],
     },
     {
+      id: 'clarifying-questions',
+      title: 'Clarifying Questions',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            "Twitter/X is a huge surface area — timeline, search, trending, DMs, notifications, ads. The first few minutes should aggressively narrow scope to the timeline + graph core, or you will run out of time before reaching the interesting fan-out trade-off.",
+        },
+        {
+          type: 'table',
+          caption: 'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
+          headers: ['Question', 'Why it matters / sample assumption'],
+          rows: [
+            [
+              'Should we design the full product (DMs, ads, Spaces) or just the timeline core?',
+              'Scope to post + follow + home timeline; explicitly exclude DMs (a separate messaging system) and ads/monetization.',
+            ],
+            [
+              'What is the follower distribution — mostly small, or many large accounts?',
+              'Assume a heavily skewed power-law graph: most users have a few hundred followers, but a small number have 10M-100M+ — this single fact motivates the entire hybrid fan-out design.',
+            ],
+            [
+              'Does the timeline need to be perfectly chronological, or can it be ranked?',
+              'Assume a ranked feed is the default experience, with a chronological "Latest" toggle as a fallback/alternative view.',
+            ],
+            [
+              'How fresh must the timeline be after someone posts?',
+              'Assume "within a few seconds" is acceptable — this justifies async fan-out via a queue rather than a synchronous write to every follower.',
+            ],
+            [
+              'Do we need exact engagement counts (likes/reposts), or is approximate fine?',
+              'Approximate is fine — sharded/eventually-consistent counters, not a transactional read on every view.',
+            ],
+            [
+              'Is search/trending in scope for this session?',
+              'Treat as a smaller follow-up section after the timeline is solid; do not let it eat time budgeted for the core fan-out design.',
+            ],
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'State assumptions out loud',
+          body: 'Say explicitly: "I will focus on post/follow/timeline, assume a power-law follower distribution, and treat search and DMs as out of scope." This shows you understand where the real complexity lives (fan-out at a skewed graph) rather than spreading effort thin across the whole product.',
+        },
+      ],
+    },
+    {
       id: 'functional-requirements',
       title: 'Functional Requirements',
       blocks: [
@@ -794,6 +842,26 @@ healthCheck:
               question: 'What happens when the ranking service fails?',
               answer:
                 'Fall back to the **reverse-chronological** timeline. It is cheaper and fully predictable, so the user still gets a usable feed — graceful degradation rather than an error.',
+            },
+            {
+              question: 'How do you decide the threshold for "celebrity" that triggers pull-based fan-out?',
+              answer:
+                'Pick it empirically based on fan-out cost, not an arbitrary number: e.g. any account whose follower count would generate more than some write budget per post (often ~1M followers, or the top percentile of the distribution). Some systems use a **hybrid threshold** per post — if a normal account suddenly goes viral, dynamically switch it into the pull path rather than pre-classifying accounts statically.',
+            },
+            {
+              question: 'How would you handle deleting or editing a tweet that has already been fanned out?',
+              answer:
+                'Because timelines store **tweet IDs**, not content, a delete only needs to remove/tombstone the record in the tweet store — every timeline referencing that ID will simply skip it during hydration (treat a missing/tombstoned ID as filtered out). This avoids the need to touch millions of fanned-out timeline entries directly.',
+            },
+            {
+              question: 'How do you keep the follower graph consistent with the timeline fan-out (e.g. someone follows/unfollows mid-fan-out)?',
+              answer:
+                "Fan-out reads a **snapshot** of the follower list at post time; a follow/unfollow that happens milliseconds later is not retroactively applied to that one post's fan-out — it is a brief, acceptable inconsistency. The next post correctly reflects the updated follower list. This is a deliberate trade of perfect consistency for simplicity and throughput.",
+            },
+            {
+              question: 'Why use Kafka (or a queue) for fan-out instead of calling the timeline write synchronously?',
+              answer:
+                "A queue decouples the author's write latency from the fan-out cost, which can be enormous (millions of writes for one post). It also gives natural **backpressure and retry**: if the fan-out tier is slow or a worker crashes, messages remain queued and are retried, rather than the post API blocking or failing.",
             },
           ],
         },

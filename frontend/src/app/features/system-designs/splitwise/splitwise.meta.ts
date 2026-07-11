@@ -1,0 +1,29 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const SPLITWISE_META: DesignMeta = {
+  slug: 'splitwise',
+  title: 'Design Splitwise',
+  tagline:
+    'Groups, expenses, and settle-up — expense split strategies, per-user balance sheets, and the debt-simplification algorithm.',
+  section: 'low-level-design',
+  category: 'Marketplace',
+  tags: ['splitwise', 'lld', 'strategy-pattern', 'factory-pattern', 'graph-algorithm', 'balances'],
+  technologies: ['Java', 'Graph Algorithms', 'PriorityQueue'],
+  difficulty: 'advanced',
+  readingTimeMin: 20,
+  status: 'published',
+  keywords: [
+    'splitwise lld',
+    'expense splitting system design',
+    'settle up algorithm',
+    'simplify debts',
+    'minimize cash flow',
+    'balance sheet design',
+    'equal exact percent split',
+  ],
+  dateAdded: '2026-07-11',
+  popularity: 119,
+  icon: 'SW',
+  heroGradient: 'linear-gradient(135deg, #22c55e 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

@@ -35,6 +35,62 @@ const content: DesignContent = {
       ],
     },
     {
+      id: 'clarifying-questions',
+      title: 'Clarifying Questions',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Do not start whiteboarding a connection tier in minute one. Spend the first **3-5 minutes** narrowing scope out loud — interviewers reward candidates who probe before they design, and if the interviewer says "you decide", state your assumption and move on.',
+        },
+        {
+          type: 'table',
+          caption: 'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
+          headers: ['Question', 'Why it matters / sample assumption'],
+          rows: [
+            [
+              'What scale are we targeting — users, messages/day, concurrent connections?',
+              'Assume ~2B users, ~100B messages/day. This is what drives "stateful connection tier" over plain REST polling.',
+            ],
+            [
+              'Is this 1:1 only, or do groups and broadcast lists need to be designed too?',
+              'Design 1:1 first, then extend to groups (fan-out on delivery, capped size) — do not start with the hardest case.',
+            ],
+            [
+              'Does the design need end-to-end encryption, or just transport security (TLS)?',
+              'Assume E2E is required (it defines WhatsApp); note that it changes the trust model, not the routing architecture.',
+            ],
+            [
+              'Must offline users still receive messages, and how long should undelivered messages be retained?',
+              'Yes — store-and-forward with an inbox, undelivered messages retained for ~30 days then dropped.',
+            ],
+            [
+              'Do we need delivery/read receipts (the ticks), or is "sent" enough?',
+              'Assume full sent/delivered/read receipts — a common, meaty follow-up area.',
+            ],
+            [
+              'Is multi-device support (same account on phone + desktop) in scope?',
+              'Assume yes, but treat it as an extension after the core 1:1 path works — each device gets its own encrypted session.',
+            ],
+            [
+              'What ordering/consistency guarantee is expected — global or per-conversation?',
+              'Per-conversation ordering only; global ordering across all chats is unnecessary and expensive.',
+            ],
+            [
+              'Is media (images/video/voice) part of the core design, or just text?',
+              'Text is the core; mention media as a side-channel (blob storage + CDN, pointer in the chat message) rather than designing it in depth.',
+            ],
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Say your assumptions out loud',
+          body: 'Even when you are confident, narrate the assumption before you build on it: "I will assume per-conversation ordering is sufficient and global ordering is not required — let me know if that is wrong." This shows structured thinking and gives the interviewer a cheap way to redirect you before you spend 10 minutes on the wrong sub-problem.',
+        },
+      ],
+    },
+    {
       id: 'functional-requirements',
       title: 'Functional Requirements',
       blocks: [
@@ -889,6 +945,21 @@ healthCheck:
               question: 'How would you handle a connection server crashing with 1M live sockets?',
               answer:
                 'Those clients detect the dead socket (missed heartbeats) and **reconnect with backoff + jitter** to a new server, which re-registers them in the session registry. Durable state was never on the gateway, so no messages are lost; any in-flight messages are redelivered from the inbox.',
+            },
+            {
+              question: 'Why Cassandra for the message store instead of a relational database?',
+              answer:
+                'The workload is append-heavy, partitioned naturally by `conv_id`/`user_id`, and needs to stay available under node failure more than it needs cross-row transactions. Cassandra gives linear write scalability, tunable consistency (`LOCAL_QUORUM`), and a `timeuuid` clustering key for free ordering — a relational DB would need sharding middleware to get the same write throughput and would add transactional guarantees the workload does not use.',
+            },
+            {
+              question: 'How would you scale to a 10,000-member broadcast list?',
+              answer:
+                "Do not fan out synchronously to 10,000 sockets on the sender's request path. Persist the message once, publish a fan-out event to Kafka, and let a pool of workers deliver/enqueue per recipient asynchronously — the sender's ACK only waits for durability, not delivery. For very large lists, treat it more like a broadcast/pub-sub pattern than a chat, and consider capping true \"groups\" while offering \"channels\" (one-directional, no reply-all) for the largest audiences.",
+            },
+            {
+              question: 'What happens if the session registry (Redis) becomes unavailable?',
+              answer:
+                'The router can no longer tell who is online, so it should **fail safe to store-and-forward**: persist the message and push-notify, rather than blocking or dropping it. Shard and replicate the registry so a single shard loss only blinds routing for a fraction of users, and have connection servers re-register aggressively on recovery so the registry rebuilds itself within seconds from live sockets.',
             },
           ],
         },

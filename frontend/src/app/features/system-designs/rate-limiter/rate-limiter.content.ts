@@ -36,6 +36,54 @@ const content: DesignContent = {
       ],
     },
     {
+      id: 'clarifying-questions',
+      title: 'Clarifying Questions',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Rate limiter feels algorithm-heavy, but the first few minutes should be spent scoping *what* is being limited and *how precisely* — that choice decides which algorithm and topology are even relevant. Ask before reaching for token bucket vs sliding window.',
+        },
+        {
+          type: 'table',
+          caption: 'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
+          headers: ['Question', 'Why it matters / sample assumption'],
+          rows: [
+            [
+              'What are we rate limiting — a single API, a whole gateway, or a specific expensive endpoint?',
+              'Assume a general-purpose limiter at the API gateway, configurable per-endpoint, since that is the most common and reusable design.',
+            ],
+            [
+              'What is the limiting key — API key, user ID, IP address, or a combination?',
+              'Assume per-API-key by default (most trustworthy identity), with IP-based limiting as a fallback for unauthenticated traffic.',
+            ],
+            [
+              'Do different clients/tiers need different limits (free vs paid)?',
+              'Yes — assume a rules engine maps scope + tier to a limit/window, hot-reloadable without a redeploy.',
+            ],
+            [
+              'How strict must accuracy be — is a small over-admission acceptable?',
+              'Assume a little slack is fine (e.g. ±5%) in exchange for lower latency; tighten toward a centralized atomic counter only if the interviewer says quotas are billed.',
+            ],
+            [
+              'Should the limiter fail open or closed if its backing store is unavailable?',
+              'Default to **fail open** (allow traffic) so a store outage does not take down the whole API — call out fail-closed as the right choice for sensitive endpoints (e.g. payments).',
+            ],
+            [
+              'Single data center or globally distributed clients/gateways?',
+              'Start single-region with one shared counter store; mention cross-region synchronization as a follow-up if asked to scale globally.',
+            ],
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'State assumptions out loud',
+          body: 'Say explicitly: "I will assume per-API-key limiting, fail-open on store failure, and that a small amount of over-admission at the edges is acceptable." This tells the interviewer you understand the accuracy/latency/availability trade-off up front, instead of discovering it mid-design.',
+        },
+      ],
+    },
+    {
       id: 'functional-requirements',
       title: 'Functional Requirements',
       blocks: [
@@ -559,6 +607,26 @@ return allowed and 1 or 0`,
               question: 'How do you support tiered limits (free vs paid)?',
               answer:
                 "Resolve the client's **tier** from the API key during identification, then look up the matching rule (limit/window) from a **hot-reloadable rules config**. The same algorithm runs with different parameters per tier/scope/endpoint, so quotas change without redeploying the gateway.",
+            },
+            {
+              question: 'How do you rate limit fairly when many different clients share one gateway node?',
+              answer:
+                "Key every counter on the **client identity** (API key/user/IP), never on the node — the counter store is shared across all gateway instances, so a client sees one consistent quota no matter which node handles the request. Per-node counters would let a client get N× the limit by spreading requests across N gateway instances.",
+            },
+            {
+              question: 'Why not just use a database with a transaction for the counter instead of Redis?',
+              answer:
+                "A relational DB transaction (row lock, commit) adds several milliseconds and does not scale to the request-per-request hot path of a rate limiter. Redis is in-memory, supports atomic Lua scripts, and is purpose-built for exactly this pattern — sub-millisecond reads and writes at very high throughput, which a rate limiter's hot path demands.",
+            },
+            {
+              question: 'How would you rate limit at multiple scopes simultaneously (e.g. per-user AND per-endpoint AND global)?',
+              answer:
+                'Run the algorithm against multiple keys per request (e.g. `user:42:endpoint:/search` and `global:endpoint:/search`) and reject if **any** scope is exceeded. Keep each scope as an independent counter with its own limit/window; a single Lua script can check several keys atomically in one round-trip to avoid N separate network calls.',
+            },
+            {
+              question: 'How do you test/validate a rate limiter before shipping a change to the rules?',
+              answer:
+                'Run it in **shadow/dry-run mode** first: evaluate the new rule and log what *would* have happened (allow/reject) without actually enforcing it, compare against real traffic patterns, then flip it live. This catches misconfigured limits (e.g. too tight, breaking a legitimate integration) before they cause an outage.',
             },
           ],
         },

@@ -35,7 +35,12 @@
 
           @if (section.designs.length === 0) {
             <p class="sidebar__empty">Coming soon</p>
-          } @else if (section.id === 'system-design' || section.id === 'design-patterns') {
+          } @else if (
+            section.id === 'system-design' ||
+            section.id === 'high-level-design' ||
+            section.id === 'design-patterns' ||
+            section.id === 'low-level-design'
+          ) {
             @for (group of section.groups; track group.category) {
               <div class="sidebar__group">
                 <p class="sidebar__heading">{{ group.category }}</p>

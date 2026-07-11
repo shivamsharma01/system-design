@@ -35,6 +35,62 @@ const content: DesignContent = {
       ],
     },
     {
+      id: 'clarifying-questions',
+      title: 'Clarifying Questions',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Dropbox-style prompts often get conflated with real-time collaborative editing (Google Docs). Spend the first **3-5 minutes** drawing that line and pinning down scale, then state your assumptions and proceed.',
+        },
+        {
+          type: 'table',
+          caption: 'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
+          headers: ['Question', 'Why it matters / sample assumption'],
+          rows: [
+            [
+              'Is this file sync (like Dropbox), or real-time collaborative editing (like Google Docs)?',
+              'File sync — files are opaque blobs, conflicts become copies rather than merges. Call out OT/CRDT-based editing as explicitly out of scope.',
+            ],
+            [
+              'What scale — users, average storage per user, total data?',
+              'Assume ~500M users, ~50GB average stored each, ~25EB total before dedup.',
+            ],
+            [
+              'Is there a maximum file size we need to support, or arbitrarily large files?',
+              'Assume large files (up to several GB) are common, which is why chunking + resumable uploads matter, not just small documents.',
+            ],
+            [
+              'Must the client work fully offline and reconcile later?',
+              'Yes — offline edits queue locally and sync/reconcile (with conflict copies if needed) on reconnect.',
+            ],
+            [
+              'Do we need version history / restore, or just the latest state?',
+              'Assume version history is required — it doubles as the safety net behind conflict resolution.',
+            ],
+            [
+              'Is sharing/permissions (folders shared across users) in scope?',
+              'Yes, at a design level (ACLs on the metadata layer) without deep dive into permission inheritance rules.',
+            ],
+            [
+              'Is cross-user deduplication acceptable, or a privacy concern?',
+              'Mention it as a storage-saving option, but flag the existence-oracle privacy risk and the mitigation (per-user dedup or proof-of-possession).',
+            ],
+            [
+              'Should the design account for multiple device types (desktop, mobile, web) syncing the same account?',
+              'Yes — treat "device" as a first-class concept with its own sync cursor, same as the multi-device pattern in messaging systems.',
+            ],
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Say your assumptions out loud',
+          body: 'For example: "I will treat files as opaque blobs and resolve concurrent edits with conflict copies rather than merging content, since that requires an OT/CRDT engine which is a different problem." Naming the boundary explicitly prevents the interview from drifting into scope you did not intend to cover.',
+        },
+      ],
+    },
+    {
       id: 'functional-requirements',
       title: 'Functional Requirements',
       blocks: [
@@ -799,6 +855,23 @@ healthCheck:
               question: 'How do you delete chunks safely with dedup?',
               answer:
                 'Maintain a **reference count** per block. Removing a file decrements refcounts; a background GC reclaims a block only when its refcount reaches zero, with safeguards against races with concurrent uploads that might re-reference it.',
+            },
+            {
+              question: 'How do you upload a very large file over a flaky connection?',
+              answer:
+                'Because a file is chunked, each chunk uploads (and can retry) **independently** — a dropped connection only re-sends the in-flight chunk, not the whole file. Track which chunk hashes have already been accepted (the `/blocks/missing` check doubles as resumability), so reconnecting simply resumes from the first still-missing chunk rather than restarting the transfer.',
+            },
+            {
+              question:
+                'How is the metadata database scaled/sharded, and why not just one big database?',
+              answer:
+                "A single relational instance cannot hold hundreds of millions of users' file trees and version history with acceptable write latency. Shard by **namespace id** (a user's root or a shared folder) via a routing layer (Vitess-like), so each shard handles a bounded slice of users and commits/deltas stay fast. Namespace is the natural shard key because almost all metadata operations (listing, delta, commit) are scoped to one namespace.",
+            },
+            {
+              question:
+                'How would you support real-time collaborative editing (like Google Docs) on top of this design?',
+              answer:
+                'You would not bolt it onto file-level sync — collaborative editing needs **operation-based** synchronization (Operational Transformation or CRDTs) that merges concurrent character-level edits, not whole-file conflict copies. It would live as a separate service: a document is represented as a sequence of operations broadcast over a real-time channel (WebSocket) to all active editors, with a server resolving concurrent operations deterministically. The file-sync system in this design would then treat the document as just another file, checkpointed periodically.',
             },
           ],
         },
