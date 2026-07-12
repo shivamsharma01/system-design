@@ -1,0 +1,37 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const DELIVERY_SEMANTICS_META: DesignMeta = {
+  slug: 'delivery-semantics',
+  title: 'Message Delivery Semantics',
+  tagline:
+    'At-most-once, at-least-once, and effectively-once delivery — why end-to-end exactly-once is hard, and how Kafka acks, offsets, and idempotency close the gap.',
+  section: 'fundamentals',
+  category: 'Distributed Systems',
+  tags: [
+    'messaging',
+    'exactly-once',
+    'at-least-once',
+    'idempotency',
+    'kafka',
+    'dedupe',
+    'interview',
+  ],
+  technologies: ['Apache Kafka', 'RabbitMQ', 'Amazon SQS', 'Pulsar', 'Redis Streams'],
+  difficulty: 'intermediate',
+  readingTimeMin: 13,
+  status: 'published',
+  keywords: [
+    'delivery semantics',
+    'idempotency key',
+    'consumer offset',
+    'transactional producer',
+    'effectively once',
+    'acks=all',
+    'duplicate delivery',
+  ],
+  dateAdded: '2026-07-12',
+  popularity: 92,
+  icon: 'DE',
+  heroGradient: 'linear-gradient(135deg, #f59e0b 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

@@ -466,7 +466,7 @@ CREATE TABLE orders (
   total_cents INT NOT NULL,
   saga_state  JSONB,            -- which steps completed (for recovery)
   created_at  TIMESTAMPTZ DEFAULT now(),
-  idem_key    TEXT UNIQUE       -- exactly-once order creation
+  idem_key    TEXT UNIQUE       -- effectively-once order creation via client idempotency key
 );`,
         },
         {
@@ -478,7 +478,7 @@ CREATE TABLE orders (
             ['Search index', 'Elasticsearch', 'Full-text + facets + ranking'],
             ['Shopping cart', 'DynamoDB', 'Always-writable, conflict merge'],
             ['Inventory', 'Strongly-consistent SQL / Redis', 'Atomic decrement, no oversell, CP'],
-            ['Orders + payments', 'Sharded SQL', 'Transactions, exactly-once, CP'],
+            ['Orders + payments', 'Sharded SQL', 'Transactions, effectively-once via idempotency, CP'],
             ['Order/inventory events', 'Kafka', 'Decouple fulfillment/notify/analytics'],
             ['Images / assets', 'S3 + CDN', 'Large, static, cacheable'],
           ],
@@ -787,7 +787,7 @@ healthCheck:
                 'A rejected add-to-cart is lost revenue, so the cart must **always accept writes**, even during partitions — the original Dynamo motivation. Conflicting versions (e.g. edits from two devices) are kept and **merged on read** (union of items), favoring not losing an added item.',
             },
             {
-              question: 'How do you make order placement exactly-once?',
+              question: 'How do you make order placement effectively-once?',
               answer:
                 'A client-supplied **idempotency key** stored as a `UNIQUE` constraint: a retried submit returns the existing order instead of creating a duplicate or re-running the saga. Payment capture is likewise keyed on the order id.',
             },

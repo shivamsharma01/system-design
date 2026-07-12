@@ -6,6 +6,13 @@ import { ContentSectionMeta } from '../../shared/models';
  */
 export const CONTENT_SECTIONS: ContentSectionMeta[] = [
   {
+    id: 'fundamentals',
+    title: 'Fundamentals',
+    description:
+      'CAP/PACELC, delivery semantics, back-of-envelope math, ID generation, and other building blocks.',
+    order: 0,
+  },
+  {
     id: 'system-design',
     title: 'System Design',
     description: 'Product deep-dives, capacity math, trade-offs, and the interview framework.',

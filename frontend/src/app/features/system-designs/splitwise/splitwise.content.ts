@@ -358,14 +358,37 @@ public class PercentSplitStrategy implements SplitStrategy {
     long allocated = 0;
     for (int i = 0; i < participantIds.size(); i++) {
       String id = participantIds.get(i);
-      long share;
       if (i == participantIds.size() - 1) {
-        share = amountPaise - allocated; // last participant takes the rounding remainder
+        splits.add(new ExpenseSplit(id, amountPaise - allocated)); // remainder on last
       } else {
-        share = Math.round(amountPaise * (percentBps.get(id) / 10000.0));
+        long share = amountPaise * percentBps.get(id) / 10000;
+        allocated += share;
+        splits.add(new ExpenseSplit(id, share));
       }
-      allocated += share;
-      splits.add(new ExpenseSplit(id, share));
+    }
+    return splits;
+  }
+}
+
+/** Shares: input maps userId → share weight (e.g. 1, 2, 3). Remainder paise go to the last participant. */
+public class SharesSplitStrategy implements SplitStrategy {
+  @Override
+  public List<ExpenseSplit> computeSplits(long amountPaise, List<String> participantIds, Map<String, Long> shares) {
+    long totalShares = participantIds.stream().mapToLong(id -> shares.getOrDefault(id, 0L)).sum();
+    if (totalShares <= 0) {
+      throw new IllegalArgumentException("Shares must sum to a positive weight");
+    }
+    List<ExpenseSplit> splits = new ArrayList<>();
+    long allocated = 0;
+    for (int i = 0; i < participantIds.size(); i++) {
+      String id = participantIds.get(i);
+      if (i == participantIds.size() - 1) {
+        splits.add(new ExpenseSplit(id, amountPaise - allocated));
+      } else {
+        long share = amountPaise * shares.get(id) / totalShares;
+        allocated += share;
+        splits.add(new ExpenseSplit(id, share));
+      }
     }
     return splits;
   }
@@ -379,7 +402,7 @@ public class PercentSplitStrategy implements SplitStrategy {
           type: 'code',
           language: 'java',
           filename: 'Expense.java',
-          code: `public enum SplitType { EQUAL, EXACT, PERCENT }
+          code: `public enum SplitType { EQUAL, EXACT, PERCENT, SHARES }
 
 public class ExpenseSplit {
   private final String userId;
@@ -423,7 +446,8 @@ public class ExpenseFactory {
     this.strategies = Map.of(
         SplitType.EQUAL, new EqualSplitStrategy(),
         SplitType.EXACT, new ExactSplitStrategy(),
-        SplitType.PERCENT, new PercentSplitStrategy());
+        SplitType.PERCENT, new PercentSplitStrategy(),
+        SplitType.SHARES, new SharesSplitStrategy());
   }
 
   public Expense create(String description, long amountPaise, Map<String, Long> paidBy,
@@ -462,14 +486,23 @@ public class BalanceSheet {
 
   public void recordExpense(Expense expense) {
     // Every participant owes their split to whichever payer(s) covered the bill,
-    // proportional to how much each payer actually paid.
+    // proportional to how much each payer actually paid. Use integer remainder
+    // allocation so multi-payer rounding never drifts from the owed total.
     long totalPaid = expense.getPaidBy().values().stream().mapToLong(Long::longValue).sum();
     for (ExpenseSplit split : expense.getSplits()) {
-      for (Map.Entry<String, Long> payer : expense.getPaidBy().entrySet()) {
-        if (payer.getKey().equals(split.getUserId())) {
-          continue; // you do not owe yourself for the portion you paid
+      List<Map.Entry<String, Long>> otherPayers = expense.getPaidBy().entrySet().stream()
+          .filter(p -> !p.getKey().equals(split.getUserId()))
+          .toList();
+      long owed = split.getAmountOwedPaise();
+      long allocated = 0;
+      for (int i = 0; i < otherPayers.size(); i++) {
+        Map.Entry<String, Long> payer = otherPayers.get(i);
+        long payerShareOfDebt = (i == otherPayers.size() - 1)
+            ? owed - allocated
+            : owed * payer.getValue() / totalPaid;
+        if (i < otherPayers.size() - 1) {
+          allocated += payerShareOfDebt;
         }
-        long payerShareOfDebt = Math.round(split.getAmountOwedPaise() * (payer.getValue() / (double) totalPaid));
         if (payerShareOfDebt != 0) {
           adjust(split.getUserId(), payer.getKey(), payerShareOfDebt);
         }
@@ -643,6 +676,16 @@ public class BalanceSheet {
               question: 'How would multi-currency change the design?',
               answer:
                 'Each `Expense` keeps its original currency and amount for display, but `BalanceSheet` operations first convert to a common base currency via a `CurrencyConverter` (using a rate as of the expense date, ideally recorded on the expense itself so historical balances do not drift as exchange rates change later).',
+            },
+            {
+              question: 'How do you handle expense edit/delete with an audit trail?',
+              answer:
+                'Never mutate history in place: append **compensating ledger events** (`ExpenseReversed` then optional `ExpenseCreated`) keyed to the original expense id, and update the running net from those deltas. Keep an immutable expense/event log so you can show who changed what and reconstruct balances by replaying the trail.',
+            },
+            {
+              question: 'Group-scoped settle-up only?',
+              answer:
+                'Run the simplify-debts algorithm on **only the pairwise balances inside that group**, not the user\'s global nets across all groups. Store balances keyed by `(groupId, userA, userB)` (or filter the sparse map by group) so settling Trip A cannot accidentally clear money owed from Roommate B.',
             },
           ],
         },

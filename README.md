@@ -9,11 +9,9 @@ open-source mix of **ByteByteGo + System Design Primer + a beautiful docs site**
 - ✅ Rich blocks: Mermaid diagrams, syntax-highlighted code, KaTeX math,
   callouts, API tables, pros/cons, timelines, YouTube embeds, and more
 - ✅ Global fuzzy search, dark/light themes, auto table-of-contents
-- ✅ Optional **Spring Boot (Java 17)** API + **Docker** + **CI/CD**
-- ✅ Works **100% standalone** — the backend is entirely optional
+- ✅ **Static SPA** — all content ships with the frontend; **Docker** + **CI/CD**
 
-> ⚙️ This repo targets **Angular 21** and **Java 17** (matching common local
-> toolchains). See [Known deviations](#known-deviations).
+> ⚙️ This repo targets **Angular 21**. See [Known deviations](#known-deviations).
 
 ## Quick start
 
@@ -23,8 +21,6 @@ npm install
 npm start
 # open http://localhost:4200
 ```
-
-That's it — the full app runs without any backend.
 
 ## Add a new design in 60 seconds
 
@@ -48,7 +44,6 @@ system-design/
 │           ├── home/
 │           ├── design-page/
 │           └── system-designs/<slug>/   # *.meta.ts + *.content.ts per design
-├── backend/                   # Optional Spring Boot (Java 17) API
 ├── docs/                      # Authoring & deployment guides
 ├── scripts/new-design.mjs     # Scaffolder
 └── docker-compose.yml
@@ -80,9 +75,13 @@ flowchart LR
 | [Code blocks](docs/code-blocks.md) | Syntax highlighting, line highlights, filenames |
 | [Mermaid diagrams](docs/mermaid.md) | Flowcharts, sequence, ER diagrams |
 | [Images](docs/images.md) | Figures, SVG architecture diagrams, lightbox |
-| [Videos](docs/videos.md) | Self-hosted video and iframes |
-| [YouTube](docs/youtube.md) | Privacy-friendly embeds |
-| [Deployment](docs/deployment.md) | Docker, static hosting, backend |
+| [Media embeds](docs/media-embeds.md) | Self-hosted video, iframes, privacy-friendly YouTube |
+| [Deployment](docs/deployment.md) | Docker and static hosting |
+| [System Design catalog](docs/system-design-catalog.md) | Flagship deep-dives backlog |
+| [HLD catalog](docs/hld-catalog.md) | High-level design problems backlog |
+| [LLD catalog](docs/lld-catalog.md) | Low-level design problems backlog |
+| [Design patterns catalog](docs/design-patterns-catalog.md) | Patterns backlog |
+| [Fundamentals catalog](docs/fundamentals-catalog.md) | CAP, delivery semantics, estimation, IDs |
 
 ## Commands (run inside `frontend/`)
 
@@ -96,22 +95,11 @@ npm run format:check # Prettier (check)
 npm run new:design   # scaffold a new design
 ```
 
-## Optional backend
-
-```bash
-cd backend
-mvn spring-boot:run          # H2 in-memory, seeded, on :8080
-# GET http://localhost:8080/api/designs
-```
-
-Switch the frontend to use it by providing an `ApiContentSource` and setting
-`apiBaseUrl` in `core/config/app-config.ts` — no UI changes needed.
-
-## Run the full stack with Docker
+## Run with Docker
 
 ```bash
 docker compose up --build
-# frontend → http://localhost:8081   backend → http://localhost:8080
+# frontend → http://localhost:8081
 ```
 
 ## Tech stack
@@ -120,7 +108,6 @@ docker compose up --build
 | ----- | ---------- |
 | Frontend | Angular 21, TypeScript (strict), SCSS, Angular Material (selective) |
 | Content | marked + DOMPurify, highlight.js, mermaid, KaTeX, Fuse.js |
-| Backend | Spring Boot 3 (Java 17), JPA, H2 (dev) / PostgreSQL (prod) |
 | Tooling | ESLint, Prettier, Vitest, Playwright (scaffold), GitHub Actions, Docker |
 
 ## Roadmap
@@ -131,9 +118,10 @@ these without restructuring (see ARCHITECTURE.md).
 
 ## Known deviations
 
-- App lives in `frontend/` (not repo-root `src/`) so the backend can coexist.
-- Targets **Angular 21** and **Java 17** (latest tooling that runs on common
-  local environments); both are trivial to bump.
+- App lives in `frontend/` (not repo-root `src/`) so tooling and docs can
+  coexist at the repository root.
+- Targets **Angular 21** (latest tooling that runs on common local
+  environments); trivial to bump.
 
 ## License
 

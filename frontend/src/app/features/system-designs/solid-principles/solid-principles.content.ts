@@ -259,6 +259,33 @@ void migrate(Bird bird) { bird.move(); }`,
           title: 'Classic interview trap: Square extends Rectangle',
           body: 'If `Rectangle.setWidth` and `setHeight` are independent, a `Square` that forces equal sides violates LSP for code that sets width and height separately. Prefer composition or a shared `Shape` with area, not forced inheritance.',
         },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'SquareRectangleLsp.java',
+          highlightLines: [8, 9, 10, 11, 18, 19],
+          code: `// Bad: Square breaks callers that assume independent sides.
+public class Rectangle {
+  protected int w, h;
+  public void setWidth(int w) { this.w = w; }
+  public void setHeight(int h) { this.h = h; }
+  public int area() { return w * h; }
+}
+
+public class Square extends Rectangle {
+  @Override public void setWidth(int w) { this.w = this.h = w; }
+  @Override public void setHeight(int h) { this.w = this.h = h; }
+}
+
+void stretch(Rectangle r) {
+  r.setWidth(5);
+  r.setHeight(4);
+  // Expects 20; gets 16 if r is a Square — LSP violation.
+  assert r.area() == 20;
+}
+
+// Better: no inheritance — Shape with area(), or immutable Square(side).`,
+        },
       ],
     },
     {
@@ -525,6 +552,11 @@ class EmailSender:
               question: 'How would you apply SOLID in a parking-lot LLD?',
               answer:
                 'SRP: separate parking assignment, payment, and ticket issuance. OCP: new vehicle types or pricing strategies via interfaces. LSP: vehicle subtypes must honor capacity/size contracts. ISP: do not force every gate device to implement payment APIs. DIP: inject repositories and payment gateways into the parking service.',
+            },
+            {
+              question: 'When should you NOT apply SOLID / over-abstraction?',
+              answer:
+                'Skip heavy abstraction for **throwaway scripts**, tiny CRUD modules with one implementation, or early prototypes where the second variant is speculative. Over-applying SOLID creates interface forests and indirection that slow delivery — prefer YAGNI and extract seams when a real second implementation, test double, or extension point appears.',
             },
           ],
         },

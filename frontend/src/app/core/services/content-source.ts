@@ -5,8 +5,8 @@ import { SearchService } from './search.service';
 
 /**
  * Abstraction over where content comes from. Today everything is bundled
- * statically (see `StaticContentSource`). When the Spring Boot backend is
- * enabled, provide an `ApiContentSource` instead and the UI stays untouched.
+ * statically (see `StaticContentSource`). A future remote/CMS source can
+ * replace this without touching the UI.
  */
 export abstract class ContentSource {
   abstract listMeta(): Promise<DesignMeta[]>;

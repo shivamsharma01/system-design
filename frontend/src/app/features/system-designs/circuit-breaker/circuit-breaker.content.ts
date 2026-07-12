@@ -68,7 +68,7 @@ const content: DesignContent = {
             ['Payments', 'Circuit open on card processor → queue for retry + user message instead of thread pile-up'],
             ['Netflix-style microservices', 'Hystrix/Resilience4j per dependency with fallbacks for recommendations'],
             ['API Gateway', 'Spring Cloud Gateway CircuitBreaker filter on `/payments/**` routes'],
-            ['Service mesh', 'Envoy outlier detection ejects unhealthy upstream hosts'],
+            ['Service mesh', 'Envoy/Istio: per-route circuit breakers; outlier detection is host ejection (related, not the same state machine)'],
           ],
         },
       ],
@@ -202,6 +202,11 @@ public class InventoryClient {
               question: 'Design checkout when inventory is down.',
               answer:
                 'Open circuit on inventory → **fallback**: allow checkout with “availability confirmed at dispatch” or block add-to-cart only. Payment path stays protected; do not block all checkout threads on inventory timeouts.',
+            },
+            {
+              question: 'How do you implement a distributed circuit breaker?',
+              answer:
+                'Share failure/success counts in a fast store (Redis) or push metrics to a sidecar so **all instances** see the same health signal — otherwise each pod opens independently and can still stampede the dependency. Keep thresholds, cooldown, and half-open probes consistent; accept slightly stale shared state over purely local breakers at large fan-out.',
             },
           ],
         },

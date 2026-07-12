@@ -862,7 +862,7 @@ healthCheck:
             {
               question: 'What consistency model does Uber use?',
               answer:
-                'Mixed. **Location/matching is AP** (slightly stale positions are fine, availability matters). **Trip state and payments are CP** (no double-assignment, exactly-once charging), enforced with transactions and idempotency keys.',
+                'Mixed. **Location/matching is AP** (slightly stale positions are fine, availability matters). **Trip state and payments are CP** (no double-assignment, effectively-once charging via idempotency keys), enforced with transactions.',
             },
             {
               question: 'How do you keep an in-progress trip alive during failures?',

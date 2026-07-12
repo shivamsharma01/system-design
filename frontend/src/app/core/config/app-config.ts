@@ -1,7 +1,7 @@
 import { InjectionToken } from '@angular/core';
 
 export interface AppConfig {
-  /** Backend base URL. Empty string keeps the app fully static (no backend). */
+  /** Optional API base URL for future remote content. Empty = fully static. */
   apiBaseUrl: string;
   githubRepoUrl: string;
   siteName: string;

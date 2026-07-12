@@ -208,6 +208,11 @@ CREATE INDEX idx_saga_status ON saga_instance (status, updated_at);`,
               answer:
                 'Each saga step should atomically update local state **and** write an outbox event in one DB transaction. A relay publishes to Kafka so downstream saga participants never miss a step after a crash.',
             },
+            {
+              question: 'Forward recovery vs compensate — when do you choose each?',
+              answer:
+                '**Forward recovery** retries/continues toward the happy path when the failed step is **idempotent and still desirable** (e.g. payment captured, inventory briefly unavailable — retry reserve). **Compensate** when a later step fails and earlier commits must be **semantically undone** (refund, release stock). Prefer forward when safe; compensate when business invariants require rollback.',
+            },
           ],
         },
       ],

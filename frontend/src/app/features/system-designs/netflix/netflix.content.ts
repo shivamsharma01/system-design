@@ -77,7 +77,7 @@ const content: DesignContent = {
           ],
           cons: [
             'Strong consistency is NOT required for most reads (eventual is fine).',
-            'Write throughput is comparatively low (mostly playback events).',
+            'User-facing write QPS (ratings, my-list) is modest; **playback heartbeats and QoS telemetry** are enormous and must be async via Kafka.',
             'Exact real-time view counts are not critical.',
           ],
         },
@@ -727,6 +727,31 @@ healthCheck:
               question: 'What happens when the recommendation service is down?',
               answer:
                 'A circuit breaker trips and a **fallback** returns non-personalized content (e.g. trending/most-popular). The user still gets a usable home screen — graceful degradation over hard failure.',
+            },
+            {
+              question: 'Throughput-based vs buffer-based ABR — which and why?',
+              answer:
+                '**Throughput-based** picks bitrate from recent download speed — simple but can oscillate. **Buffer-based** (e.g. BOLA) keys off buffer occupancy to avoid rebuffering. Production players usually **hybridize**: buffer health for stability, throughput as a cap — Netflix-style ABR optimizes for fewer stalls over peak sharpness.',
+            },
+            {
+              question: 'How does Open Connect decide which titles to pre-position?',
+              answer:
+                'Rank by **predicted local demand**: popularity, regional catalogs, time-of-day, new releases, and ISP-specific watch patterns. Fill OCAs off-peak with the working set that covers most byte-hours, and rely on mid-peak fill / parent caches for long-tail misses.',
+            },
+            {
+              question: 'Multi-device continue-watching consistency?',
+              answer:
+                'Devices publish position heartbeats; the service **upserts** the latest `(profile, title) → position` with event-time / version so out-of-order updates do not rewind progress. Reads are eventually consistent across devices — a phone may lag a TV by seconds; conflict policy is usually **latest write wins** with a small grace for near-simultaneous play.',
+            },
+            {
+              question: 'What happens when an AWS region fails?',
+              answer:
+                'Member **control plane** fails over to another active region (DNS/steering, replicated stateful services). Playback already steered to **Open Connect** keeps serving cached bits; new manifests/licenses retry against healthy regional endpoints. Chaos testing and multi-region active-active are how this is rehearsed.',
+            },
+            {
+              question: 'Why does video traffic largely bypass AWS?',
+              answer:
+                'Video bytes dominate cost and bandwidth. **Open Connect** appliances inside ISP networks deliver segments locally so Netflix avoids hauling petabytes through AWS egress. AWS hosts the **control plane** (UI, personalization, licensing); the **data plane** is the CDN.',
             },
           ],
         },

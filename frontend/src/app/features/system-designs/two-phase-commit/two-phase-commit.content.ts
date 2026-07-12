@@ -106,8 +106,8 @@ public class TransferService {
     userTx.begin();
     try {
       // Both DataSource beans enlist as XAResource participants
-      accounts.debit(fromAcct, amount);   // RM 1 — prepare on vote
-      accounts.credit(toAcct, amount);  // RM 2 — prepare on vote
+      orderDb.insertOrder(order);       // XA RM 1 — separate DataSource
+      inventoryDb.reserve(sku, qty);    // XA RM 2 — second XAResource (same JVM ≠ one RM)
       userTx.commit();                  // coordinator: PREPARE all → COMMIT all
     } catch (Exception ex) {
       userTx.rollback();                // coordinator: ABORT all

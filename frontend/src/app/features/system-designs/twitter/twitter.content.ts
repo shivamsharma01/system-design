@@ -154,7 +154,8 @@ const content: DesignContent = {
             { label: 'Daily active users', value: '~250M', hint: 'DAU' },
             { label: 'Posts / day', value: '~400M', hint: '~4,600/sec avg' },
             { label: 'Peak posts / sec', value: '~15k+', hint: 'events / breaking news' },
-            { label: 'Timeline reads / sec', value: '~500k+', hint: 'read-heavy ~100:1' },
+            { label: 'Post impressions / sec', value: '~500k+', hint: 'views ≈ posts × 100' },
+            { label: 'Home timeline API / sec', value: '~60k', hint: '250M DAU × ~20 refreshes/day' },
             { label: 'Avg followers', value: '~200', hint: 'median far lower' },
             { label: 'Fan-out writes / sec', value: '~1M+', hint: 'posts × followers' },
           ],
@@ -723,8 +724,9 @@ def trend_score(term, window):
               code: `public void onTweetCreated(TweetEvent e) {
   if (isHighFanout(e.authorId())) return;       // celebrities: read-time merge
   for (long follower : graph.activeFollowers(e.authorId())) {
-    // LPUSH is naturally idempotent if we dedupe on tweet id within the
-    // capped list; trim keeps the timeline bounded.
+    // LPUSH alone is NOT idempotent — retries would duplicate tweet IDs.
+    // Dedup on tweet id (SET check or list scan of the capped window) before
+    // push; trim keeps the timeline bounded.
     redis.lpushCappedDedup("tl:" + follower, e.tweetId(), 800);
   }
 }`,
@@ -862,6 +864,21 @@ healthCheck:
               question: 'Why use Kafka (or a queue) for fan-out instead of calling the timeline write synchronously?',
               answer:
                 "A queue decouples the author's write latency from the fan-out cost, which can be enormous (millions of writes for one post). It also gives natural **backpressure and retry**: if the fan-out tier is slow or a worker crashes, messages remain queued and are retried, rather than the post API blocking or failing.",
+            },
+            {
+              question: 'How do mutes/blocks affect fan-out?',
+              answer:
+                'Prefer **filter on read** during hydration: fan-out still writes tweet IDs, then drop muted/blocked authors (and reverse blocks) when building the feed. Filtering only on write misses later mute/block changes and complicates celebrity pull paths. Cache each viewer\'s mute/block set for cheap checks.',
+            },
+            {
+              question: 'How do you backfill a new user\'s feed?',
+              answer:
+                'On follow (or first login), asynchronously **pull recent tweets** from followed accounts (or a hybrid of precomputed + celebrity pull), merge by Snowflake ID, and write a bounded home timeline (e.g. last N days / K tweets). Cap work so following a celebrity does not block the follow API — show a partial feed while backfill catches up.',
+            },
+            {
+              question: "What's the storage cost of per-user timeline lists?",
+              answer:
+                'Roughly `active_users × timeline_length × bytes_per_entry` (tweet ID + score/timestamp). IDs keep entries tiny (tens of bytes), but fan-out still multiplies writes. Bound list length (trim old IDs), shard by user, and accept that storage grows with DAU × depth — the trade for O(1) home-timeline reads.',
             },
           ],
         },

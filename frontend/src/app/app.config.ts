@@ -21,7 +21,6 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, scrolling, withComponentInputBinding()),
     provideHttpClient(withInterceptors([apiBaseUrlInterceptor, errorInterceptor])),
-    // Swap StaticContentSource for an ApiContentSource to use the backend.
     { provide: ContentSource, useClass: StaticContentSource },
   ],
 };

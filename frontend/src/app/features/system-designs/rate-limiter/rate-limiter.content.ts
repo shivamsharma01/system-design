@@ -628,6 +628,21 @@ return allowed and 1 or 0`,
               answer:
                 'Run it in **shadow/dry-run mode** first: evaluate the new rule and log what *would* have happened (allow/reject) without actually enforcing it, compare against real traffic patterns, then flip it live. This catches misconfigured limits (e.g. too tight, breaking a legitimate integration) before they cause an outage.',
             },
+            {
+              question: 'How would you implement sliding window counter in Redis?',
+              answer:
+                'Store two counters: current window and previous window (e.g. keys keyed by `floor(now / window)`). On each request, `INCR` the current key (with TTL ≈ 2× window) and approximate usage as `prevCount × (1 - elapsedInWindow/window) + currCount`. Do the read–weight–decide–incr in a **Lua script** so it stays atomic across gateway nodes.',
+            },
+            {
+              question: 'How does a local token cache cause over-admission?',
+              answer:
+                'Each gateway node may cache a slice of tokens and admit locally without a Redis round-trip. Under concurrent load, nodes can collectively admit more than the global limit because their local views are stale until the next sync. You trade strict accuracy for latency — keep the cache small and sync frequently, or reserve local caching for soft limits only.',
+            },
+            {
+              question: 'Difference between rate limiting and throttling?',
+              answer:
+                '**Rate limiting** is a hard quota: exceed it and the request is **rejected** (often 429). **Throttling** **slows** excess traffic (delay, queue, or degrade) so some work still completes under load. Many gateways combine both — reject clear abuse, throttle borderline bursts.',
+            },
           ],
         },
       ],
@@ -656,7 +671,7 @@ return allowed and 1 or 0`,
             },
             {
               label: 'Redis rate limiting patterns (INCR)',
-              url: 'https://redis.io/docs/latest/develop/use/patterns/distributed-locks/',
+              url: 'https://redis.io/learn/howtos/ratelimiting',
               source: 'Redis',
             },
             {

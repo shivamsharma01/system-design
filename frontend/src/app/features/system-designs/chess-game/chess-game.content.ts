@@ -504,6 +504,9 @@ public class LShapedMoveStrategy implements MoveStrategy {
   public boolean isCaptured() { return captured; }
   public void markCaptured() { this.captured = true; }
 
+  /** Clone for board simulation — never share Piece instances across boards. */
+  public abstract Piece copy();
+
   /** Every piece supplies its own movement strategy (or overrides directly, e.g. Pawn). */
   protected abstract MoveStrategy moveStrategy();
 
@@ -519,11 +522,13 @@ public class LShapedMoveStrategy implements MoveStrategy {
 public class Rook extends Piece {
   public Rook(Color color) { super(color); }
   @Override protected MoveStrategy moveStrategy() { return new LinearMoveStrategy(); }
+  @Override public Piece copy() { Rook r = new Rook(color); r.captured = captured; return r; }
 }
 
 public class Bishop extends Piece {
   public Bishop(Color color) { super(color); }
   @Override protected MoveStrategy moveStrategy() { return new DiagonalMoveStrategy(); }
+  @Override public Piece copy() { Bishop b = new Bishop(color); b.captured = captured; return b; }
 }
 
 public class Queen extends Piece {
@@ -531,15 +536,18 @@ public class Queen extends Piece {
   @Override protected MoveStrategy moveStrategy() {
     return new CompositeMoveStrategy(new LinearMoveStrategy(), new DiagonalMoveStrategy());
   }
+  @Override public Piece copy() { Queen q = new Queen(color); q.captured = captured; return q; }
 }
 
 public class Knight extends Piece {
   public Knight(Color color) { super(color); }
   @Override protected MoveStrategy moveStrategy() { return new LShapedMoveStrategy(); }
+  @Override public Piece copy() { Knight k = new Knight(color); k.captured = captured; return k; }
 }
 
 public class King extends Piece {
   public King(Color color) { super(color); }
+  @Override public Piece copy() { King k = new King(color); k.captured = captured; return k; }
 
   @Override
   protected MoveStrategy moveStrategy() {
@@ -562,6 +570,7 @@ public class King extends Piece {
 
 public class Pawn extends Piece {
   public Pawn(Color color) { super(color); }
+  @Override public Piece copy() { Pawn p = new Pawn(color); p.captured = captured; return p; }
 
   @Override
   protected MoveStrategy moveStrategy() {
@@ -628,12 +637,14 @@ public class Pawn extends Piece {
     throw new IllegalStateException("King not found for " + color);
   }
 
-  /** Deep-ish copy used to simulate a move before committing it. */
+  /** Deep copy used to simulate a move before committing it. */
   public Board copy() {
     Board clone = new Board();
     for (int r = 0; r < 8; r++)
-      for (int c = 0; c < 8; c++)
-        clone.cells[r][c].setPiece(this.cells[r][c].getPiece());
+      for (int c = 0; c < 8; c++) {
+        Piece p = this.cells[r][c].getPiece();
+        clone.cells[r][c].setPiece(p == null ? null : p.copy());
+      }
     return clone;
   }
 }`,

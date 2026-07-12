@@ -7,7 +7,7 @@ import { PAYMENT_GATEWAY_META } from './payment-gateway.meta';
  * networks/banks, turning "charge this card" into a reliable, auditable,
  * money-moving operation. Emphasis on correctness over raw scale —
  * idempotency, the double-entry ledger, the authorize/capture/settle
- * lifecycle, PCI tokenization, reconciliation, and exactly-once semantics
+ * lifecycle, PCI tokenization, reconciliation, and effectively-once semantics
  * over fundamentally unreliable downstream networks.
  */
 const content: DesignContent = {
@@ -686,6 +686,31 @@ COMMIT;
               question: 'What is reconciliation and why is it essential?',
               answer:
                 "Banks confirm reality **asynchronously** via daily settlement files. **Reconciliation** matches every internal ledger transaction against the bank's record, posting adjustments for fee/FX differences and routing unmatched items to an exception queue. It is the backstop that catches the inevitable drift from timeouts and partial failures, so the books truly reflect the money that moved.",
+            },
+            {
+              question: 'How does partial capture work (hotels)?',
+              answer:
+                'Authorize an **estimated hold** (e.g. room rate × nights + incidentals), then **capture ≤ authorized** amount at checkout for the final bill. Release/void the unused authorization remainder. Ledger: auth creates a hold; each capture posts a settlement entry; remaining auth is reversed so available credit returns to the cardholder.',
+            },
+            {
+              question: 'Chargeback flow and ledger entries?',
+              answer:
+                'Issuer/network opens a dispute → gateway marks the payment **CHARGEBACK** and posts reversing ledger entries (debit merchant, credit liability/suspense). Representment may re-debit if won; if lost, fees post as separate entries. Never mutate the original capture row — append compensating entries for auditability.',
+            },
+            {
+              question: 'FX conversion and rounding?',
+              answer:
+                'Convert using a locked rate at auth/capture time, store **both** currencies and the rate on the payment, and compute in **integer minor units** with an explicit rounding mode (usually banker’s or half-up per scheme rules). Post any FX fee as its own ledger line so settlement reconciliation can explain residuals.',
+            },
+            {
+              question: 'Webhook replay attack prevention?',
+              answer:
+                'Sign payloads with an HMAC (shared secret) or asymmetric signature, include a **timestamp + nonce/event id**, reject stale timestamps, and **dedupe event ids** so replays are no-ops. Always verify signatures before mutating state; serve webhooks only over TLS.',
+            },
+            {
+              question: 'Difference between payment processor, acquirer, issuer, network?',
+              answer:
+                '**Issuer** is the cardholder’s bank; **acquirer** is the merchant’s bank; **network** (Visa/Mastercard) routes auth/clearing between them; **processor/gateway** is the tech layer merchants call to talk to acquirers/PSPs. One company may wear multiple hats, but the roles are distinct in the money path.',
             },
           ],
         },

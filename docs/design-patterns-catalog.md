@@ -119,9 +119,9 @@ A backlog of design patterns to turn into pages under the **Design Patterns** se
 - [x] **Consistent Hashing** — Distribute keys across nodes with minimal remapping when nodes are added or removed. `slug: consistent-hashing`
 - [x] **Quorum** — Require a minimum number of replica acknowledgements for reads/writes to balance consistency and availability. `slug: quorum`
 - [x] **Gossip Protocol** — Nodes spread cluster state by periodically exchanging information with random peers. `slug: gossip-protocol`
-- [ ] **Load Balancing** — Distribute traffic across multiple instances using round-robin, least-connections, or consistent hashing. `slug: load-balancing-pattern`
-- [ ] **Service Mesh** — Infrastructure layer for service-to-service communication (mTLS, retries, observability). `slug: service-mesh`
-- [ ] **Event-Driven Microservices** — Services communicate via asynchronous events rather than synchronous RPC chains. `slug: event-driven-microservices`
+- [x] **Load Balancing** — Distribute traffic across multiple instances using round-robin, least-connections, or consistent hashing. `slug: load-balancing-pattern`
+- [x] **Service Mesh** — Infrastructure layer for service-to-service communication (mTLS, retries, observability). `slug: service-mesh`
+- ~~Event-Driven Microservices~~ — Covered by **Event-Driven Architecture** (`event-driven-architecture`); deepen that page instead of a separate slug.
 
 ---
 
@@ -212,27 +212,14 @@ Patterns most often named in **LLD**, **HLD**, and **system design** rounds. Man
 
 ## Suggested build order
 
-Implement these **15 patterns first** at flagship depth (similar to SOLID and Netflix articles). Order balances interview frequency, LLD vs HLD coverage, and foundational concepts.
+The original **15 flagship patterns** (Strategy through API Gateway) are all
+published. Prefer deepening those pages and filling the remaining unchecked
+items below before scaffolding more niche patterns.
 
-| Priority | Pattern | Slug | Rationale |
+| Priority | Pattern | Slug | Status |
 | --- | --- | --- | --- |
-| 1 | Strategy | `strategy` | Most common LLD pattern; easy to teach with clear before/after |
-| 2 | Observer | `observer` | Events, pub/sub foundation, UI and messaging |
-| 3 | Factory Method | `factory-method` | Creation patterns; pairs with Abstract Factory later |
-| 4 | Singleton | `singleton` | Ubiquitous; great for pitfalls and testing discussion |
-| 5 | Decorator | `decorator` | Middleware, streams, cross-cutting concerns |
-| 6 | Adapter | `adapter` | Integration interviews, legacy systems |
-| 7 | Facade | `facade` | Simplify subsystems; gateway precursor |
-| 8 | Command | `command` | Undo, queues, job systems |
-| 9 | State | `state` | Workflow/order state machines in LLD |
-| 10 | Builder | `builder` | Complex construction (SQL, HTTP, configs) |
-| 11 | Circuit Breaker | `circuit-breaker` | Top microservices resilience pattern |
-| 12 | Saga | `saga` | Distributed transactions; pairs with payment/order designs |
-| 13 | Transactional Outbox | `transactional-outbox` | Reliable events; increasingly standard in interviews |
-| 14 | CQRS | `cqrs` | Read/write split; complements Event Sourcing |
-| 15 | API Gateway | `api-gateway` | Natural bridge from system design section |
-
-After these, consider: **Repository**, **Proxy**, **Composite**, **Chain of Responsibility**, **Event Sourcing**, **BFF**, **Cache-Aside**, **Idempotent Consumer**, **Leader Election**, **Feature Store**.
+| 1–15 | Strategy … API Gateway | see Interview favorites | Published |
+| Next | Deepen **Event-Driven Architecture** | `event-driven-architecture` | Choreography pitfalls, contracts, schema registry |
 
 ---
 
@@ -245,7 +232,7 @@ After these, consider: **Repository**, **Proxy**, **Composite**, **Chain of Resp
 | Behavioral | 13 |
 | Concurrency | 8 |
 | Architectural and enterprise | 12 |
-| Distributed systems and microservices | 33 |
+| Distributed systems and microservices | 33 (all listed patterns published; Event-Driven Microservices folded into EDA) |
 | Cloud and resilience | 9 |
 | Data and messaging | 13 |
 | ML and data-pipeline | 16 |

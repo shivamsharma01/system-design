@@ -202,9 +202,12 @@ const content: DesignContent = {
     -direction: Direction
     -state: ElevatorState
     -door: Door
-    -pendingStops: TreeSet~Integer~
+    -upStops: TreeSet~Integer~
+    -downStops: TreeSet~Integer~
+    -arrivalOrder: Queue~Integer~
     -schedulingStrategy: SchedulingStrategy
     +addStop(floor) void
+    +addHallStop(floor, direction) void
     +step() void
     +nextStopFloor() Integer
   }
@@ -252,7 +255,8 @@ const content: DesignContent = {
   ElevatorCar --> ElevatorState
   ElevatorCar --> Direction
   ElevatorCar --> SchedulingStrategy
-  ElevatorCar "1" --> "many" Request
+  ElevatorController ..> HallRequest : dispatch input
+  ElevatorController ..> CarRequest : dispatch input
   Request <|-- HallRequest
   Request <|-- CarRequest
   SchedulingStrategy <|.. LookSchedulingStrategy
@@ -453,7 +457,9 @@ public final class CarRequest extends Request {
   private final int lowestFloor;
   private final int highestFloor;
   private final Door door = new Door();
-  private final NavigableSet<Integer> pendingStops = new ConcurrentSkipListSet<>();
+  private final NavigableSet<Integer> upStops = new ConcurrentSkipListSet<>();
+  private final NavigableSet<Integer> downStops = new ConcurrentSkipListSet<>();
+  private final Queue<Integer> arrivalOrder = new ConcurrentLinkedQueue<>();
   private final SchedulingStrategy schedulingStrategy;
   private final List<ElevatorListener> listeners = new CopyOnWriteArrayList<>();
 
@@ -471,13 +477,30 @@ public final class CarRequest extends Request {
     this.schedulingStrategy = schedulingStrategy;
   }
 
+  /** Car destination button — no hall direction; infer travel side from current floor. */
   public synchronized void addStop(int floor) {
     if (floor < lowestFloor || floor > highestFloor) {
       throw new IllegalArgumentException("Floor out of range: " + floor);
     }
-    pendingStops.add(floor);
+    if (floor > currentFloor) { if (upStops.add(floor)) arrivalOrder.offer(floor); }
+    else if (floor < currentFloor) { if (downStops.add(floor)) arrivalOrder.offer(floor); }
+    // floor == currentFloor: open doors on next step via scheduling
+    else { if (upStops.add(floor)) arrivalOrder.offer(floor); }
     if (state == ElevatorState.IDLE) {
       direction = floor > currentFloor ? Direction.UP : floor < currentFloor ? Direction.DOWN : Direction.NONE;
+    }
+  }
+
+  /** Hall call — preserve requested travel direction so LOOK does not serve the wrong way. */
+  public synchronized void addHallStop(int floor, Direction hallDirection) {
+    if (floor < lowestFloor || floor > highestFloor) {
+      throw new IllegalArgumentException("Floor out of range: " + floor);
+    }
+    if (hallDirection == Direction.UP) { if (upStops.add(floor)) arrivalOrder.offer(floor); }
+    else if (hallDirection == Direction.DOWN) { if (downStops.add(floor)) arrivalOrder.offer(floor); }
+    else throw new IllegalArgumentException("Hall call must be UP or DOWN");
+    if (state == ElevatorState.IDLE) {
+      direction = floor > currentFloor ? Direction.UP : floor < currentFloor ? Direction.DOWN : hallDirection;
     }
   }
 
@@ -496,7 +519,7 @@ public final class CarRequest extends Request {
     doorOpenTicksRemaining--;
     if (doorOpenTicksRemaining <= 0) {
       door.close();
-      state = pendingStops.isEmpty() ? ElevatorState.IDLE : (direction == Direction.UP ? ElevatorState.MOVING_UP : ElevatorState.MOVING_DOWN);
+      state = hasPendingStops() ? (direction == Direction.UP ? ElevatorState.MOVING_UP : ElevatorState.MOVING_DOWN) : ElevatorState.IDLE;
       notifyListeners();
     }
   }
@@ -520,14 +543,37 @@ public final class CarRequest extends Request {
   }
 
   private void arriveAndOpenDoors(int floor) {
-    pendingStops.remove(floor);
+    upStops.remove(floor);
+    downStops.remove(floor);
+    arrivalOrder.remove(floor);
     door.open();
     state = ElevatorState.DOOR_OPEN;
     doorOpenTicksRemaining = 3; // fixed dwell time, in simulation ticks
     notifyListeners();
   }
 
-  public NavigableSet<Integer> pendingStopsView() { return pendingStops; }
+  private boolean hasPendingStops() {
+    return !upStops.isEmpty() || !downStops.isEmpty();
+  }
+
+  public Integer peekOldestPendingStop() {
+    while (!arrivalOrder.isEmpty()) {
+      Integer floor = arrivalOrder.peek();
+      if (upStops.contains(floor) || downStops.contains(floor)) return floor;
+      arrivalOrder.poll(); // stale entry after cancel / already served
+    }
+    return null;
+  }
+
+  public NavigableSet<Integer> upStopsView() { return upStops; }
+  public NavigableSet<Integer> downStopsView() { return downStops; }
+  /** Union view for FCFS / diagnostics — prefer upStopsView/downStopsView for LOOK. */
+  public NavigableSet<Integer> pendingStopsView() {
+    NavigableSet<Integer> all = new TreeSet<>();
+    all.addAll(upStops);
+    all.addAll(downStops);
+    return all;
+  }
   public int getCurrentFloor() { return currentFloor; }
   public Direction getDirection() { return direction; }
   public ElevatorState getState() { return state; }
@@ -554,39 +600,38 @@ public final class CarRequest extends Request {
 public final class LookSchedulingStrategy implements SchedulingStrategy {
   @Override
   public Integer nextStop(ElevatorCar car) {
-    NavigableSet<Integer> stops = car.pendingStopsView();
-    if (stops.isEmpty()) {
+    int current = car.getCurrentFloor();
+    NavigableSet<Integer> up = car.upStopsView();
+    NavigableSet<Integer> down = car.downStopsView();
+    if (up.isEmpty() && down.isEmpty()) {
       return null;
     }
-    int current = car.getCurrentFloor();
     if (car.getDirection() == Direction.UP) {
-      Integer above = stops.ceiling(current);
-      return above != null ? above : stops.floor(current); // nothing ahead: reverse
+      Integer above = up.ceiling(current);
+      if (above != null) return above;
+      // nothing further UP: reverse and serve DOWN requests
+      return down.isEmpty() ? null : down.floor(current) != null ? down.floor(current) : down.first();
     }
     if (car.getDirection() == Direction.DOWN) {
-      Integer below = stops.floor(current);
-      return below != null ? below : stops.ceiling(current); // nothing ahead: reverse
+      Integer below = down.floor(current);
+      if (below != null) return below;
+      return up.isEmpty() ? null : up.ceiling(current) != null ? up.ceiling(current) : up.last();
     }
-    // Idle with pending stops: head toward the nearest one.
-    Integer above = stops.ceiling(current);
-    Integer below = stops.floor(current);
+    // Idle: nearest pending stop on either side
+    NavigableSet<Integer> all = car.pendingStopsView();
+    Integer above = all.ceiling(current);
+    Integer below = all.floor(current);
     if (above == null) return below;
     if (below == null) return above;
     return (above - current) <= (current - below) ? above : below;
   }
 }
 
+/** FCFS needs an arrival-ordered queue on the car — see ElevatorCar.arrivalOrder. */
 public final class FcfsSchedulingStrategy implements SchedulingStrategy {
-  private final Queue<Integer> arrivalOrder = new LinkedList<>();
-
   @Override
   public Integer nextStop(ElevatorCar car) {
-    NavigableSet<Integer> stops = car.pendingStopsView();
-    if (stops.isEmpty()) {
-      return null;
-    }
-    // Naive: always chase the oldest request, ignoring floors passed along the way.
-    return arrivalOrder.isEmpty() ? stops.first() : arrivalOrder.peek();
+    return car.peekOldestPendingStop(); // null if no pending work
   }
 }`,
         },
@@ -653,7 +698,7 @@ public final class NearestCarDispatchStrategy implements DispatchStrategy {
     HallRequest request = new HallRequest(floor, direction);
     synchronized (dispatchLock) {
       ElevatorCar chosen = dispatchStrategy.selectCar(cars, request);
-      chosen.addStop(floor);
+      chosen.addHallStop(floor, direction);
     }
   }
 
@@ -781,6 +826,21 @@ public final class NearestCarDispatchStrategy implements DispatchStrategy {
               question: 'How would this design change for destination-dispatch elevators (choose your floor from a lobby kiosk)?',
               answer:
                 'The hall request gains a destination floor upfront, so the controller can group multiple passengers heading to nearby floors into the same car before boarding — turning dispatch into a bin-packing-like optimization rather than a simple nearest-car lookup. The car-level state machine and `SchedulingStrategy` stay largely the same; only `HallRequest`\'s shape and `DispatchStrategy`\'s scoring function change, which is a good sign the abstraction boundaries were drawn correctly.',
+            },
+            {
+              question: 'SCAN vs LOOK difference?',
+              answer:
+                '**SCAN** travels to the end of the shaft (top/bottom) before reversing, even with no pending stop there. **LOOK** reverses at the **last pending request** in the current direction — less wasted travel. Real elevators almost always use LOOK (or a variant), not pure SCAN.',
+            },
+            {
+              question: 'Fire/service mode?',
+              answer:
+                '**Fire/emergency mode** recalls cars to a designated floor, ignores normal hall calls, and often restricts control to firefighter key switches. **Service/independent mode** takes a car out of group dispatch for maintenance or VIP use — `DispatchStrategy` must exclude it while the car still honors its own car calls safely.',
+            },
+            {
+              question: 'Hall-call dedup when button pressed twice?',
+              answer:
+                'Treat `(floor, direction)` as a unique pending hall call: a second press is a **no-op** if that call is already queued or assigned. Use a set/map in the controller so duplicate button events do not double-assign cars or inflate stop lists.',
             },
           ],
         },

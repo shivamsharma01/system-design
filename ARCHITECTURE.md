@@ -2,19 +2,18 @@
 
 This document explains how the platform is structured and why.
 
-## Monorepo layout
+## Repository layout
 
 ```
 system-design/
 ├── frontend/        # Angular 21 app (the platform itself)
-├── backend/         # Optional Spring Boot (Java 17) metadata + search API
 ├── docs/            # Authoring & deployment guides
 ├── scripts/         # new-design.mjs scaffolder
 └── docker-compose.yml
 ```
 
-> Note: the app lives in `frontend/` (not a repo-root `src/`) so the optional
-> backend can coexist cleanly in the same repository.
+> Note: the app lives in `frontend/` (not a repo-root `src/`) so docs, scripts,
+> and Docker config can sit alongside it cleanly.
 
 ## Frontend: data-driven content engine
 
@@ -71,21 +70,14 @@ features/    # Home, design-page, not-found, and system-designs/<slug>/
 ### The `ContentSource` seam
 
 `core/services/content-source.ts` defines an abstract `ContentSource`. The
-default `StaticContentSource` reads from the bundled registry. To use the
-backend, provide an `ApiContentSource` and set `apiBaseUrl` — **no UI changes**.
-
-## Backend (optional)
-
-A Spring Boot service exposing `/api/designs`, `/api/designs/{slug}`, and
-`/api/search`. Uses H2 in dev and PostgreSQL in prod (Spring profiles), with
-Actuator health endpoints and a permissive security config ready to be locked
-down for future authenticated features.
+default `StaticContentSource` reads from the bundled registry. A future remote
+or CMS-backed implementation can replace it without UI changes.
 
 ## Future-proofing
 
 The architecture supports the roadmap (auth, bookmarks, comments, progress
 tracking, quizzes, i18n, PWA, AI explanations) without restructuring:
 
-- The `ContentSource` abstraction allows a backend swap.
-- HTTP interceptors and Spring Security are wired but inert.
+- The `ContentSource` abstraction allows swapping how content is loaded.
+- HTTP interceptors are wired but inert for static hosting.
 - Signals + standalone components make feature isolation easy.

@@ -17,7 +17,7 @@ const content: DesignContent = {
           type: 'callout',
           variant: 'info',
           title: 'Virtual nodes (vnodes)',
-          body: 'Each physical server is mapped to **many points** on the ring (e.g. 100–256 vnodes). This **smooths load** when node counts are small and prevents one heavy server from owning a large arc. Redis Cluster, Cassandra, and Dynamo variants all rely on vnode tuning.',
+          body: 'Each physical server is mapped to **many points** on the ring (e.g. 100–256 vnodes). This **smooths load** when node counts are small and prevents one heavy server from owning a large arc. Cassandra and Dynamo-style systems rely on vnode tuning; Redis Cluster uses fixed hash slots instead.',
         },
         {
           type: 'table',
@@ -165,7 +165,7 @@ const content: DesignContent = {
             {
               question: 'How does Redis Cluster use it?',
               answer:
-                '**16,384 hash slots** on a ring; each master owns slot ranges. `CRC16(key) mod 16384` picks slot. Adding node **migrates slots** incrementally — same minimal-movement principle.',
+                '**16,384 fixed hash slots** (not a vnode ring); each master owns contiguous slot ranges. `CRC16(key) mod 16384` picks the slot. Adding a node **migrates slots** incrementally — same minimal-movement idea as consistent hashing, different mechanism.',
             },
             {
               question: 'What happens when a node crashes?',
@@ -176,6 +176,11 @@ const content: DesignContent = {
               question: 'Design a distributed cache with 10 servers.',
               answer:
                 'Client-side Ketama ring with **150 vnodes/server**. `get(key)` hashes to owning server. On add: migrate only affected key ranges in background. Replication factor 2 to clockwise successors. Monitor per-node key count.',
+            },
+            {
+              question: 'What is Rendezvous (HRW) hashing, and when prefer it over a ring?',
+              answer:
+                '**Rendezvous/HRW** scores every node with `hash(key + node)` and picks the highest — no ring structure. Adding/removing a node remaps only keys that preferred that node (~1/N), similar to consistent hashing. Prefer it for simpler code, weighted nodes, or when you want minimal coordination without managing vnode placement.',
             },
           ],
         },

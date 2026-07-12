@@ -198,6 +198,11 @@ public class CheckoutAggregationFilter implements GatewayFilter {
               answer:
                 'Gateway = **north-south** (external clients). Mesh = **east-west** (service-to-service mTLS, retries, outlier detection). Complementary, not interchangeable.',
             },
+            {
+              question: 'How should an API gateway handle WebSockets?',
+              answer:
+                'Terminate or **proxy the upgrade** (HTTP → WS), stick the connection to one gateway instance, and forward frames to the right backend (or a connection service). Keep auth on the handshake; avoid heavy per-frame business logic on the gateway — it should route and enforce policy, not own chat/state fan-out.',
+            },
           ],
         },
       ],

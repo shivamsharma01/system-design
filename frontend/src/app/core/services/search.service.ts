@@ -19,8 +19,8 @@ const FUSE_OPTIONS: IFuseOptions<DesignMeta> = {
 };
 
 /**
- * Client-side fuzzy search over design metadata. The `ContentSourceService`
- * seam means this can later be swapped for backend full-text search without
+ * Client-side fuzzy search over design metadata. The `ContentSource`
+ * seam means this can later be swapped for remote full-text search without
  * touching the search UI.
  */
 @Injectable({ providedIn: 'root' })

@@ -73,7 +73,7 @@ const content: DesignContent = {
           pros: [
             'Low discovery/search latency (homepage + search < 200ms).',
             'High availability of browse/order path (target 99.99%).',
-            'Strong consistency + exactly-once for orders and payments.',
+            'Strong consistency + effectively-once semantics (idempotency) for orders and payments.',
             'Real-time tracking with sub-10s location freshness.',
             'Elastic capacity for sharp lunch/dinner peaks.',
           ],
@@ -331,7 +331,7 @@ CREATE TABLE orders (
   total_cents  INT NOT NULL,
   deliver_to   GEOGRAPHY(POINT),
   created_at   TIMESTAMPTZ DEFAULT now(),
-  idem_key     TEXT UNIQUE      -- enforces exactly-once order creation
+  idem_key     TEXT UNIQUE      -- enforces effectively-once order creation
 );
 -- A partner can hold a bounded number of concurrent orders (batching).
 CREATE INDEX active_orders_by_partner ON orders (partner_id)
@@ -344,7 +344,7 @@ CREATE INDEX active_orders_by_partner ON orders (partner_id)
           rows: [
             ['Restaurant search', 'Elasticsearch', 'Geo + full-text + ranking, read-heavy'],
             ['Menus / catalog', 'Cassandra + cache', 'Read-heavy, rarely changes, cacheable'],
-            ['Orders + payments', 'Sharded SQL (PostgreSQL)', 'Transactions, exactly-once, CP'],
+            ['Orders + payments', 'Sharded SQL (PostgreSQL)', 'Transactions, effectively-once via idempotency, CP'],
             ['Rider live locations', 'Redis (geo index)', 'Ephemeral, high write rate, AP'],
             ['Order history (cold)', 'Cassandra / warehouse', 'Append-only, analytics'],
             ['Events', 'Kafka', 'Decouple order/dispatch/notify/analytics'],
@@ -354,7 +354,7 @@ CREATE INDEX active_orders_by_partner ON orders (partner_id)
           type: 'callout',
           variant: 'tip',
           title: 'Idempotency key as a unique constraint',
-          body: 'A `UNIQUE` constraint on `idem_key` makes order creation **exactly-once** at the database level: a retried submit with the same key collides and returns the existing order instead of creating a duplicate.',
+          body: 'A `UNIQUE` constraint on `idem_key` makes order creation **effectively-once** at the database level: a retried submit with the same key collides and returns the existing order instead of creating a duplicate.',
         },
       ],
     },
@@ -797,7 +797,7 @@ healthCheck:
             {
               question: "How do you guarantee an order isn't created or charged twice?",
               answer:
-                'A client-supplied **idempotency key** stored as a `UNIQUE` constraint makes order creation exactly-once; the payment charge is keyed on `order_id`; and rider assignment uses a conditional `UPDATE`. Retries (inevitable on mobile) collide harmlessly instead of duplicating.',
+                'A client-supplied **idempotency key** stored as a `UNIQUE` constraint makes order creation effectively-once; the payment charge is keyed on `order_id`; and rider assignment uses a conditional `UPDATE`. Retries (inevitable on mobile) collide harmlessly instead of duplicating.',
             },
             {
               question: 'How do you handle the lunch/dinner peaks?',

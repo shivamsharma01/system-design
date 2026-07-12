@@ -49,7 +49,7 @@ const content: DesignContent = {
           type: 'table',
           headers: ['Domain', 'Example'],
           rows: [
-            ['UI frameworks', 'Button click listeners, Angular/React state watchers'],
+            ['UI frameworks', 'DOM/button click listeners; RxJS subjects in Angular; Vue watchers — React is not classical Observer'],
             ['Reactive libs', 'RxJava / Reactive Streams subscribers'],
             ['Domain events', 'In-process listeners after OrderPlaced'],
             ['MVC classic', 'Views observing model changes'],

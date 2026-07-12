@@ -208,6 +208,11 @@ CREATE TABLE aggregate_snapshots (
               answer:
                 'Simple CRUD, heavy delete/personal-data erasure without upcasting strategy, or teams lacking ops maturity for snapshots, replays, and schema migration.',
             },
+            {
+              question: 'How do you handle GDPR erasure with Event Sourcing (crypto-shredding)?',
+              answer:
+                'Encrypt PII fields with a **per-user key**; on erasure, **delete the key** so historical events become undecipherable ciphertext while the stream stays intact for non-PII audit. Alternatively rewrite/replace events with anonymized payloads via a controlled migration — crypto-shredding is usually simpler and append-only-friendly.',
+            },
           ],
         },
       ],

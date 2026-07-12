@@ -649,6 +649,9 @@ public class DefaultPricingStrategy implements PricingStrategy {
       // All-or-nothing: release whatever we already grabbed so we do not strand partial holds.
       for (String seatId : acquired) {
         lockManager.release(showId, seatId, userId);
+        ShowSeat showSeat = showSeatRepository.find(showId, seatId);
+        showSeat.markAvailable();
+        showSeatRepository.save(showSeat);
       }
       throw ex;
     }

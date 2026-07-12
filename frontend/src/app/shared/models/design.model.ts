@@ -4,13 +4,14 @@ export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
 
 export type DesignStatus = 'published' | 'draft';
 
-/** Top-level catalog sections (peers: System Design, HLD, LLD, SOLID, Design Patterns). */
+/** Top-level catalog sections (peers: System Design, HLD, LLD, SOLID, Design Patterns, Fundamentals). */
 export type ContentSectionId =
   | 'system-design'
   | 'high-level-design'
   | 'low-level-design'
   | 'solid-principles'
-  | 'design-patterns';
+  | 'design-patterns'
+  | 'fundamentals';
 
 export interface ContentSectionMeta {
   id: ContentSectionId;

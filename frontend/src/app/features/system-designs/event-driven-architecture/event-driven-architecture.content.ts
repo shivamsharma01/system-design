@@ -117,7 +117,7 @@ public class PaymentEventHandler {
           type: 'callout',
           variant: 'warning',
           title: 'Distributed pitfalls',
-          body: 'No global transaction across services. Use **sagas** (choreography or orchestration) for multi-step workflows. Expect **eventual consistency** — UI may show "processing" until read models catch up.',
+          body: 'No global transaction across services. Use **sagas** (choreography or orchestration) for multi-step workflows. Expect **eventual consistency** — UI may show "processing" until read models catch up. Pure choreography hides multi-step workflows and makes timeouts/compensations unclear — prefer **orchestration** once a flow has >3 steps, and put contracts in a **schema registry** so producers can evolve without breaking consumers.',
         },
         {
           type: 'prosCons',

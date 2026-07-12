@@ -146,6 +146,14 @@ import { ZOMATO_META } from '../../features/system-designs/zomato/zomato.meta';
 import { SPOTIFY_META } from '../../features/system-designs/spotify/spotify.meta';
 import { AMAZON_META } from '../../features/system-designs/amazon/amazon.meta';
 import { DROPBOX_META } from '../../features/system-designs/dropbox/dropbox.meta';
+import { CAP_PACELC_META } from '../../features/system-designs/cap-pacelc/cap-pacelc.meta';
+import { DELIVERY_SEMANTICS_META } from '../../features/system-designs/delivery-semantics/delivery-semantics.meta';
+import { BACK_OF_ENVELOPE_META } from '../../features/system-designs/back-of-envelope/back-of-envelope.meta';
+import { ID_GENERATION_META } from '../../features/system-designs/id-generation/id-generation.meta';
+import { LOAD_BALANCING_PATTERN_META } from '../../features/system-designs/load-balancing-pattern/load-balancing-pattern.meta';
+import { SERVICE_MESH_META } from '../../features/system-designs/service-mesh/service-mesh.meta';
+import { VENDING_MACHINE_META } from '../../features/system-designs/vending-machine/vending-machine.meta';
+import { HOTEL_RESERVATION_META } from '../../features/system-designs/hotel-reservation/hotel-reservation.meta';
 
 /**
  * The single source of truth for the catalog.
@@ -767,5 +775,45 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   {
     meta: DROPBOX_META,
     load: () => import('../../features/system-designs/dropbox/dropbox.content'),
+  },
+  {
+    meta: CAP_PACELC_META,
+    load: () =>
+      import('../../features/system-designs/cap-pacelc/cap-pacelc.content'),
+  },
+  {
+    meta: DELIVERY_SEMANTICS_META,
+    load: () =>
+      import('../../features/system-designs/delivery-semantics/delivery-semantics.content'),
+  },
+  {
+    meta: BACK_OF_ENVELOPE_META,
+    load: () =>
+      import('../../features/system-designs/back-of-envelope/back-of-envelope.content'),
+  },
+  {
+    meta: ID_GENERATION_META,
+    load: () =>
+      import('../../features/system-designs/id-generation/id-generation.content'),
+  },
+  {
+    meta: LOAD_BALANCING_PATTERN_META,
+    load: () =>
+      import('../../features/system-designs/load-balancing-pattern/load-balancing-pattern.content'),
+  },
+  {
+    meta: SERVICE_MESH_META,
+    load: () =>
+      import('../../features/system-designs/service-mesh/service-mesh.content'),
+  },
+  {
+    meta: VENDING_MACHINE_META,
+    load: () =>
+      import('../../features/system-designs/vending-machine/vending-machine.content'),
+  },
+  {
+    meta: HOTEL_RESERVATION_META,
+    load: () =>
+      import('../../features/system-designs/hotel-reservation/hotel-reservation.content'),
   },
 ];

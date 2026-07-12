@@ -628,6 +628,11 @@ public final class FlatRateFeeStrategy implements FeeStrategy {
     this.status = Status.PAID;
   }
 
+  /** Stamp exit time for fee calculation without marking the ticket paid. */
+  public void markExit(Instant exitTime) {
+    this.exitTime = exitTime;
+  }
+
   public String getId() { return id; }
   public Vehicle getVehicle() { return vehicle; }
   public ParkingSpot getSpot() { return spot; }
@@ -644,47 +649,67 @@ public final class FlatRateFeeStrategy implements FeeStrategy {
           code: `public final class ParkingLot {
   private final List<ParkingFloor> floors;
   private final FeeStrategy feeStrategy;
+  private final SpotAssignmentStrategy spotAssignmentStrategy;
   private final Map<String, Ticket> activeTickets = new ConcurrentHashMap<>();
   private final AtomicLong ticketSequence = new AtomicLong();
 
-  public ParkingLot(List<ParkingFloor> floors, FeeStrategy feeStrategy) {
+  public ParkingLot(List<ParkingFloor> floors, FeeStrategy feeStrategy,
+                    SpotAssignmentStrategy spotAssignmentStrategy) {
     this.floors = floors;
     this.feeStrategy = feeStrategy;
+    this.spotAssignmentStrategy = spotAssignmentStrategy;
   }
 
   public Ticket parkVehicle(Vehicle vehicle) {
-    for (ParkingFloor floor : floors) {
-      ParkingSpot spot = floor.tryFindAndAssign(vehicle);
-      if (spot != null) {
-        String ticketId = "T-" + ticketSequence.incrementAndGet();
-        Ticket ticket = new Ticket(ticketId, vehicle, spot, Instant.now());
-        activeTickets.put(ticketId, ticket);
-        return ticket;
-      }
+    ParkingSpot spot = spotAssignmentStrategy.findSpot(floors, vehicle);
+    if (spot == null) {
+      throw new LotFullException("No compatible spot available for " + vehicle.getType());
     }
-    throw new LotFullException("No compatible spot available for " + vehicle.getType());
+    String ticketId = "T-" + ticketSequence.incrementAndGet();
+    Ticket ticket = new Ticket(ticketId, vehicle, spot, Instant.now());
+    activeTickets.put(ticketId, ticket);
+    return ticket;
   }
 
   public double unparkVehicle(String ticketId) {
-    Ticket ticket = activeTickets.remove(ticketId);
+    Ticket ticket = activeTickets.get(ticketId);
     if (ticket == null || ticket.getStatus() == Ticket.Status.PAID) {
       throw new InvalidTicketException("Ticket not found or already closed: " + ticketId);
     }
-    double fee = feeStrategy.calculateFee(withProvisionalExit(ticket));
-    ticket.closeWith(Instant.now(), fee);
+    Instant exitTime = Instant.now();
+    ticket.markExit(exitTime); // fee strategy needs exitTime; do not mark PAID yet
+    double fee = feeStrategy.calculateFee(ticket);
+    ticket.closeWith(exitTime, fee);
+    activeTickets.remove(ticketId);
     ticket.getSpot().release();
     return fee;
   }
 
-  private Ticket withProvisionalExit(Ticket ticket) {
-    // FeeStrategy reads exitTime off the ticket; stamp it just-in-time
-    // so calculateFee() sees a consistent snapshot without a second field.
-    ticket.closeWith(Instant.now(), 0.0);
-    return ticket;
-  }
-
   public long availableSpotCount(SpotType type) {
     return floors.stream().mapToLong(f -> f.availableCount(type)).sum();
+  }
+}`,
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'BestFitSpotAssignmentStrategy.java',
+          code: `public interface SpotAssignmentStrategy {
+  /** Finds and claims a compatible free spot, or null if the lot is full for this vehicle. */
+  ParkingSpot findSpot(List<ParkingFloor> floors, Vehicle vehicle);
+}
+
+/** Prefer the smallest compatible spot type (motorcycle → MOTORCYCLE before COMPACT, etc.). */
+public final class BestFitSpotAssignmentStrategy implements SpotAssignmentStrategy {
+  @Override
+  public ParkingSpot findSpot(List<ParkingFloor> floors, Vehicle vehicle) {
+    for (SpotType type : vehicle.compatibleSpotTypes()) { // ordered best-fit first
+      for (ParkingFloor floor : floors) {
+        ParkingSpot spot = floor.tryFindAndAssign(vehicle, type);
+        if (spot != null) return spot;
+      }
+    }
+    return null;
   }
 }`,
         },
@@ -795,6 +820,21 @@ public final class FlatRateFeeStrategy implements FeeStrategy {
               question: 'Singleton for ParkingLotManager — is that a good idea?',
               answer:
                 'It is defensible because there truly is one physical lot per process and duplicate managers would fragment spot state — but say explicitly that you would prefer a DI-scoped singleton bean (Spring-style) over a hand-rolled static `getInstance()`, for the same testability reasons discussed in the Singleton pattern (hidden dependencies, harder mocking).',
+            },
+            {
+              question: 'How do you model handicapped permits?',
+              answer:
+                'Add a `HANDICAPPED` (or accessible) `SpotType` and optionally a `Permit`/`Vehicle` flag. Assignment rules: only vehicles with a valid permit may claim those spots; permitted vehicles may still use general spots if none remain. Enforce in `SpotAssignmentStrategy` / `tryAssign` compatibility checks, not with ad-hoc `if`s scattered in the lot.',
+            },
+            {
+              question: 'Ticket idempotency on unpark?',
+              answer:
+                'Key unpark by `ticketId` (unique constraint): the first call closes the ticket, frees the spot, and returns the fee; retries with the same id **replay the stored result** instead of freeing twice or double-charging. Reject unpark for already-closed or unknown tickets with a clear error.',
+            },
+            {
+              question: 'Pay-before-exit vs pay-at-exit?',
+              answer:
+                '**Pay-at-exit**: barrier computes fee from entry time and collects before opening — simple, but queues at the gate. **Pay-before-exit**: pay at a kiosk/app, receive a short validity window, exit validates the paid ticket — better throughput, needs clock skew handling and a grace period if the lot is full of paid-but-not-exited cars.',
             },
           ],
         },

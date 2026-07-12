@@ -95,16 +95,9 @@ const content: DesignContent = {
       title: 'Non-Functional Requirements',
       blocks: [
         {
-          type: 'prosCons',
-          pros: [
-            "Very low redirect latency (it is on the critical path of someone's click).",
-            'High availability — a dead link service breaks every shared link.',
-            'Short, hard-to-guess keys.',
-          ],
-          cons: [
-            'Strong consistency not required for analytics.',
-            'Write volume is low relative to reads.',
-          ],
+          type: 'markdown',
+          value:
+            '- **Latency:** very low redirect latency (critical path of a click).\n- **Availability:** high — a dead link service breaks every shared link.\n- **Security:** short, hard-to-guess keys; scan malicious long URLs.\n- **Consistency:** strong consistency is **not** required for analytics.\n- **Traffic shape:** write volume is low relative to reads (~100:1).',
         },
       ],
     },
@@ -118,6 +111,8 @@ const content: DesignContent = {
             { label: 'New URLs / month', value: '100M', hint: 'writes' },
             { label: 'Read:Write ratio', value: '100:1', hint: 'redirects dominate' },
             { label: 'Reads / month', value: '10B', hint: 'redirects' },
+            { label: 'Write QPS (avg)', value: '~40', hint: '100M / (30×86400)' },
+            { label: 'Read QPS (avg)', value: '~4K', hint: '10B / (30×86400); peak higher' },
             { label: 'Storage / 5 yrs', value: '~6 TB', hint: '6B rows × ~1KB' },
           ],
         },
@@ -232,7 +227,7 @@ CREATE INDEX idx_urls_expires_at ON urls (expires_at);`,
       ],
     },
     {
-      id: 'caching-strategy',
+      id: 'key-generation',
       title: 'Key Generation & Encoding',
       blocks: [
         {
@@ -421,6 +416,26 @@ def encode(num: int) -> str:
               question: 'Is strong consistency required anywhere in this system?',
               answer:
                 'Not on the read path — a slightly stale cached redirect is harmless. The one place consistency matters is **key uniqueness on write**: two creates must never be assigned the same code. A DB `UNIQUE` constraint (or a coordination-free scheme like Snowflake IDs) gives that guarantee without needing distributed locks.',
+            },
+            {
+              question: 'How do you handle a redirect for a non-existent or expired code?',
+              answer:
+                'Return **404** (or a branded soft-404 page) for missing codes and **410 Gone** (or 404) for expired ones after checking `expires_at`. Never invent a redirect — that would be a phishing risk. Cache negative lookups briefly with a short TTL so scanners cannot hammer the DB, but keep that TTL low so a newly created code is not falsely treated as missing.',
+            },
+            {
+              question: 'How do you prevent enumeration / scanning attacks?',
+              answer:
+                'Make codes **non-guessable** (scrambled counters, random bits, or a shuffled KGS pool) so sequential scanning is infeasible. Rate-limit redirects and create APIs per IP/API key, return uniform 404s for bad codes (no timing oracle), and consider CAPTCHA or bot detection on suspicious miss rates.',
+            },
+            {
+              question: 'What if the long URL itself is malicious (phishing)?',
+              answer:
+                'Validate schemes (HTTPS-only or allowlist), block known-bad domains via a URL reputation / Safe Browsing check on create, and re-scan periodically. Show an interstitial warning for untrusted destinations, allow abuse reports that disable codes quickly, and never auto-follow redirects on the create-validation path without length/host limits.',
+            },
+            {
+              question: 'How would Bloom filters help on the redirect path?',
+              answer:
+                'A **Bloom filter** of existing short codes can reject almost all unknown codes in memory with no DB hit — false positives only mean a rare extra lookup. Pair it with negative caching for confirmed misses. Rebuild or update the filter as codes are created/expired; it is a read-path optimization, not a source of truth.',
             },
           ],
         },

@@ -161,7 +161,8 @@ const content: DesignContent = {
         {
           type: 'metrics',
           items: [
-            { label: 'Daily active connections', value: '~2B', hint: 'one+ device each' },
+            { label: 'Monthly / daily active users', value: '~2B', hint: 'MAU/DAU scale, not live sockets' },
+            { label: 'Peak concurrent sockets', value: '~1B', hint: 'assumption for sizing; often hundreds of M' },
             { label: 'Messages / day', value: '100B+', hint: 'text + media metadata' },
             { label: 'Messages / sec (avg)', value: '~1.2M', hint: '100B / 86400' },
             { label: 'Peak msgs / sec', value: '~5–8M', hint: 'evening / events spike' },
@@ -960,6 +961,21 @@ healthCheck:
               question: 'What happens if the session registry (Redis) becomes unavailable?',
               answer:
                 'The router can no longer tell who is online, so it should **fail safe to store-and-forward**: persist the message and push-notify, rather than blocking or dropping it. Shard and replicate the registry so a single shard loss only blinds routing for a fraction of users, and have connection servers re-register aggressively on recovery so the registry rebuilds itself within seconds from live sockets.',
+            },
+            {
+              question: 'How do you handle a user blocked mid-conversation?',
+              answer:
+                'Enforce blocks at **send time**: reject or silently drop new messages from the blocked user (product choice), and stop delivering receipts/presence to them. Already-delivered history stays on devices; undelivered inbox rows for that pair can be discarded or marked undeliverable. Check the block graph on the hot path with a cached set per user.',
+            },
+            {
+              question: 'How does delete-for-everyone work with E2E and multi-device?',
+              answer:
+                'The server cannot rewrite ciphertext it cannot read — it relays a **delete control message** (signed by the sender) to every device in the conversation. Each client removes or tombstones the local message if the delete is authentic and within the allowed window. Offline devices apply it on sync; after the window, fall back to delete-for-me only.',
+            },
+            {
+              question: 'Why not use a message queue as the primary message store?',
+              answer:
+                'Queues are for **transient delivery**, not durable chat history: retention, random access by conversation, multi-device sync, and years-long storage are poor fits. Use Kafka (or similar) for fan-out/async side effects, and a purpose-built store (e.g. Cassandra) keyed by conversation for the source of truth clients sync from.',
             },
           ],
         },

@@ -116,6 +116,12 @@ public class OrderQueryController {
 }`,
         },
         {
+          type: 'callout',
+          variant: 'warning',
+          title: 'In-process events only',
+          body: '`ApplicationEventPublisher` is same-JVM Spring events — fine for a monolith projection. Cross-service CQRS needs a durable broker (Kafka + transactional outbox), not in-process publish.',
+        },
+        {
           type: 'code',
           language: 'sql',
           filename: 'read_projection.sql',
@@ -197,6 +203,11 @@ CREATE INDEX idx_order_summary_customer ON order_summary_view (customer_id, plac
               question: 'How does CQRS relate to Event Sourcing?',
               answer:
                 'They complement each other: **Event Sourcing** is a write-side persistence style; **CQRS** is the read/write split. ES often feeds CQRS projections, but CQRS can use traditional relational writes.',
+            },
+            {
+              question: 'How do you rebuild projections after a bug?',
+              answer:
+                'Fix the projector, then **rebuild** from the source of truth (event stream or CDC log) into a new read-model version/table, verify counts/checksums, and atomically flip traffic (blue/green). Keep projectors **idempotent** so replay is safe; never hand-patch the read DB as the long-term fix.',
             },
           ],
         },

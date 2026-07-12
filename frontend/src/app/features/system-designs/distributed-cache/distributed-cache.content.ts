@@ -790,6 +790,21 @@ autoscaling:
               answer:
                 'Start from the working set size and replication factor: `nodes = ceil(workingSet × RF / ramPerNode)`, then check the per-node throughput implied by dividing total ops/sec across that many nodes against a single node\'s realistic capacity (100k+ ops/sec for a tuned in-memory store). Leave headroom (20-30%) for uneven key distribution and growth, and re-derive the numbers whenever the working set or replication factor changes — this is the same capacity-estimation exercise as sizing any other tier, just bound by RAM instead of disk.',
             },
+            {
+              question: 'Difference between cache penetration and cache stampede?',
+              answer:
+                '**Penetration**: repeated requests for keys that **never exist** — every miss hits the DB (fix with Bloom filters / cached negative entries). **Stampede** (thundering herd): a **hot key expires** and many concurrent misses all recompute it at once — fix with single-flight, early refresh, or stale-while-revalidate.',
+            },
+            {
+              question: 'What happens during node add/remove — how do clients learn the new ring?',
+              answer:
+                'Membership changes propagate via **gossip**, a config service, or cluster bus; clients refresh the ring (or follow redirects like Redis `MOVED`/`ASK`). Only keys in the affected arc remaps; migrate them in the background while dual-reading old and new owners briefly to avoid a miss storm.',
+            },
+            {
+              question: 'When would you pick write-through over cache-aside?',
+              answer:
+                'Choose **write-through** when reads must see fresh data immediately after writes and you can afford synchronous cache updates on every write (e.g. session/profile hot paths). Prefer **cache-aside** when writes are frequent or many keys are write-only — avoid warming cache entries nobody will read, and invalidate on write instead.',
+            },
           ],
         },
       ],

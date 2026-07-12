@@ -1,0 +1,37 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const ID_GENERATION_META: DesignMeta = {
+  slug: 'id-generation',
+  title: 'Distributed ID Generation',
+  tagline:
+    'Auto-increment, UUID v4/v7, Snowflake, Base62 counters, and ticket servers — uniqueness, sortability, and coordination trade-offs for distributed systems.',
+  section: 'fundamentals',
+  category: 'Distributed Systems',
+  tags: [
+    'id-generation',
+    'snowflake',
+    'uuid',
+    'base62',
+    'ticket-server',
+    'distributed',
+    'interview',
+  ],
+  technologies: ['Twitter Snowflake', 'UUID', 'Redis', 'PostgreSQL', 'ZooKeeper'],
+  difficulty: 'intermediate',
+  readingTimeMin: 13,
+  status: 'published',
+  keywords: [
+    'distributed ID',
+    'UUID v7',
+    'leaf range',
+    'ticket server',
+    'auto increment',
+    'sortable ID',
+    'TinyURL counter',
+  ],
+  dateAdded: '2026-07-12',
+  popularity: 90,
+  icon: 'ID',
+  heroGradient: 'linear-gradient(135deg, #e11d48 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

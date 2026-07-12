@@ -19,6 +19,7 @@ A backlog of classic LLD interview problems under the **Low Level Design** secti
 - [x] **ATM System** — Card auth, cash dispensing, PIN, and transaction flows. `slug: atm-system`
 - [x] **Library Management** — Books, members, borrow/return, fines, and search. `slug: library-management`
 - [x] **Cab Booking** — Riders, drivers, matching, trip lifecycle, and pricing. `slug: cab-booking`
+- [x] **Vending Machine** — State machine, inventory, coins, and change-making. `slug: vending-machine`
 
 ## Games & Simulations
 
@@ -33,3 +34,4 @@ A backlog of classic LLD interview problems under the **Low Level Design** secti
 
 - [x] **Movie Ticket Booking** — Shows, seats, locking, booking, and payments. `slug: movie-ticket-booking`
 - [x] **Splitwise** — Groups, expenses, balances, and settle-up algorithms. `slug: splitwise`
+- [x] **Hotel Reservation** — Room types, date-range availability, holds, and overbooking. `slug: hotel-reservation`
