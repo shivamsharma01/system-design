@@ -1,6 +1,10 @@
 import { DesignRegistryEntry } from './design-registry.model';
 
 // --- Design metadata (statically imported; tiny, used for cards + search) ---
+import { JAVA_INTERVIEW_META } from '../../features/system-designs/java-interview/java-interview.meta';
+import { SPRING_BOOT_INTERVIEW_META } from '../../features/system-designs/spring-boot-interview/spring-boot-interview.meta';
+import { KAFKA_INTERVIEW_META } from '../../features/system-designs/kafka-interview/kafka-interview.meta';
+import { KUBERNETES_INTERVIEW_META } from '../../features/system-designs/kubernetes-interview/kubernetes-interview.meta';
 import { INTERVIEW_FRAMEWORK_META } from '../../features/system-designs/interview-framework/interview-framework.meta';
 import { SOLID_PRINCIPLES_META } from '../../features/system-designs/solid-principles/solid-principles.meta';
 import { PARKING_LOT_META } from '../../features/system-designs/parking-lot/parking-lot.meta';
@@ -166,6 +170,24 @@ import { HOTEL_RESERVATION_META } from '../../features/system-designs/hotel-rese
  */
 export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   {
+    meta: JAVA_INTERVIEW_META,
+    load: () => import('../../features/system-designs/java-interview/java-interview.content'),
+  },
+  {
+    meta: SPRING_BOOT_INTERVIEW_META,
+    load: () =>
+      import('../../features/system-designs/spring-boot-interview/spring-boot-interview.content'),
+  },
+  {
+    meta: KAFKA_INTERVIEW_META,
+    load: () => import('../../features/system-designs/kafka-interview/kafka-interview.content'),
+  },
+  {
+    meta: KUBERNETES_INTERVIEW_META,
+    load: () =>
+      import('../../features/system-designs/kubernetes-interview/kubernetes-interview.content'),
+  },
+  {
     meta: INTERVIEW_FRAMEWORK_META,
     load: () =>
       import('../../features/system-designs/interview-framework/interview-framework.content'),
@@ -188,7 +210,8 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   },
   {
     meta: LIBRARY_MANAGEMENT_META,
-    load: () => import('../../features/system-designs/library-management/library-management.content'),
+    load: () =>
+      import('../../features/system-designs/library-management/library-management.content'),
   },
   {
     meta: CAB_BOOKING_META,
@@ -438,8 +461,7 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   },
   {
     meta: CHAOS_ENGINEERING_META,
-    load: () =>
-      import('../../features/system-designs/chaos-engineering/chaos-engineering.content'),
+    load: () => import('../../features/system-designs/chaos-engineering/chaos-engineering.content'),
   },
   {
     meta: AUTOSCALING_META,
@@ -490,7 +512,8 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   },
   {
     meta: MESSAGE_TRANSLATOR_META,
-    load: () => import('../../features/system-designs/message-translator/message-translator.content'),
+    load: () =>
+      import('../../features/system-designs/message-translator/message-translator.content'),
   },
   {
     meta: POLLING_CONSUMER_META,
@@ -551,7 +574,8 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   },
   {
     meta: KAPPA_ARCHITECTURE_META,
-    load: () => import('../../features/system-designs/kappa-architecture/kappa-architecture.content'),
+    load: () =>
+      import('../../features/system-designs/kappa-architecture/kappa-architecture.content'),
   },
   {
     meta: ETL_PIPELINE_META,
@@ -688,7 +712,8 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   },
   {
     meta: WRITE_BEHIND_CACHE_META,
-    load: () => import('../../features/system-designs/write-behind-cache/write-behind-cache.content'),
+    load: () =>
+      import('../../features/system-designs/write-behind-cache/write-behind-cache.content'),
   },
   {
     meta: MATERIALIZED_VIEW_META,
@@ -778,8 +803,7 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   },
   {
     meta: CAP_PACELC_META,
-    load: () =>
-      import('../../features/system-designs/cap-pacelc/cap-pacelc.content'),
+    load: () => import('../../features/system-designs/cap-pacelc/cap-pacelc.content'),
   },
   {
     meta: DELIVERY_SEMANTICS_META,
@@ -788,13 +812,11 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   },
   {
     meta: BACK_OF_ENVELOPE_META,
-    load: () =>
-      import('../../features/system-designs/back-of-envelope/back-of-envelope.content'),
+    load: () => import('../../features/system-designs/back-of-envelope/back-of-envelope.content'),
   },
   {
     meta: ID_GENERATION_META,
-    load: () =>
-      import('../../features/system-designs/id-generation/id-generation.content'),
+    load: () => import('../../features/system-designs/id-generation/id-generation.content'),
   },
   {
     meta: LOAD_BALANCING_PATTERN_META,
@@ -803,17 +825,14 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   },
   {
     meta: SERVICE_MESH_META,
-    load: () =>
-      import('../../features/system-designs/service-mesh/service-mesh.content'),
+    load: () => import('../../features/system-designs/service-mesh/service-mesh.content'),
   },
   {
     meta: VENDING_MACHINE_META,
-    load: () =>
-      import('../../features/system-designs/vending-machine/vending-machine.content'),
+    load: () => import('../../features/system-designs/vending-machine/vending-machine.content'),
   },
   {
     meta: HOTEL_RESERVATION_META,
-    load: () =>
-      import('../../features/system-designs/hotel-reservation/hotel-reservation.content'),
+    load: () => import('../../features/system-designs/hotel-reservation/hotel-reservation.content'),
   },
 ];

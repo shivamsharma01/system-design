@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const KUBERNETES_INTERVIEW_META: DesignMeta = {
+  slug: 'kubernetes-interview',
+  title: 'Kubernetes Interview Questions',
+  tagline:
+    'Production-focused Kubernetes questions covering pod failures, zero-downtime rollout, and graceful shutdown.',
+  section: 'interview-questions',
+  category: 'Backend Technologies',
+  tags: ['kubernetes', 'deployment', 'containers', 'production', 'interview'],
+  technologies: ['Kubernetes', 'Docker'],
+  difficulty: 'intermediate',
+  readingTimeMin: 7,
+  status: 'published',
+  keywords: ['kubernetes interview', 'pod restart', 'zero downtime', 'graceful shutdown'],
+  dateAdded: '2026-07-17',
+  popularity: 94,
+  icon: 'K8',
+  heroGradient: 'linear-gradient(135deg, #326ce5 0%, #172554 100%)',
+  author: 'System Design Platform',
+};

@@ -6,6 +6,7 @@ export type DesignStatus = 'published' | 'draft';
 
 /** Top-level catalog sections (peers: System Design, HLD, LLD, SOLID, Design Patterns, Fundamentals). */
 export type ContentSectionId =
+  | 'interview-questions'
   | 'system-design'
   | 'high-level-design'
   | 'low-level-design'
