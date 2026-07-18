@@ -10,7 +10,7 @@ export const JAVA_INTERVIEW_META: DesignMeta = {
   tags: ['java', 'jvm', 'concurrency', 'design-patterns', 'interview'],
   technologies: ['Java', 'JVM'],
   difficulty: 'intermediate',
-  readingTimeMin: 18,
+  readingTimeMin: 50,
   status: 'published',
   keywords: ['java interview', 'jvm interview', 'java concurrency', 'java production'],
   dateAdded: '2026-07-17',
