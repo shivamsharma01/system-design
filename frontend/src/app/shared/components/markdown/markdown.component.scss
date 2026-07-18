@@ -1,5 +1,6 @@
 .prose {
   color: var(--color-text);
+  font-family: var(--prose-font, inherit);
   font-size: var(--text-base);
   line-height: 1.75;
 

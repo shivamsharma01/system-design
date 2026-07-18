@@ -160,6 +160,8 @@ export interface QaItem {
 export interface InterviewQaBlock {
   type: 'interviewQa';
   title?: string;
+  /** Visual style. `sketch` uses handwritten fonts and notebook styling. */
+  variant?: 'default' | 'sketch';
   items: QaItem[];
 }
 

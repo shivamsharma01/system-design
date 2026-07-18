@@ -12,6 +12,7 @@
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
   cursor: pointer;
+  font-family: var(--expandable-title-font, inherit);
   font-weight: 600;
   list-style: none;
   user-select: none;

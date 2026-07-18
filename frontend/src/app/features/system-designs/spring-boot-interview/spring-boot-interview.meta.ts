@@ -10,7 +10,7 @@ export const SPRING_BOOT_INTERVIEW_META: DesignMeta = {
   tags: ['spring-boot', 'spring', 'jpa', 'transactions', 'interview'],
   technologies: ['Spring Boot', 'Spring Framework', 'Hibernate'],
   difficulty: 'intermediate',
-  readingTimeMin: 22,
+  readingTimeMin: 45,
   status: 'published',
   keywords: ['spring boot interview', 'spring transactions', 'spring security', 'spring data jpa'],
   dateAdded: '2026-07-17',
