@@ -46,7 +46,8 @@ const content: DesignContent = {
         },
         {
           type: 'table',
-          caption: 'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
+          caption:
+            'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
           headers: ['Question', 'Why it matters / sample assumption'],
           rows: [
             [
@@ -576,6 +577,194 @@ return allowed and 1 or 0`,
       title: 'Interview Questions',
       blocks: [
         {
+          type: 'sketchnote',
+          title: 'Rate Limiter Production Interview Board',
+          intro:
+            'A good answer connects algorithm behavior, distributed atomicity, failure policy, HTTP semantics, cost, monitoring, and testing.',
+          items: [
+            {
+              code: 'RL-11',
+              glyph: '⏱',
+              title: 'What and why?',
+              subtitle: 'Bound usage over time',
+              points: [
+                'Protects dependencies from abuse, bugs, retries, and traffic spikes',
+                'Enforces fairness, tenant plans, and expensive-API quotas',
+                'Rejects cheaply before consuming service/database capacity',
+              ],
+              tip: 'Rate limits are client quotas; load shedding protects total system capacity.',
+            },
+            {
+              code: 'RL-12',
+              glyph: '4×',
+              title: 'Algorithms',
+              subtitle: 'Choose by desired traffic shape',
+              points: [
+                'Fixed window: cheap, but has boundary bursts',
+                'Sliding log/counter: exact vs approximate rolling behavior',
+                'Token bucket: controlled bursts; leaky bucket: smooth output',
+              ],
+              tip: 'Name time, memory, burst, and accuracy trade-offs—not just algorithms.',
+            },
+            {
+              code: 'RL-13',
+              glyph: 'TB',
+              title: 'Token bucket wins often',
+              subtitle: 'O(1) state + natural bursts',
+              points: [
+                'Capacity controls maximum burst',
+                'Refill rate controls sustained throughput',
+                'Avoids fixed-window’s abrupt reset and near-2× boundary spike',
+              ],
+              tip: '“Preferred” depends on product semantics; strict rolling quotas may favor sliding windows.',
+            },
+            {
+              code: 'RL-14',
+              glyph: '🪙',
+              title: 'Real-world bucket',
+              subtitle: 'API gets spendable permits',
+              points: [
+                'Bucket capacity 20; refill 10 tokens/second',
+                'Idle client accumulates 20 and may burst 20 requests',
+                'After depletion, only about 10 requests/second continue',
+              ],
+              tip: 'Expensive endpoints can consume multiple tokens.',
+            },
+            {
+              code: 'RL-15',
+              glyph: 'R',
+              title: 'Redis distribution',
+              subtitle: 'One shared view across gateway nodes',
+              points: [
+                'Store tokens/counters by tenant + route with TTL',
+                'Lua atomically reads, refills, decides, decrements, and writes',
+                'Cluster/shard by key and replicate for availability',
+              ],
+              tip: 'A Redis GET followed by SET is still a race.',
+            },
+            {
+              code: 'RL-16',
+              glyph: '!',
+              title: 'Redis unavailable',
+              subtitle: 'Choose policy before the incident',
+              points: [
+                'Fail open for availability, or closed for sensitive protection',
+                'Use a tight timeout/circuit breaker; never stall every request',
+                'Fallback to a conservative per-node limiter and alert',
+              ],
+              tip: 'Policy can differ by route: public reads vs payments/login abuse.',
+            },
+            {
+              code: 'RL-17',
+              glyph: 'Tier',
+              title: 'Free vs premium',
+              subtitle: 'Resolve dynamic policy by identity',
+              points: [
+                'Map verified API key/user/tenant plan to rate, burst, and endpoint cost',
+                'Keep rules hot-reloadable, versioned, cached, and auditable',
+                'Apply safe defaults if plan lookup fails',
+              ],
+              tip: 'Do not trust a caller-supplied “premium=true” claim.',
+            },
+            {
+              code: 'RL-18',
+              glyph: '↕',
+              title: 'Gateway or service?',
+              subtitle: 'Usually both, for different scopes',
+              points: [
+                'Gateway/CDN blocks abuse early with user/IP/API-key quotas',
+                'Service enforces domain limits requiring business state',
+                'Avoid duplicate inconsistent policies; define ownership centrally',
+              ],
+              tip: 'Client-side limiting improves UX but is never trusted enforcement.',
+            },
+            {
+              code: 'RL-19',
+              glyph: '429',
+              title: 'HTTP contract',
+              subtitle: 'Too Many Requests',
+              points: [
+                'Return 429 before expensive upstream work',
+                'Include Retry-After plus limit, remaining, and reset metadata',
+                'Clients back off with jitter instead of retrying immediately',
+              ],
+              tip: '403 means forbidden; 429 means temporarily over quota.',
+            },
+            {
+              code: 'RL-20',
+              glyph: 'CAS',
+              title: 'Avoid race conditions',
+              subtitle: 'Make the whole state transition atomic',
+              points: [
+                'Concurrent requests must not perform separate read-then-write steps',
+                'Use Redis Lua, atomic INCR+expiry pattern, or transactional CAS',
+                'Keep one key on one shard; define clock source consistently',
+              ],
+              tip: 'Atomic counters alone are insufficient for multi-step token refill logic.',
+            },
+            {
+              code: 'RL-21',
+              glyph: '$',
+              title: 'Reduce infrastructure cost',
+              subtitle: 'Reject waste at the cheapest layer',
+              points: [
+                'Prevents excess requests from consuming CPU, DB connections, and paid APIs',
+                'Controls scraping, retry storms, and accidental tenant loops',
+                'Weighted quotas align expensive operations with customer plans',
+              ],
+              tip: 'Measure rejected downstream work to quantify savings.',
+            },
+            {
+              code: 'RL-22',
+              glyph: 'M',
+              title: 'Production metrics',
+              subtitle: 'Observe outcomes and limiter health',
+              points: [
+                'Allowed/rejected/fail-open counts by route and tier—not raw user ID',
+                'Limiter latency, Redis errors, script time, saturation, and hot keys',
+                '429 ratio, remaining-quota distribution, and downstream load correlation',
+              ],
+              tip: 'Avoid high-cardinality user labels in Prometheus; use logs/traces for sampled identity detail.',
+            },
+            {
+              code: 'RL-23',
+              glyph: 'Arch',
+              title: 'Production architecture',
+              subtitle: 'Edge middleware + shared atomic state',
+              points: [
+                'Gateway authenticates, resolves route/tier rule, then runs Redis Lua',
+                'Allowed requests continue; rejected requests return 429 immediately',
+                'Local fallback, replicated Redis, config service, metrics, and audit complete it',
+              ],
+              tip: 'Describe only experience you actually had; otherwise present this explicitly as a proposed design.',
+            },
+            {
+              code: 'RL-24',
+              glyph: 'Test',
+              title: 'How to test',
+              subtitle: 'Time, concurrency, distribution, and failure',
+              points: [
+                'Use a fake clock for refill/window boundaries—never sleep in unit tests',
+                'Fire concurrent requests across many app nodes and assert global admission',
+                'Test bursts, tiers, expiry, 429 headers, Redis latency/down, and recovery',
+              ],
+              tip: 'Shadow mode shows which real requests a new policy would reject before enforcement.',
+            },
+            {
+              code: 'RL-25',
+              glyph: '⚠',
+              title: 'Common challenges',
+              subtitle: 'The algorithm is the easy part',
+              points: [
+                'Identity/cardinality, NAT/shared IPs, clock skew, and hot tenants',
+                'Accuracy vs latency, Redis failover, replica lag, and global regions',
+                'Rule rollout mistakes, unfair bursts, observability cost, and client retries',
+              ],
+              tip: 'State the accepted over-admission error and failure policy explicitly.',
+            },
+          ],
+        },
+        {
           type: 'interviewQa',
           items: [
             {
@@ -609,22 +798,26 @@ return allowed and 1 or 0`,
                 "Resolve the client's **tier** from the API key during identification, then look up the matching rule (limit/window) from a **hot-reloadable rules config**. The same algorithm runs with different parameters per tier/scope/endpoint, so quotas change without redeploying the gateway.",
             },
             {
-              question: 'How do you rate limit fairly when many different clients share one gateway node?',
+              question:
+                'How do you rate limit fairly when many different clients share one gateway node?',
               answer:
-                "Key every counter on the **client identity** (API key/user/IP), never on the node — the counter store is shared across all gateway instances, so a client sees one consistent quota no matter which node handles the request. Per-node counters would let a client get N× the limit by spreading requests across N gateway instances.",
+                'Key every counter on the **client identity** (API key/user/IP), never on the node — the counter store is shared across all gateway instances, so a client sees one consistent quota no matter which node handles the request. Per-node counters would let a client get N× the limit by spreading requests across N gateway instances.',
             },
             {
-              question: 'Why not just use a database with a transaction for the counter instead of Redis?',
+              question:
+                'Why not just use a database with a transaction for the counter instead of Redis?',
               answer:
                 "A relational DB transaction (row lock, commit) adds several milliseconds and does not scale to the request-per-request hot path of a rate limiter. Redis is in-memory, supports atomic Lua scripts, and is purpose-built for exactly this pattern — sub-millisecond reads and writes at very high throughput, which a rate limiter's hot path demands.",
             },
             {
-              question: 'How would you rate limit at multiple scopes simultaneously (e.g. per-user AND per-endpoint AND global)?',
+              question:
+                'How would you rate limit at multiple scopes simultaneously (e.g. per-user AND per-endpoint AND global)?',
               answer:
                 'Run the algorithm against multiple keys per request (e.g. `user:42:endpoint:/search` and `global:endpoint:/search`) and reject if **any** scope is exceeded. Keep each scope as an independent counter with its own limit/window; a single Lua script can check several keys atomically in one round-trip to avoid N separate network calls.',
             },
             {
-              question: 'How do you test/validate a rate limiter before shipping a change to the rules?',
+              question:
+                'How do you test/validate a rate limiter before shipping a change to the rules?',
               answer:
                 'Run it in **shadow/dry-run mode** first: evaluate the new rule and log what *would* have happened (allow/reject) without actually enforcing it, compare against real traffic patterns, then flip it live. This catches misconfigured limits (e.g. too tight, breaking a legitimate integration) before they cause an outage.',
             },

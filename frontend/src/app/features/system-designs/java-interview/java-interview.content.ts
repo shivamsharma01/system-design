@@ -144,6 +144,21 @@ const content: DesignContent = {
                 "In simple terms: a Singleton guarantees only one instance of a class ever exists, and \"thread-safe\" means multiple threads can't accidentally end up creating two instances at the same time. Here are the common ways to do it, roughly from best to acceptable:\n\n1. **Enum singleton** - declare a single enum value, like `INSTANCE`. The JVM itself guarantees this is created safely exactly once, and it's automatically protected against tricky attacks like reflection and serialization creating a second instance. This is generally considered the best approach.\n2. **Initialization-on-demand holder** - put the instance inside a nested static class. Java only loads (and initializes) that nested class the first time it's actually referenced, which gives you lazy creation (it's only built when needed) that's thread-safe without writing any explicit locking code yourself.\n3. **Double-checked locking** with a `volatile` field - an older technique still sometimes asked about in interviews, from before the holder idiom and enums became the preferred style.\n4. **Static final field** - simplest option: just create the instance eagerly (right away, when the class loads) as a `static final` field. Thread-safe and simple, but it's built immediately even if you never end up using it.\n\n**Avoid:** putting `synchronized` on the `getInstance()` method itself and calling it constantly - that's a coarse, unnecessary lock that hurts performance. Also, in Spring applications, prefer letting the container manage singleton beans for you rather than hand-writing this pattern yourself.\n\n```java\npublic enum Services { INSTANCE; public void go() {} }\n```",
             },
             {
+              question: 'Explain the Singleton Design Pattern.',
+              answer:
+                'In simple terms: Singleton is a **creational pattern** that gives a class one instance per ClassLoader and provides one global access point to it.\n\nA classic implementation has a `private` constructor, a `private static` instance, and a `public static getInstance()` method. It can be eager or lazy. The pattern is useful only when the domain truly requires one coordinator inside a JVM, such as a registry or process-wide configuration object.\n\n**Important qualification:** it does not mean one instance across a cluster, multiple JVMs, or even multiple ClassLoaders. It can also become hidden global state, couple callers to a concrete class, complicate tests, and introduce races if it holds mutable data. In Spring, prefer a stateless container-managed singleton bean and inject it through an interface.',
+            },
+            {
+              question: 'How can Singleton be broken, and how do you prevent it?',
+              answer:
+                'In simple terms: a hand-written Singleton can be duplicated through APIs that bypass its normal constructor path.\n\n- **Reflection:** `setAccessible(true)` can invoke a private constructor. Defend by rejecting a second construction, although deep reflection/`Unsafe` can still bypass ordinary checks. An enum is protected by the JVM.\n- **Serialization:** deserialization creates a new object without calling `getInstance()`. Implement `readResolve()` to return the existing instance, or use an enum.\n- **Cloning:** inherited `clone()` can create another copy. Do not implement `Cloneable`; override `clone()` to throw `CloneNotSupportedException` if necessary.\n- **Multiple ClassLoaders:** each loader gets its own static fields, so each can create one instance. Put the class in a shared parent loader, centralize ownership outside the loaders, or use an external store/lock when the requirement is system-wide.\n\n**Best practical defense:** use an enum for a JVM/ClassLoader-scoped Singleton. If the requirement is “only one across all nodes,” Singleton is the wrong tool—use database uniqueness, leader election, or a distributed lock.',
+            },
+            {
+              question: 'Write a robust Singleton implementation in Java.',
+              answer:
+                'The safest concise implementation is an enum:\n\n```java\npublic enum Configuration {\n  INSTANCE;\n\n  public String region() {\n    return "ap-south-1";\n  }\n}\n```\n\nThe JVM guarantees thread-safe initialization and blocks reflective enum construction; serialization preserves the same constant.\n\nIf lazy class-based construction is required, use the holder idiom and defend serialization:\n\n```java\npublic final class Configuration {\n  private Configuration() {}\n\n  private static class Holder {\n    private static final Configuration INSTANCE = new Configuration();\n  }\n\n  public static Configuration getInstance() {\n    return Holder.INSTANCE;\n  }\n\n  private Object readResolve() {\n    return Holder.INSTANCE;\n  }\n\n  @Override\n  protected Object clone() throws CloneNotSupportedException {\n    throw new CloneNotSupportedException();\n  }\n}\n```\n\nThis is lazy and thread-safe because class initialization is atomic. Unlike the enum, separate ClassLoaders can still create separate instances.',
+            },
+            {
               question: 'What are the drawbacks of Singleton?',
               answer:
                 "In simple terms: Singletons are convenient, but they come with real downsides that senior engineers should be able to name.\n\n- **Hidden global state** - code anywhere in the app can quietly depend on and mutate the singleton, which makes tests harder to write (state can leak between tests) and creates subtle bugs where behavior depends on the order things ran in.\n- **Concurrency risk** - if the singleton holds any data that changes over time, you now need careful synchronization, since every thread in the app shares that exact same object.\n- **Lifecycle confusion** - it's not always clear when the singleton is actually created or torn down, and in application servers, ClassLoader quirks can accidentally cause you to end up with more than one \"singleton\" instance (each loaded by a different ClassLoader).\n- **Rigid APIs** - code that calls `getInstance()` directly is now hard-coded to that singleton, which makes swapping in a test double or an alternative implementation more painful.\n- **Can violate the Single Responsibility Principle** - a class that both manages its own single-instance creation logic and does its actual job is doing two things at once.\n\n**Better approach:** use Dependency Injection so there's one instance *because of how you configured things*, not because it's hard-coded as a global. A \"singleton bean\" that's injected everywhere it's needed is perfectly fine, especially if it's stateless.",
@@ -187,6 +202,78 @@ const content: DesignContent = {
               question: 'Which design patterns are most commonly used in microservices?',
               answer:
                 'In simple terms: microservices architecture relies on a different set of patterns than classic object-oriented design - these are about coordinating whole separate services over a network, not about organizing classes inside one program.\n\n- **API Gateway** / **BFF (Backend For Frontend)** - a single entry point that routes requests to the right services.\n- **Service Discovery** - a way for services to find each other\'s current network location automatically.\n- **Circuit Breaker, Retry, Bulkhead** - protective patterns for handling a failing or slow dependency without it taking down everything else.\n- **Saga / Outbox / Inbox** - patterns for keeping data consistent across services without using a single database transaction.\n- **CQRS (Command Query Responsibility Segregation) / Event Sourcing** - used selectively; these separate how you write data from how you read it, or store every change as an event instead of just current state.\n- **Sidecar / Ambassador** - helper processes that run alongside a service to handle cross-cutting concerns like networking or observability.\n- **Strangler Fig, Anti-Corruption Layer** - patterns for gradually replacing or safely isolating legacy systems.\n\nIt\'s worth explicitly telling the interviewer that these are distributed-systems patterns, distinct from the classic "Gang of Four" object-oriented patterns. Internally, each individual service still typically uses DI, Strategy, Repository, and the other familiar patterns.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'solid-production-scenarios',
+      title: 'SOLID Production Scenarios',
+      blocks: [
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Senior-Level SOLID Q&A',
+          items: [
+            {
+              question:
+                'PaymentService has 15 if-else conditions for payment methods. Which SOLID principle is being violated?',
+              answer:
+                'Primarily **Open/Closed Principle (OCP)**: every new payment method requires modifying and retesting the central conditional. It may also indicate an **SRP** violation because the service knows every gateway’s rules.\n\nExtract a `PaymentProcessor` strategy with implementations such as card, UPI, and wallet. Inject a registry such as `Map<PaymentMethod, PaymentProcessor>` and dispatch by method. Adding a gateway then means registering a new implementation rather than editing the orchestration logic.\n\nDo not remove all conditionals mechanically. A small stable branch is clearer than a hierarchy; refactor when the variation is expected to grow or already changes frequently.',
+            },
+            {
+              question:
+                'A class handles validation, database operations, email notifications, and logging. How would you refactor it using SOLID?',
+              answer:
+                'Give each business capability one reason to change: a validator enforces input/domain rules, a repository persists data, a notification port sends email, and an application service coordinates the use case. Inject these dependencies through interfaces where alternate implementations or test doubles are useful.\n\nKeep the transaction around database state changes, then publish an outbox/domain event for email so a mail outage does not hold a database connection or roll back valid business state. Treat logging as cross-cutting infrastructure through a logger/AOP/interceptor rather than a new “logging service” called everywhere.\n\nThe goal is cohesive boundaries, not one class per method.',
+            },
+            {
+              question:
+                'Can a class with only one method still violate the Single Responsibility Principle?',
+              answer:
+                'Yes. SRP is about **one reason to change**, not method count. A single `process()` method that validates input, calculates tax, saves an order, calls a payment API, sends email, and formats an HTTP response changes for many independent actors and policies.\n\nConversely, a cohesive class can have many methods and still satisfy SRP. During review, ask which business or technical decisions could force this class to change and whether those decisions change independently.',
+            },
+            {
+              question:
+                'How would you add a new payment gateway without modifying existing production code?',
+              answer:
+                'Define a stable port such as `PaymentGateway.charge(PaymentRequest)`, implement one adapter per provider, and select the implementation through configuration or an injected registry/factory. The checkout/application service depends only on the port.\n\nAdd the new adapter, contract tests against a provider sandbox/fake, configuration, observability, idempotency, timeout/circuit-breaker policy, and a feature flag or routing rule. Existing orchestration remains unchanged, satisfying OCP and DIP. Shared behavior should be composed as decorators rather than copied into every adapter.',
+            },
+            {
+              question: 'When does applying the Open/Closed Principle become over-engineering?',
+              answer:
+                'When extension points are created for hypothetical variation that has no evidence, producing interfaces with one implementation, factories that only call a constructor, and configuration nobody needs. This increases navigation, testing, and operational complexity without reducing likely change cost.\n\nUse the rule of three and change history: keep simple code direct, then extract an abstraction when two or more real variants share a stable contract or when a high-risk external boundary needs isolation now. OCP means protect stable policy from known variation—not predict every future requirement.',
+            },
+            {
+              question:
+                'Why is Rectangle–Square the classic Liskov Substitution Principle violation?',
+              answer:
+                'If mutable `Rectangle` promises independent `setWidth` and `setHeight`, a `Square` subtype cannot honor that contract because changing one dimension must change the other. Code that sets width and height separately and expects `width × height` gets surprising results when passed a Square.\n\nThe issue is not geometry; it is a strengthened invariant that breaks the base type’s behavioral contract. Better models use immutable shapes with `area()`, separate Rectangle and Square types, or a base abstraction that never promises independent mutation. LSP asks whether every subtype preserves clients’ expectations, not merely whether “is-a” sounds true.',
+            },
+            {
+              question:
+                'How do you identify an Interface Segregation Principle violation during code review?',
+              answer:
+                'Look for implementations with unsupported methods, empty bodies, dummy return values, or `UnsupportedOperationException`; clients that depend on a large interface but use one method; and unrelated teams changing the same interface for independent reasons.\n\nSplit the interface by client capability—for example `ReadableAccount`, `TransferAuthorizer`, and `StatementExporter`—then let implementations combine only what they support. Avoid fragmenting interfaces blindly: cohesive methods commonly required together should remain together.',
+            },
+            {
+              question:
+                'What is the difference between Dependency Injection and the Dependency Inversion Principle?',
+              answer:
+                '**DIP is a design principle:** high-level policy and low-level details should depend on stable abstractions, and the abstraction should be owned around the policy’s needs. **DI is a wiring technique:** dependencies are supplied from outside rather than constructed internally.\n\nConstructor-injecting a concrete `StripeSdkClient` is DI but may still violate DIP because business policy directly depends on a vendor detail. Injecting an application-owned `PaymentGateway` port, implemented by a Stripe adapter and wired by Spring, uses DI to achieve DIP. DI containers are optional; manual constructor wiring works too.',
+            },
+            {
+              question:
+                'In a 2,000-line service class, which SOLID violations would you expect first?',
+              answer:
+                'Start with **SRP**: unrelated validation, persistence, integration, mapping, and workflow rules usually accumulate first. Then look for OCP violations in growing conditionals, DIP violations from direct SDK/repository construction, and ISP violations in oversized collaborator interfaces. LSP issues usually surface in inheritance-heavy sections rather than from line count alone.\n\nUse change history and tests before splitting: cluster methods by the data they use and reasons they change, identify transaction boundaries/invariants, add characterization tests, and extract one cohesive capability at a time. A large class is a smell, not proof by itself.',
+            },
+            {
+              question:
+                'Which SOLID principle is hardest to maintain in large enterprise applications, and why?',
+              answer:
+                'Usually **SRP**, because “responsibility” is contextual and enterprise workflows cross validation, authorization, transactions, integrations, auditing, and notifications. Ownership changes and deadline-driven patches gradually turn orchestration classes into catch-all services.\n\nDIP is also difficult across team boundaries when vendor/framework types leak into domain APIs. Maintain SRP with explicit bounded contexts, clear application/domain/infrastructure layers, code ownership, architecture tests, small change sets, and periodic refactoring based on real change coupling. The best answer may differ by system; explain the observed organizational force rather than treating one principle as universally hardest.',
             },
           ],
         },
@@ -301,6 +388,109 @@ const content: DesignContent = {
               answer:
                 'In simple terms: `Optional<T>` is a wrapper type that explicitly communicates "this value might not be present" as part of a method\'s return type, instead of silently returning `null` and hoping callers remember to check.\n\nUse it with methods like `map`, `flatMap`, `orElseGet`, and `orElseThrow` to work with the possibly-missing value safely. Avoid calling `.get()` directly without first checking whether a value is actually present - that defeats the whole purpose and can throw its own exception.\n\n**Where to avoid `Optional` entirely:** as a field type on a class, as a method parameter type, inside collections (like a `List<Optional<X>>`), or just sprinkled everywhere as a generic replacement for `null`. Also be careful serializing `Optional` (for example, to JSON) - it doesn\'t behave the way you might expect.\n\nAn empty `Optional` should mean "there simply was no value here" - it is not the same thing as an error condition, which should still be represented by throwing an actual exception.\n\n**Simple rule to remember:** it\'s fine to *return* `Optional` from a method; avoid *accepting* it as a parameter - if you truly need to allow a missing value as an input, using a plain nullable parameter (clearly documented) at a boundary is usually simpler.',
             },
+            {
+              question: 'Fail-fast vs fail-safe iterators?',
+              answer:
+                '**Fail-fast** iterators, such as those from `ArrayList` and `HashMap`, track structural modification and usually throw `ConcurrentModificationException` when the collection changes outside the iterator. This is a best-effort bug detector, not a thread-safety guarantee. Use `Iterator.remove()` for supported removal during iteration.\n\n“**Fail-safe**” is informal, not an official Java API term. Concurrent collections avoid that exception by iterating over a snapshot (`CopyOnWriteArrayList`) or providing a weakly consistent view (`ConcurrentHashMap`) that may reflect some concurrent updates. Choose based on required consistency and write cost; do not use concurrent collections merely to hide a modification bug.',
+            },
+            {
+              question: 'What is a daemon thread?',
+              answer:
+                'A daemon thread performs background support work and does **not** keep the JVM alive. Once only daemon threads remain, the JVM may exit immediately without waiting for their `finally` blocks to finish. Mark it before start with `thread.setDaemon(true)`; changing it after start throws `IllegalThreadStateException`.\n\nDaemon threads suit best-effort housekeeping such as monitoring. Do not use them for payments, audit writes, file flushing, or any work that must complete. Prefer managed executors plus an explicit graceful-shutdown lifecycle.',
+            },
+            {
+              question: 'Optional isPresent() vs ifPresent()?',
+              answer:
+                '`isPresent()` returns a boolean and commonly leads to imperative check-then-`get()` code. `ifPresent(consumer)` executes a side effect only when a value exists and avoids unsafe `get()`.\n\nPrefer transformation methods for business logic: `map`, `flatMap`, `filter`, `orElseGet`, and `orElseThrow`. Use `ifPresentOrElse` when both branches are side effects. Also remember that `orElse(expensiveCall())` evaluates eagerly; `orElseGet(this::expensiveCall)` is lazy.',
+            },
+            {
+              question: 'What is the difference between wait() and sleep()?',
+              answer:
+                '`Thread.sleep(...)` pauses the current thread for time but **does not release any monitor locks** it holds. `object.wait(...)` must be called while owning that object’s monitor; it releases that monitor and waits until notification, interruption, or timeout, then reacquires it before returning.\n\nUse `wait` only in a condition loop because wakeups can be spurious: `while (!condition) lock.wait()`. Prefer higher-level utilities such as `BlockingQueue`, `CountDownLatch`, and `Condition` in production.\n\nNeither operation directly causes deadlock. Sleeping while holding a needed lock can block progress; waiting on the wrong condition, missing notification, or inconsistent lock ordering can leave threads waiting forever.',
+            },
+            {
+              question: 'How do you sort a Map?',
+              answer:
+                'A map has keys and values, so first clarify which one determines the order.\n\n- **By key:** put entries in a `TreeMap` for natural/custom key order: `new TreeMap<>(map)`.\n- **Preserve insertion order:** use `LinkedHashMap`.\n- **By value:** sort the entry stream and collect into a `LinkedHashMap`:\n\n```java\nMap<String, Integer> sorted = map.entrySet().stream()\n    .sorted(Map.Entry.comparingByValue())\n    .collect(Collectors.toMap(\n        Map.Entry::getKey, Map.Entry::getValue,\n        (a, b) -> a, LinkedHashMap::new));\n```\n\nState how ties and nulls are handled. `HashMap` itself promises no iteration order, so sorting a stream without collecting into an ordered structure loses the result.',
+            },
+            {
+              question: 'Comparable vs Comparator?',
+              answer:
+                '`Comparable<T>` defines a type’s **natural order** inside the class through `compareTo`; there can be only one natural order. `Comparator<T>` is an external strategy with `compare`, so you can define many orders and compose them with `comparing`, `thenComparing`, `reversed`, and `nullsLast`.\n\nUse Comparable for an obvious stable order, such as a version number. Use Comparator for context-specific orders, such as employee-by-salary or employee-by-name. Keep ordering consistent with `equals()` when using sorted sets/maps; otherwise a `TreeSet` may treat unequal objects as duplicates when comparison returns zero.',
+            },
+            {
+              question: 'What features were introduced in Java 7, 8, 11, and 17?',
+              answer:
+                '**Java 7:** try-with-resources, multi-catch, diamond operator, strings in `switch`, numeric literal underscores/binary literals, NIO.2, and Fork/Join.\n\n**Java 8:** lambdas, streams, method references, default/static interface methods, `Optional`, `java.time`, and `CompletableFuture`.\n\n**Java 11 (LTS):** standardized HTTP Client, `var` in lambda parameters, useful `String`/`Files` methods, single-file source execution, and removal of Java EE/CORBA modules from the JDK.\n\n**Java 17 (LTS):** records, sealed classes, pattern matching for `instanceof`, text blocks, switch expressions, stronger JDK-internal encapsulation, and runtime/GC improvements. Some features arrived in intermediate releases but are part of the Java 17 developer baseline.',
+            },
+            {
+              question: 'What are try-with-resources and multi-catch?',
+              answer:
+                '**Try-with-resources** automatically closes every declared `AutoCloseable` resource in reverse order, even when the body throws. If both the body and `close()` fail, the body’s exception remains primary and close failures are available through `getSuppressed()`.\n\n```java\ntry (var in = Files.newBufferedReader(path)) {\n  return in.readLine();\n}\n```\n\n**Multi-catch** handles unrelated alternatives in one block: `catch (IOException | SQLException ex)`. The alternatives cannot be parent/child types, and the catch variable is effectively final. Catch together only when the recovery behavior is genuinely identical.',
+            },
+            {
+              question: 'Runnable vs Callable?',
+              answer:
+                '`Runnable.run()` returns nothing and cannot declare checked exceptions. `Callable<V>.call()` returns a value and may throw checked exceptions. Submit either to an `ExecutorService`; submitting a Runnable returns `Future<?>`, while submitting a Callable returns `Future<V>` whose `get()` yields the result or wraps failure in `ExecutionException`.\n\nUse Runnable for fire-and-observe side effects and Callable for computed results. In modern async composition, `CompletableFuture` is often more expressive than blocking on `Future.get()`.',
+            },
+            {
+              question: 'Explain the Java exception hierarchy.',
+              answer:
+                '`Throwable` has two main branches: **Error** and **Exception**. Errors such as `OutOfMemoryError` generally indicate JVM/environment failure and are not normal recovery signals. Exceptions split into checked exceptions and `RuntimeException` subclasses (unchecked).\n\nChecked exceptions must be caught or declared; unchecked exceptions do not. Preserve the cause when translating exceptions, catch the narrowest useful type, do not swallow failures, and avoid catching `Throwable` because it also captures serious Errors. Use try-with-resources for cleanup rather than relying on a `finally` block alone.',
+            },
+            {
+              question: 'Explain OOP and the main design-pattern categories.',
+              answer:
+                '**OOP pillars:** encapsulation protects invariants behind an API; abstraction exposes what matters and hides implementation; inheritance models a true substitutable “is-a” relationship; polymorphism lets callers use one interface with many implementations. Prefer composition when behavior varies independently.\n\n**Pattern categories:** creational (Factory, Abstract Factory, Builder, Prototype, Singleton), structural (Adapter, Bridge, Composite, Decorator, Facade, Flyweight, Proxy), and behavioral (Strategy, Observer, Command, State, Template Method, Chain of Responsibility, Iterator, Mediator, Memento, Visitor, Interpreter). Patterns are vocabulary for recurring trade-offs, not goals to force into every design.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'collections-internals',
+      title: 'HashMap and ConcurrentHashMap Internals',
+      blocks: [
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Collections Internals Q&A',
+          items: [
+            {
+              question: 'Explain HashMap internal working in detail.',
+              answer:
+                'A `HashMap` stores an array of buckets (`Node<K,V>[] table`). On `put`, it spreads the key hash using `h ^ (h >>> 16)`, computes the bucket with `(capacity - 1) & hash`, then either inserts a node or searches that bucket by hash and `equals()` to replace an existing value. A null key uses hash zero.\n\nCollisions share a bucket as a linked chain; in Java 8+, a sufficiently large chain may become a red-black tree. `get` repeats the same hash/index calculation and then compares candidate keys. Average `get`/`put` is O(1); pathological collision chains are O(n), while tree bins are O(log n).\n\nCapacity is always a power of two, enabling fast bit masking. The map is not thread-safe, permits one null key and multiple null values, and its iteration order is unspecified.',
+            },
+            {
+              question: 'Why are hashCode() and equals() important in HashMap?',
+              answer:
+                '`hashCode()` chooses the likely bucket; `equals()` identifies the exact key among candidates in that bucket. Equal objects **must** have equal hash codes. Unequal objects may share a hash.\n\nA good, stable hash distributes keys evenly. If fields used by `equals`/`hashCode` change after insertion, lookup may search a different bucket and the key appears lost. Therefore map keys should be immutable, and `equals()` and `hashCode()` must be overridden together.',
+            },
+            {
+              question: 'What happens when two objects have the same hashCode?',
+              answer:
+                'This is a collision, not an error. Both entries go to the same bucket. HashMap then checks `equals()`:\n\n- If keys are equal, the new `put` replaces the value.\n- If keys are unequal, both entries remain in the bucket’s chain/tree.\n\nMany collisions reduce performance. Java 8 tree bins cap lookup at roughly O(log n) after treeification, but a correct `equals()` comparison is still what distinguishes keys.',
+            },
+            {
+              question: 'What are HashMap’s default initial capacity and load factor?',
+              answer:
+                'The default load factor is **0.75** and the default initial capacity is **16**, allocated lazily on first insertion in current implementations. The resize threshold is `capacity × loadFactor`, so the first normal threshold is 12.\n\nA higher load factor saves array space but increases collisions; a lower one uses more memory for fewer collisions. If the expected entry count is known, pre-size the map to avoid repeated resizing.',
+            },
+            {
+              question: 'What happens during HashMap resizing?',
+              answer:
+                'When size exceeds the threshold, capacity normally doubles and a new bucket array is allocated. Because capacity is a power of two, each old entry either stays at its old index or moves to `oldIndex + oldCapacity`, based on one additional hash bit. Java 8 can split bins this way without recomputing every hash.\n\nResizing is O(n), temporarily needs both arrays, and can cause latency/allocation spikes. It is unsafe to resize a plain HashMap concurrently. Pre-sizing avoids repeated work when the final size is predictable.',
+            },
+            {
+              question: 'Why does Java 8 use a red-black tree for heavy HashMap collisions?',
+              answer:
+                'A long linked list makes lookup O(n), which is both slow and vulnerable to collision-based denial-of-service inputs. A balanced red-black tree keeps search, insertion, and deletion near O(log n) while requiring fewer rotations than a strictly balanced tree.\n\nTreeification occurs only when a bin reaches 8 entries **and** the table capacity is at least 64; otherwise HashMap resizes first. A bin can untreeify as it shrinks (around 6 entries). Trees cost more memory, so linked nodes remain better for small bins.',
+            },
+            {
+              question: 'How does ConcurrentHashMap work internally in Java 8+?',
+              answer:
+                'Reads are mostly lock-free using volatile visibility. Empty-bin insertion uses CAS. When a bin is occupied, writers synchronize on that bin’s first node rather than locking the whole map; tree bins use their own coordination. Resizing is cooperative—multiple threads can help transfer buckets to the new table.\n\nIt does not allow null keys/values because null would make concurrent “absent versus mapped-to-null” ambiguous. Iterators are weakly consistent. Atomic methods such as `compute`, `merge`, and `putIfAbsent` protect one key operation, but invariants spanning several keys/maps still need external coordination.',
+            },
           ],
         },
       ],
@@ -325,6 +515,22 @@ const content: DesignContent = {
                 "In simple terms: if `get()` returns `null` even though you're sure you inserted that key, the most common reason is that Java doesn't think the key you're searching with is \"equal\" to the key you originally inserted.\n\n**Common causes:**\n1. **`equals()`/`hashCode()` are broken, or the key's fields were mutated after insertion** - if a key's important fields change after it's been put into the map, the map can no longer find it correctly, since its hash bucket location depends on the original values.\n2. You're searching with a *different instance* whose `equals()` doesn't consider it equal to the original key.\n3. You accidentally used a completely different map instance than the one you inserted into.\n4. The map (a plain, non-thread-safe `HashMap`) was modified concurrently by multiple threads, silently corrupting its internal structure.\n5. A type mismatch - for example, searching with an `Integer` key of `1` when you actually inserted the `String` `\"1\"`.\n6. The value that was actually stored for that key genuinely *was* `null` - `get()` returning `null` doesn't tell you whether the key is missing or whether it's present with a `null` value; use `containsKey()` to tell the difference.\n\nWalk the interviewer through the `equals()`/`hashCode()` contract (explained in another answer), and mention that immutable keys are much safer, since their hash and equality never change after insertion.",
             },
             {
+              question:
+                'A HashMap has one million entries and becomes slow. Why, and how do you optimize it?',
+              answer:
+                'One million entries alone does not make O(1) lookup slow. Investigate repeated resizing from poor pre-sizing, expensive or badly distributed `hashCode()`, collision-heavy bins, mutable keys, GC pressure from oversized keys/values, cache misses due to memory layout, and concurrent access to a non-thread-safe map. Also verify that the slowdown is map lookup—not value construction, serialization, or paging/swapping.\n\nProfile allocation/CPU and inspect key distribution. Pre-size from expected entries and load factor, use immutable compact keys with cheap high-quality hashes, avoid unnecessary object wrappers, and use `ConcurrentHashMap` only when concurrent access requires it. For bounded caches use Caffeine with eviction; for data larger than the process memory budget, move it to an appropriate external store rather than raising heap indefinitely.',
+            },
+            {
+              question: 'Why is volatile required in double-checked locking?',
+              answer:
+                'Object creation can conceptually be reordered as allocate memory → publish the reference → initialize fields. Without `volatile`, another thread can observe a non-null reference before construction is safely visible.\n\nA volatile write when publishing and volatile read at the first check create the required happens-before relationship and prevent that unsafe reordering under the Java 5+ memory model:\n\n```java\nprivate static volatile Service instance;\npublic static Service getInstance() {\n  Service local = instance;\n  if (local == null) {\n    synchronized (Service.class) {\n      local = instance;\n      if (local == null) instance = local = new Service();\n    }\n  }\n  return local;\n}\n```\n\nThe holder idiom or enum is usually simpler for a Singleton.',
+            },
+            {
+              question: 'How can ThreadLocal cause a production memory leak?',
+              answer:
+                'A thread-pool thread lives for a long time and owns a `ThreadLocalMap`. Its keys are weak references, but values are strongly retained by the thread. If application code loses the `ThreadLocal` key or forgets `remove()`, the value—including a large object graph, request identity, or even an old application ClassLoader—can remain across requests and redeploys.\n\nAlways clean up in `finally`: `try { context.set(v); ... } finally { context.remove(); }`. Keep values small, avoid static ThreadLocals carrying request data, propagate context explicitly for async work, and inspect heap-dump paths from pool threads to `ThreadLocalMap` entries when diagnosing retention.',
+            },
+            {
               question: 'Heap keeps growing even after Full GC. How do you debug it?',
               answer:
                 'In simple terms: if memory usage stays high even right after a Full GC has run, that memory is genuinely still "live" - meaning something is still holding a reference to it - so this points to either a real leak or an unbounded cache, not a normal GC issue.\n\n1. Track the "heap used right after GC" metric over time - a real leak shows this number steadily climbing.\n2. Take two heap dumps several hours apart, and compare their dominator trees (which objects are retaining the most memory) to see exactly what\'s growing.\n3. Look specifically for: static collections, `ThreadLocal` values that were never cleared, listener lists that keep growing, HTTP session data, Hibernate/JPA sessions that don\'t get closed, or unbounded queues.\n4. Check Metaspace separately, in case it\'s actually the number of loaded classes growing, not regular heap objects.\n5. Rule out a boring explanation first: maybe traffic genuinely increased, or a cache is just going through its normal warm-up period.\n\n**Fix it** by removing whatever is holding onto those objects and adding proper bounds - simply raising `-Xmx` doesn\'t fix a leak, it only delays the eventual `OutOfMemoryError`.',
@@ -338,6 +544,17 @@ const content: DesignContent = {
               question: 'Long GC pauses hit production. What do you investigate?',
               answer:
                 'In simple terms: when GC pauses start causing real problems in production, you need to methodically check what\'s actually driving them before reaching for a different garbage collector.\n\n1. Read the GC logs: how long are pauses, which collector is running, and how full is the heap before/after each collection.\n2. Compare your live-set size (how much memory is genuinely still in use) against your total heap size - if the heap is nearly full of live data, GC has to work harder and more often.\n3. Check your allocation rate - how quickly you\'re creating new objects (object "churn").\n4. Look for "humongous objects" in G1 (very large objects that get special, less-efficient handling) and general memory fragmentation.\n5. Check for explicit `System.gc()` calls, heap dumps being taken during normal operation, or too many objects relying on finalizers.\n6. Consider whether CPU starvation (not having enough CPU available) is making stop-the-world pauses last even longer than they should.\n7. If your latency requirements (SLOs) are strict and your heap is large, consider switching to ZGC or Shenandoah (explained in another answer) - collectors built specifically for very short pauses.\n\n**Priority order:** first reduce how much garbage you\'re creating and how much live data you\'re keeping around; only consider switching collectors after that.',
+            },
+            {
+              question:
+                'The application crashes with OutOfMemoryError after 30 days and no deployment. What likely changed?',
+              answer:
+                'Time-dependent failure suggests accumulated state or workload/environment drift: an unbounded cache/queue/session, listener or ThreadLocal retention, unreleased direct buffers, a ClassLoader/Metaspace leak, thread growth, a scheduled batch, larger traffic/data, stuck consumers, or a dependency slowdown causing backlog. A credential/config/data change can trigger a new error path without a deployment.\n\nFirst identify the exact OOM subtype and compare heap-after-GC, RSS, thread count, class count, queue depth, and traffic over the 30 days. Analyze the automatic heap dump for heap OOM, Native Memory Tracking for off-heap growth, and GC logs for live-set trends. Increasing `-Xmx` only delays a genuine leak.',
+            },
+            {
+              question: 'When would you choose G1 GC over ZGC in production?',
+              answer:
+                'Choose **G1** when throughput and moderate predictable pauses matter, heaps are small-to-large rather than enormous, and current pauses already meet the SLO. It is mature, broadly understood, and a strong general default.\n\nChoose **ZGC** when very large heaps or strict p99/p999 latency make even G1 evacuation/mixed pauses unacceptable and spare CPU/memory overhead is available. The decision must come from production-like GC logs and load tests. If high allocation, memory leaks, CPU throttling, or an oversized live set causes the problem, changing collectors may only mask it.',
             },
             {
               question: 'Java 21 virtual threads reduce performance. Why?',
@@ -427,6 +644,41 @@ const content: DesignContent = {
               question: 'One downstream API becomes slow. How do you prevent thread exhaustion?',
               answer:
                 "In simple terms: if one dependency becomes slow, you need to make sure it can't end up hogging every single one of your available worker threads and starving everything else.\n\n**How to protect against it:**\n- Set explicit **timeouts** on every HTTP client - both a connect timeout (how long to wait to establish a connection) and a read timeout (how long to wait for a response) - so a hung call doesn't tie up a thread indefinitely.\n- Use a separate **bulkhead** - a dedicated, isolated pool of threads/connections - for each downstream dependency, so one slow dependency can't consume the resources meant for calling the others.\n- Add a **circuit breaker** with a fallback response, so once a dependency is clearly failing, you stop sending it more traffic for a while and respond quickly instead.\n- Use semaphores (simple counters) to explicitly **limit how many requests are in-flight** to a given dependency at once.\n- Move non-critical calls to **async processing or messaging**, so a slow dependency there doesn't block the main request path at all.\n- **Virtual threads** (from Java 21+) help you handle far more concurrent blocked calls without running out of OS threads, but they still absolutely need timeouts and bounds - they don't make a slow dependency any less slow.\n\n**Golden rule:** never share one single, unbounded thread pool across every downstream dependency you call - one bad dependency will eventually take everything else down with it.",
+            },
+            {
+              question: 'Explain the Garbage Collection lifecycle and object eligibility.',
+              answer:
+                'Objects are allocated in Eden, usually through per-thread TLABs. A young collection traces from GC roots, discards unreachable young objects, and copies survivors between survivor spaces; sufficiently old survivors are promoted. Old-generation collection marks reachable objects and reclaims/compacts dead regions, depending on the collector. Reference processing, class unloading, and final cleanup may happen during these phases.\n\nAn object becomes **eligible** when no strong-reference path reaches it from a GC root (thread stacks, active static fields, JNI handles, etc.). Setting a variable to null, reassigning it, leaving scope, breaking an object cycle, or unloading its ClassLoader can make it unreachable. Eligibility does not guarantee immediate collection, and Java can collect cyclic graphs when the whole cycle is unreachable.',
+            },
+            {
+              question: 'Minor GC vs Major/Full GC?',
+              answer:
+                '**Minor/Young GC** primarily reclaims the young generation; it is frequent and usually short because most young objects are already dead. Surviving objects are copied/aged and may be promoted.\n\n**Major GC** usually means old-generation collection, while **Full GC** commonly means a stop-the-world collection of the whole heap (and sometimes class metadata). Terminology varies by collector, so production analysis should name the collector and GC event from the logs rather than rely only on “major.” Full collections are usually costlier because the live set is larger.',
+            },
+            {
+              question: 'How do you find the reason for a server or JVM crash?',
+              answer:
+                'Build a timeline from application logs, system journal/container events, deployment/config changes, and metrics. Determine whether it was an orderly exit, uncaught fatal error, OOM kill, JVM crash, signal, host restart, or health-check eviction.\n\nCheck exit code and signal, Linux `dmesg`/kernel logs for the OOM killer, JVM `hs_err_pid*.log`, core dumps, `OutOfMemoryError` heap dumps, GC logs, disk/inode exhaustion, file-descriptor limits, and Kubernetes `lastState`/events. Correlate everything by timestamp; restarting first can destroy the evidence.',
+            },
+            {
+              question: 'How do you inspect server and JVM memory?',
+              answer:
+                'At OS/container level use `free`, `vmstat`, `top`/`ps`, cgroup limits, RSS, swap, and Kubernetes working-set/request/limit metrics. At JVM level use `jcmd <pid> GC.heap_info`, `VM.native_memory summary` (when NMT is enabled), `GC.class_histogram`, JMX/Micrometer, and GC logs.\n\nDistinguish heap, Metaspace, direct buffers, thread stacks, code cache, and native libraries. A container can be OOM-killed while Java heap is below `-Xmx` because total process memory includes all of those non-heap areas.',
+            },
+            {
+              question: 'How do you debug high CPU or memory in a JVM?',
+              answer:
+                'For CPU: identify the hot process/thread, capture several thread dumps, map native thread IDs to Java threads, and record JFR/async-profiler CPU and lock profiles. Check busy loops, contention, excessive GC, serialization, regex, and traffic changes.\n\nFor memory: graph heap-after-GC and RSS separately, inspect allocation profiles and GC logs, take a heap dump for retained-heap growth, and use Native Memory Tracking for off-heap growth. Diagnose first; increasing CPU or `-Xmx` can hide the cause and may worsen container OOMs.',
+            },
+            {
+              question: 'How do you capture thread dumps and heap dumps safely?',
+              answer:
+                'Thread dump: `jcmd <pid> Thread.print -l` (or `jstack <pid>`). Capture 3–5 dumps several seconds apart to distinguish a persistent deadlock/block from a transient state.\n\nHeap dump: `jcmd <pid> GC.heap_dump /secure/path/app.hprof`; configure `-XX:+HeapDumpOnOutOfMemoryError` and `-XX:HeapDumpPath=...` before incidents. Confirm disk space and permissions first: dumps approach heap size, may pause/stress the process, and contain secrets/user data. Transfer and retain them securely, then analyze with MAT/JMC/VisualVM.',
+            },
+            {
+              question: 'How would you migrate an application from Java 8 to Java 17?',
+              answer:
+                '1. Inventory JDK, framework, build-plugin, test, agent, and container compatibility; establish tests and performance baselines.\n2. Upgrade build tooling and dependencies—often Spring Boot first—then compile with JDK 17 while initially keeping `--release 8` if a staged transition helps.\n3. Run `jdeps`/`jdeprscan`; replace removed Java EE modules (`javax.xml.bind`, etc.), internal JDK APIs, Nashorn assumptions, obsolete CMS flags, and illegal reflective access.\n4. Move source/target to 17, fix stronger encapsulation and `javax`→`jakarta` only if the chosen framework migration requires it.\n5. Test unit, integration, serialization, TLS, timezone/locale, GC, startup, memory, and latency under production-like load.\n6. Canary the same artifact/container image, monitor business and JVM signals, and retain a rollback path.\n\nAvoid combining the runtime migration with broad syntax rewrites. Adopt records/sealed classes later in small reviewable changes.',
             },
           ],
         },

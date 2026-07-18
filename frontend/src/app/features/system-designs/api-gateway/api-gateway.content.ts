@@ -65,12 +65,30 @@ const content: DesignContent = {
           type: 'table',
           headers: ['Domain', 'Example'],
           rows: [
-            ['E-commerce checkout', 'Single `/checkout` aggregates cart, tax, inventory, and payment authorization'],
-            ['Food delivery', 'Gateway routes order placement, rider tracking, and restaurant menus per region'],
-            ['Payments', 'PCI scope reduction — only the gateway tier handles card tokens at the edge'],
-            ['Netflix-style microservices', 'Zuul / Envoy edge proxy with auth and routing to hundreds of services'],
-            ['Kong / AWS API Gateway', 'Managed plugins for OAuth, WAF, and usage plans per API key'],
-            ['Spring Cloud Gateway', 'Reactive filters for JWT, circuit breaking, and path predicates in JVM stacks'],
+            [
+              'E-commerce checkout',
+              'Single `/checkout` aggregates cart, tax, inventory, and payment authorization',
+            ],
+            [
+              'Food delivery',
+              'Gateway routes order placement, rider tracking, and restaurant menus per region',
+            ],
+            [
+              'Payments',
+              'PCI scope reduction — only the gateway tier handles card tokens at the edge',
+            ],
+            [
+              'Netflix-style microservices',
+              'Zuul / Envoy edge proxy with auth and routing to hundreds of services',
+            ],
+            [
+              'Kong / AWS API Gateway',
+              'Managed plugins for OAuth, WAF, and usage plans per API key',
+            ],
+            [
+              'Spring Cloud Gateway',
+              'Reactive filters for JWT, circuit breaking, and path predicates in JVM stacks',
+            ],
           ],
         },
       ],
@@ -165,6 +183,134 @@ public class CheckoutAggregationFilter implements GatewayFilter {
       id: 'interview-questions',
       title: 'Interview Questions',
       blocks: [
+        {
+          type: 'sketchnote',
+          title: 'API Gateway Interview Board',
+          intro:
+            'The gateway is the highly available policy-enforcement and routing layer for north-south traffic—not the home of domain logic.',
+          items: [
+            {
+              code: 'GW-1',
+              glyph: '🚪',
+              title: 'What and why?',
+              subtitle: 'One controlled front door',
+              points: [
+                'Hides internal service topology from clients',
+                'Centralizes routing, TLS, auth, quotas, and edge observability',
+                'Reduces duplicated cross-cutting code in every service',
+              ],
+              tip: 'Useful, not mandatory: a small system may only need a reverse proxy/load balancer.',
+            },
+            {
+              code: 'GW-2',
+              glyph: '⇄',
+              title: 'Gateway vs load balancer',
+              subtitle: 'Layer-7 policy vs traffic distribution',
+              points: [
+                'Load balancer spreads traffic among equivalent instances',
+                'Gateway routes different APIs/services and applies client policy',
+                'Typical path: public LB → gateway replicas → service LB',
+              ],
+              tip: 'Products can combine both roles; explain responsibilities rather than brand names.',
+            },
+            {
+              code: 'GW-3',
+              glyph: '✓',
+              title: 'Right responsibilities',
+              subtitle: 'Keep the edge thin',
+              points: [
+                'Routing, auth validation, rate limits, WAF, CORS, TLS, logging',
+                'Optional protocol translation and small response aggregation',
+                'Business invariants and service authorization remain downstream',
+              ],
+              tip: 'Too much business logic creates a distributed monolith at the edge.',
+            },
+            {
+              code: 'GW-4',
+              glyph: '↪',
+              title: 'Routing internals',
+              subtitle: 'Predicate → filters → upstream',
+              points: [
+                'Match host, path, method, headers, version, or weighted rule',
+                'Run ordered pre-filters, proxy request, then post-filters',
+                'Resolve upstream through discovery and use timeout/circuit breaker',
+              ],
+              tip: 'Use normalized route definitions and version configuration as code.',
+            },
+            {
+              code: 'GW-5',
+              glyph: 'JWT',
+              title: 'JWT authentication',
+              subtitle: 'Reject invalid identity at the edge',
+              points: [
+                'Extract Bearer token; validate signature with cached JWKS',
+                'Check iss, aud, exp/nbf, scopes, and key rotation',
+                'Forward trusted identity context; services still authorize actions',
+              ],
+              tip: 'Strip spoofable identity headers before adding gateway-owned ones.',
+            },
+            {
+              code: 'GW-6',
+              glyph: '🛡',
+              title: 'Security improvement',
+              subtitle: 'Smaller exposed surface',
+              points: [
+                'WAF, request-size/schema limits, threat rules, bot/IP controls',
+                'mTLS to services, secret isolation, access logs, and redaction',
+                'Internal services stay private and accept traffic only from trusted paths',
+              ],
+              tip: 'The gateway is defense in depth—not a replacement for service-level security.',
+            },
+            {
+              code: 'GW-7',
+              glyph: '↓',
+              title: 'Protect one service',
+              subtitle: 'Limit before forwarding',
+              points: [
+                'Per-route/tenant rate limit and concurrency limit',
+                'Circuit breaker, bounded queue, timeout, and load shedding',
+                'Retry only idempotent calls with backoff, jitter, and a retry budget',
+              ],
+              tip: 'Blind gateway retries can amplify an overloaded service.',
+            },
+            {
+              code: 'GW-8',
+              glyph: 'HA',
+              title: 'Gateway failure',
+              subtitle: 'Treat the edge as critical infrastructure',
+              points: [
+                'Run stateless replicas across zones behind a load balancer',
+                'Use health checks, autoscaling, config rollback, and graceful drain',
+                'Degrade optional policies safely; monitor saturation and config errors',
+              ],
+              tip: 'A single gateway instance is a system-wide single point of failure.',
+            },
+            {
+              code: 'GW-9',
+              glyph: 'SCG',
+              title: 'Spring Cloud Gateway',
+              subtitle: 'Reactive route + filter pipeline',
+              points: [
+                'Route predicates select path/host/method and lb:// service URI',
+                'Global/per-route filters implement JWT, headers, limits, and resilience',
+                'WebFlux/Netty requires non-blocking filters and clients',
+              ],
+              tip: 'In interviews, describe what you measured/configured; never invent personal experience.',
+            },
+            {
+              code: 'GW-10',
+              glyph: 'DNS',
+              title: 'Service discovery',
+              subtitle: 'Logical service name → healthy endpoints',
+              points: [
+                'Eureka: gateway watches registry and load-balances lb://service-name',
+                'Kubernetes: route through Service DNS or EndpointSlice-aware discovery',
+                'Discovery handles endpoint churn; readiness prevents routing too early',
+              ],
+              tip: 'Cache discovery briefly, but remove unhealthy/stale endpoints quickly.',
+            },
+          ],
+        },
         {
           type: 'interviewQa',
           items: [

@@ -22,6 +22,124 @@ const content: DesignContent = {
       ],
     },
     {
+      id: 'oauth-agent-sketchnotes',
+      title: 'OAuth, JWT, Agents, and Skills — Sketchnotes',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'OAuth 2.0 vs JWT',
+          intro:
+            'One defines delegated authorization; the other defines a portable token format. They solve different problems and are commonly used together.',
+          items: [
+            {
+              code: 'OAuth',
+              glyph: '↗',
+              title: 'Authorization framework',
+              subtitle: 'How a client gets delegated access',
+              points: [
+                'Defines roles, grants, scopes, consent, and token issuance',
+                'Actors: client, user, authorization server, resource server',
+                'OAuth access tokens may be opaque or JWT-formatted',
+              ],
+              tip: 'OAuth is a protocol/framework—not a token format.',
+            },
+            {
+              code: 'JWT',
+              glyph: 'J',
+              title: 'Signed token format',
+              subtitle: 'Header.Payload.Signature',
+              points: [
+                'Carries claims such as sub, iss, aud, exp, and scope',
+                'Resource server can validate locally using a public key',
+                'Readable by holders unless separately encrypted',
+              ],
+              tip: 'Signed does not mean secret. Never put passwords or sensitive PII in claims.',
+            },
+            {
+              code: 'OIDC',
+              glyph: 'ID',
+              title: 'Authentication layer',
+              subtitle: 'Login on top of OAuth 2.0',
+              points: [
+                'Adds ID Token, UserInfo, nonce, and identity semantics',
+                'Use Authorization Code + PKCE for browser/mobile login',
+                'The ID token is for the client; access token is for the API',
+              ],
+              tip: 'Say “OIDC for login, OAuth for delegated API access.”',
+            },
+            {
+              code: 'Trade',
+              glyph: '⇄',
+              title: 'JWT vs opaque token',
+              subtitle: 'Local speed vs central control',
+              points: [
+                'JWT: local validation, low latency, harder immediate revocation',
+                'Opaque: introspection/revocation, but adds network/cache dependency',
+                'Validate signature, issuer, audience, expiry, and key rotation',
+              ],
+              tip: 'Do not accept a token merely because it parses.',
+            },
+          ],
+        },
+        {
+          type: 'sketchnote',
+          title: 'Agent vs Skill',
+          intro:
+            'An agent is the active problem-solving runtime. A skill is reusable know-how the agent can load and apply.',
+          items: [
+            {
+              code: 'Agent',
+              glyph: 'A',
+              title: 'Actor with a goal',
+              subtitle: 'Plans, decides, acts, and observes',
+              points: [
+                'Owns the current task and conversational/runtime state',
+                'Chooses tools and adapts from intermediate results',
+                'Can combine several skills during one workflow',
+              ],
+              tip: 'Agent = who is doing the work.',
+            },
+            {
+              code: 'Skill',
+              glyph: 'S',
+              title: 'Reusable capability',
+              subtitle: 'Instructions, workflow, and domain knowledge',
+              points: [
+                'Loaded when a task matches its purpose',
+                'Standardizes repeatable work and quality checks',
+                'Does not independently pursue goals or maintain a task loop',
+              ],
+              tip: 'Skill = how a particular kind of work should be done.',
+            },
+            {
+              code: 'Use',
+              glyph: '＋',
+              title: 'They compose',
+              subtitle: 'Agent selects and executes skills',
+              points: [
+                'One agent may use review, deployment, and documentation skills',
+                'One skill can be reused by many agents and tasks',
+                'Tools perform actions; skills teach usage; agent makes decisions',
+              ],
+              tip: 'A recipe is not the chef—and a tool is not either one.',
+            },
+            {
+              code: 'Pick',
+              glyph: '?',
+              title: 'When to create which',
+              subtitle: 'Autonomy vs repeatability',
+              points: [
+                'Create a skill for a recurring bounded procedure',
+                'Use an agent when work needs planning, judgment, and iteration',
+                'Keep skills focused, testable, and explicit about constraints',
+              ],
+              tip: 'Do not create a new agent when a reusable instruction package is enough.',
+            },
+          ],
+        },
+      ],
+    },
+    {
       id: 'spring-core',
       title: 'Spring and Web Fundamentals',
       blocks: [
@@ -179,13 +297,1044 @@ const content: DesignContent = {
             {
               question: "What's the difference between BeanFactory and ApplicationContext?",
               answer:
-                '`BeanFactory` is the most basic version of Spring\u2019s container — it can create beans, cache singletons, and wire dependencies. That\u2019s about it.\n\n`ApplicationContext` builds on top of `BeanFactory` and adds the things a real application actually needs: publishing/listening to **events**, internationalization support, easier AOP/proxy integration, environment and profile support, and it eagerly creates singleton beans at startup by default (so failures show up immediately, not on first use).\n\nEvery Spring Boot app uses `ApplicationContext`.\n\n**Simple way to remember it:** `BeanFactory` is the bare-bones engine; `ApplicationContext` is the production-ready container built around it.',
+                '`BeanFactory` is the minimal Spring container: it creates beans, resolves dependencies, and manages scopes/lifecycle. It commonly creates a bean only when requested.\n\n`ApplicationContext` extends `BeanFactory` and adds application events, internationalization, resource loading, environment/profiles, annotation post-processors, easier AOP integration, and eager creation of non-lazy singleton beans by default. Eager startup exposes broken wiring/configuration before the app receives traffic.\n\n**Why Boot prefers it:** auto-configuration, `@ConfigurationProperties`, web-server lifecycle, Actuator, events, profiles, and enterprise post-processors all need the richer context. Boot creates a suitable servlet, reactive, or non-web `ApplicationContext`; you still access beans through the inherited BeanFactory API.\n\n**Memory aid:** BeanFactory is the DI engine; ApplicationContext is the production application container.',
             },
             {
               question:
                 "How would you debug a Spring Boot application that's slow only in production?",
               answer:
                 'Things that are different in production and can cause "it\u2019s slow only there" bugs: much bigger data volume, real concurrent traffic, real (not mocked) downstream services, cold vs. warm caches, different config or JVM/GC settings, and "noisy neighbor" servers sharing the same infrastructure.\n\n**Approach:**\n- Compare production config against staging/dev line by line.\n- Turn on percentile-based latency metrics (p95/p99, not just averages).\n- Use a profiler (async-profiler, or Java Flight Recorder) to see where time is actually going.\n- Check the database\u2019s query plan against production-sized data (a query that\u2019s fast on 100 rows can be terrible on 10 million).\n- Look at connection pool wait times, GC pause times, and any chatty calls between services.\n- Check if a feature flag behaves differently in prod.\n\nAvoid turning on `show-sql` globally in production — it\u2019s noisy and can hurt performance. Instead, sample traces for a short window when investigating.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'advanced-sql-sketchnotes',
+      title: 'Advanced SQL Interview Sketchnotes',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Five SQL Patterns Worth Knowing',
+          intro:
+            'PostgreSQL-style examples: reduce repeated scans by expressing ranking, sequence, and cumulative state with window functions.',
+          items: [
+            {
+              code: 'SQL-1',
+              glyph: '#',
+              title: 'N-th highest salary',
+              subtitle: 'Rank distinct salary values without gaps',
+              points: [
+                'DENSE_RANK gives equal salaries the same rank',
+                'Ranks continue 1, 2, 3—no gaps after ties',
+                'Filter the ranked result by the requested N',
+              ],
+              tip: 'ROW_NUMBER ranks employees; DENSE_RANK ranks distinct salary levels.',
+            },
+            {
+              code: 'SQL-2',
+              glyph: '30m',
+              title: 'Sessionize events',
+              subtitle: 'New session after inactivity',
+              points: [
+                'LAG reads the previous event per user',
+                'Mark a boundary when the gap exceeds 30 minutes',
+                'Cumulative SUM turns boundaries into session IDs',
+              ],
+              tip: 'Add a deterministic tie-breaker such as event_id to the window order.',
+            },
+            {
+              code: 'SQL-3',
+              glyph: '%',
+              title: 'YoY + running total',
+              subtitle: 'Aggregate once, compare adjacent years',
+              points: [
+                'CTE computes one row per year',
+                'LAG supplies previous-year revenue',
+                'SUM OVER computes the cumulative total in the same pass',
+              ],
+              tip: 'NULLIF(previous, 0) prevents divide-by-zero.',
+            },
+            {
+              code: 'SQL-4',
+              glyph: '5d',
+              title: 'Consecutive login streak',
+              subtitle: 'Gaps and Islands',
+              points: [
+                'Deduplicate to one login row per user/day',
+                'Subtract ROW_NUMBER days from each date',
+                'Consecutive dates share one island key; keep count ≥ 5',
+              ],
+              tip: 'Deduplication prevents multiple logins on one day from inflating the streak.',
+            },
+            {
+              code: 'SQL-5',
+              glyph: 'Ix',
+              title: 'Keep predicates SARGable',
+              subtitle: 'Let indexes search—not calculate every row',
+              points: [
+                'Functions on indexed columns often block a normal index seek',
+                'Rewrite predicates as ranges or equivalent raw-column comparisons',
+                'Use an expression/function index only when rewriting is impossible',
+              ],
+              tip: 'Confirm with EXPLAIN ANALYZE; “function in WHERE” is a risk, not an automatic verdict.',
+            },
+          ],
+        },
+        {
+          type: 'code',
+          language: 'sql',
+          filename: '01_nth_highest_salary.sql',
+          showLineNumbers: true,
+          code: `-- Returns every employee at the N-th distinct salary level.
+WITH ranked AS (
+  SELECT
+    employee_id,
+    employee_name,
+    salary,
+    DENSE_RANK() OVER (ORDER BY salary DESC) AS salary_rank
+  FROM employees
+  WHERE salary IS NOT NULL
+)
+SELECT employee_id, employee_name, salary
+FROM ranked
+WHERE salary_rank = :n;
+
+-- Why not a correlated COUNT(DISTINCT salary)?
+-- It can logically work, but expresses repeated per-row comparison and is
+-- harder to extend. DENSE_RANK states the ranking intent directly and lets
+-- the optimizer use one ordered window operation.`,
+        },
+        {
+          type: 'code',
+          language: 'sql',
+          filename: '02_sessionize_events.sql',
+          showLineNumbers: true,
+          code: `WITH ordered AS (
+  SELECT
+    event_id,
+    user_id,
+    event_time,
+    LAG(event_time) OVER (
+      PARTITION BY user_id
+      ORDER BY event_time, event_id
+    ) AS previous_event_time
+  FROM user_events
+),
+boundaries AS (
+  SELECT *,
+    CASE
+      WHEN previous_event_time IS NULL
+        OR event_time > previous_event_time + INTERVAL '30 minutes'
+      THEN 1 ELSE 0
+    END AS starts_new_session
+  FROM ordered
+),
+sessionized AS (
+  SELECT *,
+    SUM(starts_new_session) OVER (
+      PARTITION BY user_id
+      ORDER BY event_time, event_id
+      ROWS UNBOUNDED PRECEDING
+    ) AS session_number
+  FROM boundaries
+)
+SELECT
+  user_id,
+  session_number,
+  MIN(event_time) AS session_start,
+  MAX(event_time) AS session_end,
+  COUNT(*) AS event_count
+FROM sessionized
+GROUP BY user_id, session_number;`,
+        },
+        {
+          type: 'code',
+          language: 'sql',
+          filename: '03_yoy_and_running_total.sql',
+          showLineNumbers: true,
+          code: `WITH annual AS (
+  SELECT
+    EXTRACT(YEAR FROM order_date)::int AS year,
+    SUM(revenue) AS revenue
+  FROM orders
+  GROUP BY EXTRACT(YEAR FROM order_date)::int
+),
+compared AS (
+  SELECT
+    year,
+    revenue,
+    LAG(revenue) OVER (ORDER BY year) AS previous_year_revenue,
+    SUM(revenue) OVER (
+      ORDER BY year
+      ROWS UNBOUNDED PRECEDING
+    ) AS running_revenue
+  FROM annual
+)
+SELECT
+  year,
+  revenue,
+  previous_year_revenue,
+  ROUND(
+    100.0 * (revenue - previous_year_revenue)
+    / NULLIF(previous_year_revenue, 0),
+    2
+  ) AS yoy_growth_percent,
+  running_revenue
+FROM compared
+ORDER BY year;`,
+        },
+        {
+          type: 'code',
+          language: 'sql',
+          filename: '04_five_day_login_streak.sql',
+          showLineNumbers: true,
+          code: `WITH login_days AS (
+  SELECT DISTINCT user_id, login_at::date AS login_day
+  FROM logins
+),
+numbered AS (
+  SELECT
+    user_id,
+    login_day,
+    login_day
+      - ROW_NUMBER() OVER (
+          PARTITION BY user_id ORDER BY login_day
+        ) * INTERVAL '1 day' AS island_key
+  FROM login_days
+)
+SELECT
+  user_id,
+  MIN(login_day) AS streak_start,
+  MAX(login_day) AS streak_end,
+  COUNT(*) AS streak_days
+FROM numbered
+GROUP BY user_id, island_key
+HAVING COUNT(*) >= 5
+ORDER BY user_id, streak_start;`,
+        },
+        {
+          type: 'code',
+          language: 'sql',
+          filename: '05_sargable_predicates.sql',
+          showLineNumbers: true,
+          code: `-- Non-SARGable: normal index on balance cannot directly seek ABS(balance).
+SELECT * FROM accounts WHERE ABS(balance) > 1000;
+
+-- SARGable equivalent.
+SELECT *
+FROM accounts
+WHERE balance > 1000 OR balance < -1000;
+
+-- Another common rewrite: do not wrap an indexed timestamp in DATE().
+-- Bad:
+SELECT * FROM orders WHERE DATE(created_at) = DATE '2026-07-19';
+
+-- Better half-open range:
+SELECT *
+FROM orders
+WHERE created_at >= TIMESTAMP '2026-07-19 00:00:00'
+  AND created_at <  TIMESTAMP '2026-07-20 00:00:00';
+
+-- If the expression is the real access pattern, PostgreSQL can index it:
+CREATE INDEX idx_accounts_abs_balance ON accounts ((ABS(balance)));`,
+        },
+      ],
+    },
+    {
+      id: 'sql-jpa-rest',
+      title: 'SQL Optimization, Spring Data JPA, and REST APIs',
+      blocks: [
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'SQL, JPA & API Q&A',
+          items: [
+            {
+              question: 'What query-optimization techniques do you use?',
+              answer:
+                'Start with evidence from the real execution plan, not guesses. Reduce work by filtering early, selecting only needed columns/rows, using the right join order, and avoiding functions/type casts on indexed filter columns. Add selective indexes that match equality, range, join, and ordering predicates; use composite-index left-prefix rules and consider covering/partial indexes where supported.\n\nFix N+1 queries, paginate large results (keyset pagination for deep pages), batch writes, keep transactions short, and maintain table statistics. Partition only when pruning/maintenance justifies the complexity. Cache stable hot reads, precompute expensive aggregates/materialized views when freshness permits, and archive old data. Re-run the plan and load test after every change—an index can speed reads but slow writes and consume memory/storage.',
+            },
+            {
+              question: 'How do you identify slow SQL queries?',
+              answer:
+                'Use database slow-query logs or statement statistics (`pg_stat_statements`, MySQL Performance Schema), APM traces, and application/query latency histograms. Rank by **total time**, p95/p99, frequency, rows scanned versus returned, lock wait, and I/O—not just one unusually slow sample.\n\nRun `EXPLAIN` first and `EXPLAIN ANALYZE` only where safely permitted. Look for full scans on large tables, bad cardinality estimates, repeated nested loops, sort/hash spills, missing indexes, implicit casts, lock waits, and plan changes caused by stale statistics or parameter sensitivity. Reproduce with production-like row counts and bind values, then compare before/after plans.',
+            },
+            {
+              question: 'Why should SELECT * be avoided in production queries?',
+              answer:
+                '`SELECT *` transfers and materializes columns the caller does not need, increasing network, database buffer, JVM heap, and serialization work. It can prevent a covering-index-only plan, accidentally fetch large JSON/BLOB columns, and makes API behavior change when a schema adds/reorders a column.\n\nExplicit columns document the contract and make projections stable. `SELECT *` is acceptable for ad-hoc inspection or truly small internal queries where every column is required; it is not automatically slow, but it creates avoidable risk in long-lived production code.',
+            },
+            {
+              question: 'Explain JPA Repository and how Spring Data JPA works internally.',
+              answer:
+                '`Repository<T, ID>` is the marker abstraction. `CrudRepository` adds `save`, `findById`, `findAll`, `existsById`, `count`, and delete methods. `ListCrudRepository` returns lists; `PagingAndSortingRepository` adds `findAll(Pageable/Sort)`; `JpaRepository` adds JPA-specific methods such as `flush`, `saveAndFlush`, batch deletes, and reference access.\n\nAt startup, `@EnableJpaRepositories`/Boot scans repository interfaces and creates proxy beans, commonly backed by `SimpleJpaRepository`. A call is intercepted, repository metadata is resolved, and Spring either executes the base implementation, derives JPQL from a method name, uses `@Query`/named query, or invokes a custom fragment. JPA’s `EntityManager` translates operations into persistence-context changes; Hibernate generates SQL and flushes at transaction boundaries.\n\n`save` chooses `persist` for a new entity and `merge` otherwise—it is not always an immediate SQL statement. Put transaction boundaries in the service layer, use DTO projections/entity graphs deliberately, and inspect generated SQL to catch N+1 behavior.',
+            },
+            {
+              question:
+                'How would you update a user email with validation, exception handling, and JPA?',
+              answer:
+                'Use a request DTO with `@NotBlank`/`@Email`, validate at the controller boundary, load and update the entity inside a service transaction, enforce a database unique constraint, and map known failures to stable HTTP responses. Do not accept an entire `User` entity from the client. Return 404 when the user is absent, 409 when the email is already owned, and 400 for malformed input. The sketchnote and code below show the complete flow.',
+            },
+          ],
+        },
+        {
+          type: 'sketchnote',
+          title: 'Update Email API — One Safe Request',
+          intro:
+            'PATCH the field, validate twice, and let the database enforce the final invariant.',
+          items: [
+            {
+              code: '01',
+              glyph: '→',
+              title: 'Boundary',
+              subtitle: 'PATCH /api/users/{id}/email',
+              points: [
+                '@Valid checks @NotBlank + @Email',
+                'DTO exposes only the editable field',
+                'Invalid payload becomes HTTP 400',
+              ],
+              tip: 'Never bind a public request directly to a JPA entity.',
+            },
+            {
+              code: '02',
+              glyph: 'Tx',
+              title: 'Service transaction',
+              subtitle: 'Load → check → mutate',
+              points: [
+                'findById or throw UserNotFound',
+                'Normalize email consistently',
+                'Check ownership, then update entity',
+              ],
+              tip: 'Dirty checking writes at flush/commit; save() is optional for a managed entity.',
+            },
+            {
+              code: '03',
+              glyph: 'DB',
+              title: 'Database invariant',
+              subtitle: 'Unique index is authoritative',
+              points: [
+                'Pre-check gives a friendly 409',
+                'Unique constraint closes the race',
+                'Translate integrity violation to 409',
+              ],
+              tip: 'Application checks alone cannot prevent concurrent duplicates.',
+            },
+            {
+              code: '04',
+              glyph: '!',
+              title: 'Stable errors',
+              subtitle: '@RestControllerAdvice',
+              points: ['400 validation', '404 missing user', '409 duplicate email'],
+              tip: 'Return ProblemDetail; never leak SQL or stack traces.',
+            },
+          ],
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'UserEmailApi.java',
+          showLineNumbers: true,
+          code: `// DTO
+public record UpdateEmailRequest(
+    @NotBlank @Email @Size(max = 254) String email) {}
+
+public record UserResponse(Long id, String email) {
+  static UserResponse from(User user) {
+    return new UserResponse(user.getId(), user.getEmail());
+  }
+}
+
+// Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+  boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
+}
+
+// Service
+@Service
+@RequiredArgsConstructor
+public class UserService {
+  private final UserRepository users;
+
+  @Transactional
+  public UserResponse updateEmail(Long id, String rawEmail) {
+    String email = rawEmail.strip().toLowerCase(Locale.ROOT);
+    User user = users.findById(id)
+        .orElseThrow(() -> new UserNotFoundException(id));
+
+    if (users.existsByEmailIgnoreCaseAndIdNot(email, id)) {
+      throw new EmailAlreadyUsedException(email);
+    }
+
+    user.setEmail(email); // managed entity: JPA dirty checking persists it
+    return UserResponse.from(user);
+  }
+}
+
+// Controller
+@RestController
+@RequestMapping("/api/users")
+@RequiredArgsConstructor
+public class UserController {
+  private final UserService service;
+
+  @PatchMapping("/{id}/email")
+  public UserResponse updateEmail(
+      @PathVariable @Positive Long id,
+      @Valid @RequestBody UpdateEmailRequest request) {
+    return service.updateEmail(id, request.email());
+  }
+}
+
+// Error mapping (database must also have UNIQUE(lower(email)) or equivalent)
+@RestControllerAdvice
+public class ApiExceptionHandler {
+  @ExceptionHandler(UserNotFoundException.class)
+  ResponseEntity<ProblemDetail> notFound(UserNotFoundException ex) {
+    ProblemDetail p = ProblemDetail.forStatusAndDetail(
+        HttpStatus.NOT_FOUND, ex.getMessage());
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(p);
+  }
+
+  @ExceptionHandler({
+      EmailAlreadyUsedException.class,
+      DataIntegrityViolationException.class
+  })
+  ResponseEntity<ProblemDetail> conflict(Exception ex) {
+    ProblemDetail p = ProblemDetail.forStatusAndDetail(
+        HttpStatus.CONFLICT, "Email is already in use");
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(p);
+  }
+}`,
+        },
+      ],
+    },
+    {
+      id: 'crud-rate-limiter',
+      title: 'Build a CRUD API with an In-Memory Rate Limiter',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Build a Spring Boot CRUD API and allow at most **10 requests in any rolling 60-second window per user**. The limiter belongs in a `OncePerRequestFilter`, before controllers, so every protected endpoint follows the same policy. The example uses an authenticated principal as the identity and falls back to client IP only for anonymous traffic.',
+        },
+        {
+          type: 'mermaid',
+          caption:
+            'Authentication establishes identity before the rate-limit filter; rejected requests never consume controller, service, or database capacity.',
+          definition: `flowchart LR
+  C[Client] --> S[Spring Security filters]
+  S -->|principal| R[RateLimitFilter]
+  R -->|1..10 in rolling minute| D[DispatcherServlet]
+  R -->|11th request| X[429 + Retry-After]
+  D --> V[UserController]
+  V --> B[UserService]
+  B --> J[JpaRepository]
+  J --> DB[(H2 / production DB)]`,
+        },
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Design Decisions Before Writing Code',
+          items: [
+            {
+              question: 'What exactly does “10 requests per minute on any endpoint” mean?',
+              answer:
+                'State the contract before coding. This solution enforces **10 requests per rolling minute per authenticated user across all protected endpoints**. Request 11 receives 429 until the oldest accepted request leaves the 60-second window.\n\nIf the requirement instead means 10 per endpoint, use a key such as `userId + HTTP method + normalized route pattern`. Do not use a raw URI such as `/users/123`, because IDs create unbounded keys and let callers evade limits by changing paths. Decide whether failed requests count; this example counts every request that passes the limiter, regardless of the controller result.',
+            },
+            {
+              question: 'Why use a sliding-window log instead of fixed window or token bucket?',
+              answer:
+                '**Fixed window** is simple but permits 20 calls around a minute boundary—10 at `12:00:59` and 10 at `12:01:00`. **Token bucket** is efficient and supports controlled bursts, but “10 per minute” must be translated into capacity and refill semantics. **Sliding-window log** stores accepted timestamps and exactly enforces this small limit.\n\nIts cost is O(limit) memory per active identity and cleanup work. With a limit of only 10, that is reasonable for an interview in-memory implementation. For large limits use a sliding-window counter or token bucket.',
+            },
+            {
+              question: 'Why is ConcurrentHashMap alone not enough for thread safety?',
+              answer:
+                'The business operation is compound: remove expired timestamps → check size → append timestamp. A thread-safe map protects map structure, but it does not make that sequence atomic. Two concurrent requests could both observe size 9 and both become request 10.\n\nThe implementation uses `ConcurrentHashMap.compute` so each user’s complete state transition is atomic, including cleanup. Requests for different users can still proceed independently. A per-key lock or atomic immutable state replacement are alternatives; a global synchronized method would serialize every user and hurt throughput.',
+            },
+            {
+              question: 'Where should the limiter run and how is a user identified?',
+              answer:
+                'Run it as a filter/interceptor, not inside controllers. Place it **after authentication** so `request.getUserPrincipal()` is available, but before MVC/controller work. An API key or trusted tenant/user claim is also valid. Never trust a caller-supplied `X-User-Id` header unless a trusted gateway strips and recreates it.\n\nIP fallback is imperfect: NAT can make many people share one address, proxies can hide the real address, and forwarded headers are spoofable unless accepted only from trusted proxies. Exclude health probes and usually CORS `OPTIONS` requests from application-user quotas.',
+            },
+            {
+              question: 'What should a correct 429 response contain?',
+              answer:
+                'Return **429 Too Many Requests**, a machine-readable `ProblemDetail` JSON body, and `Retry-After` in seconds. Also expose quota headers such as `RateLimit-Limit`, `RateLimit-Remaining`, and `RateLimit-Reset` if that is your API convention. Do not return 403: the identity is allowed to use the endpoint, just not at the current rate.\n\nThe retry time must come from the same clock/window calculation as the decision. Clients should wait, add jitter, and avoid immediate retries that amplify load.',
+            },
+            {
+              question: 'What are the limitations of an in-memory limiter?',
+              answer:
+                'The limit applies **per application instance**, state disappears on restart, and users can receive a larger effective quota when a load balancer sends requests to multiple instances. Sticky sessions reduce but do not solve correctness or failover. The map also needs expiry cleanup or one-time callers accumulate forever.\n\nFor distributed enforcement use an API gateway or Redis-backed atomic algorithm/Lua script, with a documented fail-open/fail-closed policy. Keep local limiting as a fast protective layer, but do not claim it enforces a cluster-wide commercial quota.',
+            },
+          ],
+        },
+        {
+          type: 'heading',
+          level: 3,
+          text: '1. Dependencies and configuration',
+        },
+        {
+          type: 'code',
+          language: 'xml',
+          filename: 'pom.xml (dependencies)',
+          code: `<dependencies>
+  <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+  </dependency>
+  <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-jpa</artifactId>
+  </dependency>
+  <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-validation</artifactId>
+  </dependency>
+  <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+  </dependency>
+  <dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <scope>runtime</scope>
+  </dependency>
+  <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <scope>test</scope>
+  </dependency>
+</dependencies>`,
+        },
+        {
+          type: 'code',
+          language: 'yaml',
+          filename: 'application.yml',
+          code: `spring:
+  datasource:
+    url: jdbc:h2:mem:users;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+
+rate-limit:
+  requests: 10
+  window: 60s`,
+        },
+        {
+          type: 'heading',
+          level: 3,
+          text: '2. Entity, DTOs, and repository',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'User.java',
+          showLineNumbers: true,
+          code: `@Entity
+@Table(
+    name = "users",
+    uniqueConstraints = @UniqueConstraint(name = "uk_user_email", columnNames = "email")
+)
+public class User {
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+
+  @Column(nullable = false, length = 100)
+  private String name;
+
+  @Column(nullable = false, length = 254)
+  private String email;
+
+  @Version
+  private long version;
+
+  protected User() {}
+
+  public User(String name, String email) {
+    this.name = name;
+    this.email = email;
+  }
+
+  public Long getId() { return id; }
+  public String getName() { return name; }
+  public String getEmail() { return email; }
+  public long getVersion() { return version; }
+  public void setName(String name) { this.name = name; }
+  public void setEmail(String email) { this.email = email; }
+}`,
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'UserContracts.java',
+          code: `public record UserRequest(
+    @NotBlank @Size(max = 100) String name,
+    @NotBlank @Email @Size(max = 254) String email) {}
+
+public record UserResponse(Long id, String name, String email, long version) {
+  static UserResponse from(User user) {
+    return new UserResponse(
+        user.getId(), user.getName(), user.getEmail(), user.getVersion());
+  }
+}
+
+public interface UserRepository extends JpaRepository<User, Long> {
+  boolean existsByEmailIgnoreCase(String email);
+  boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
+}`,
+        },
+        {
+          type: 'heading',
+          level: 3,
+          text: '3. Transactional service and REST controller',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'UserService.java',
+          showLineNumbers: true,
+          code: `@Service
+@Transactional(readOnly = true)
+public class UserService {
+  private final UserRepository users;
+
+  public UserService(UserRepository users) {
+    this.users = users;
+  }
+
+  public List<UserResponse> findAll() {
+    return users.findAll().stream().map(UserResponse::from).toList();
+  }
+
+  public UserResponse findById(Long id) {
+    return UserResponse.from(findEntity(id));
+  }
+
+  @Transactional
+  public UserResponse create(UserRequest request) {
+    String email = normalize(request.email());
+    if (users.existsByEmailIgnoreCase(email)) {
+      throw new DuplicateEmailException(email);
+    }
+    return UserResponse.from(users.save(new User(request.name().strip(), email)));
+  }
+
+  @Transactional
+  public UserResponse update(Long id, UserRequest request) {
+    User user = findEntity(id);
+    String email = normalize(request.email());
+    if (users.existsByEmailIgnoreCaseAndIdNot(email, id)) {
+      throw new DuplicateEmailException(email);
+    }
+    user.setName(request.name().strip());
+    user.setEmail(email); // managed entity: dirty checking persists at commit
+    return UserResponse.from(user);
+  }
+
+  @Transactional
+  public void delete(Long id) {
+    users.delete(findEntity(id));
+  }
+
+  private User findEntity(Long id) {
+    return users.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+  }
+
+  private String normalize(String email) {
+    return email.strip().toLowerCase(Locale.ROOT);
+  }
+}`,
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'UserController.java',
+          showLineNumbers: true,
+          code: `@RestController
+@RequestMapping("/api/users")
+public class UserController {
+  private final UserService service;
+
+  public UserController(UserService service) {
+    this.service = service;
+  }
+
+  @PostMapping
+  public ResponseEntity<UserResponse> create(@Valid @RequestBody UserRequest request) {
+    UserResponse created = service.create(request);
+    URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+        .path("/{id}").buildAndExpand(created.id()).toUri();
+    return ResponseEntity.created(location).body(created); // 201
+  }
+
+  @GetMapping
+  public List<UserResponse> findAll() {
+    return service.findAll(); // 200
+  }
+
+  @GetMapping("/{id}")
+  public UserResponse findOne(@PathVariable @Positive Long id) {
+    return service.findById(id); // 200 or 404
+  }
+
+  @PutMapping("/{id}")
+  public UserResponse update(
+      @PathVariable @Positive Long id,
+      @Valid @RequestBody UserRequest request) {
+    return service.update(id, request); // 200
+  }
+
+  @DeleteMapping("/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void delete(@PathVariable @Positive Long id) {
+    service.delete(id); // 204
+  }
+}`,
+        },
+        {
+          type: 'heading',
+          level: 3,
+          text: '4. Exact, thread-safe sliding-window limiter',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'SlidingWindowRateLimiter.java',
+          showLineNumbers: true,
+          code: `@Component
+public class SlidingWindowRateLimiter {
+  public record Decision(boolean allowed, int remaining, long retryAfterSeconds) {}
+
+  private static final class Window {
+    private final ArrayDeque<Long> acceptedAt = new ArrayDeque<>();
+  }
+
+  private final ConcurrentHashMap<String, Window> windows = new ConcurrentHashMap<>();
+  private final int limit;
+  private final long windowMillis;
+  private final Clock clock;
+
+  public SlidingWindowRateLimiter(
+      @Value("\${rate-limit.requests:10}") int limit,
+      @Value("\${rate-limit.window:60s}") Duration window,
+      Clock clock) {
+    if (limit < 1 || window.isZero() || window.isNegative()) {
+      throw new IllegalArgumentException("Rate limit and window must be positive");
+    }
+    this.limit = limit;
+    this.windowMillis = window.toMillis();
+    this.clock = clock;
+  }
+
+  public Decision tryAcquire(String key) {
+    long now = clock.millis();
+    long cutoff = now - windowMillis;
+    AtomicReference<Decision> result = new AtomicReference<>();
+
+    windows.compute(key, (ignored, existing) -> {
+      Window window = existing == null ? new Window() : existing;
+      removeExpired(window, cutoff);
+      if (window.acceptedAt.size() >= limit) {
+        long waitMillis = window.acceptedAt.peekFirst() + windowMillis - now;
+        long retryAfter = Math.max(1, (waitMillis + 999) / 1000);
+        result.set(new Decision(false, 0, retryAfter));
+        return window;
+      }
+
+      window.acceptedAt.addLast(now);
+      result.set(new Decision(true, limit - window.acceptedAt.size(), 0));
+      return window;
+    });
+
+    return result.get();
+  }
+
+  @Scheduled(fixedDelayString = "\${rate-limit.cleanup-delay:60s}")
+  void removeInactiveKeys() {
+    long cutoff = clock.millis() - windowMillis;
+    windows.keySet().forEach(key -> {
+      windows.computeIfPresent(key, (ignored, window) -> {
+        removeExpired(window, cutoff);
+        return window.acceptedAt.isEmpty() ? null : window;
+      });
+    });
+  }
+
+  private void removeExpired(Window window, long cutoff) {
+    while (!window.acceptedAt.isEmpty()
+        && window.acceptedAt.peekFirst() <= cutoff) {
+      window.acceptedAt.removeFirst();
+    }
+  }
+}`,
+        },
+        {
+          type: 'heading',
+          level: 3,
+          text: '5. Filter, identity, and 429 response',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'RateLimitFilter.java',
+          showLineNumbers: true,
+          code: `public class RateLimitFilter extends OncePerRequestFilter {
+  private final SlidingWindowRateLimiter limiter;
+  private final ObjectMapper objectMapper;
+
+  public RateLimitFilter(SlidingWindowRateLimiter limiter, ObjectMapper objectMapper) {
+    this.limiter = limiter;
+    this.objectMapper = objectMapper;
+  }
+
+  @Override
+  protected boolean shouldNotFilter(HttpServletRequest request) {
+    return request.getMethod().equals("OPTIONS")
+        || request.getRequestURI().equals("/actuator/health");
+  }
+
+  @Override
+  protected void doFilterInternal(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      FilterChain chain) throws ServletException, IOException {
+
+    String key = identity(request); // global per-user limit
+    SlidingWindowRateLimiter.Decision decision = limiter.tryAcquire(key);
+
+    response.setHeader("RateLimit-Limit", "10");
+    response.setHeader("RateLimit-Remaining", String.valueOf(decision.remaining()));
+
+    if (!decision.allowed()) {
+      response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+      response.setHeader("Retry-After", String.valueOf(decision.retryAfterSeconds()));
+      response.setHeader("RateLimit-Reset", String.valueOf(decision.retryAfterSeconds()));
+      response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+
+      ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+          HttpStatus.TOO_MANY_REQUESTS,
+          "Maximum 10 requests are allowed in any rolling 60-second window");
+      problem.setTitle("Rate limit exceeded");
+      objectMapper.writeValue(response.getOutputStream(), problem);
+      return;
+    }
+
+    chain.doFilter(request, response);
+  }
+
+  private String identity(HttpServletRequest request) {
+    Principal principal = request.getUserPrincipal();
+    return principal != null
+        ? "user:" + principal.getName()
+        : "ip:" + request.getRemoteAddr();
+  }
+}`,
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'SecurityAndApplicationConfig.java',
+          code: `@Configuration
+@EnableScheduling
+public class ApplicationConfig {
+  @Bean
+  Clock clock() {
+    return Clock.systemUTC();
+  }
+}
+
+@Configuration
+public class SecurityConfig {
+  @Bean
+  RateLimitFilter rateLimitFilter(
+      SlidingWindowRateLimiter limiter, ObjectMapper objectMapper) {
+    return new RateLimitFilter(limiter, objectMapper);
+  }
+
+  // Prevent Boot from also registering it as a standalone servlet filter.
+  @Bean
+  FilterRegistrationBean<RateLimitFilter> rateLimitFilterRegistration(
+      RateLimitFilter filter) {
+    FilterRegistrationBean<RateLimitFilter> registration =
+        new FilterRegistrationBean<>(filter);
+    registration.setEnabled(false);
+    return registration;
+  }
+
+  @Bean
+  SecurityFilterChain security(HttpSecurity http, RateLimitFilter filter)
+      throws Exception {
+    return http
+        .csrf(AbstractHttpConfigurer::disable) // stateless non-browser API
+        .sessionManagement(session ->
+            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/actuator/health").permitAll()
+            .anyRequest().authenticated())
+        .httpBasic(Customizer.withDefaults()) // demo only; prefer OIDC/JWT in production
+        .addFilterAfter(filter, BasicAuthenticationFilter.class)
+        .build();
+  }
+
+  @Bean
+  PasswordEncoder passwordEncoder() {
+    return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+  }
+
+  @Bean
+  UserDetailsService demoUsers(PasswordEncoder encoder) {
+    UserDetails demo = org.springframework.security.core.userdetails.User
+        .withUsername("demo")
+        .password(encoder.encode("change-me"))
+        .roles("USER")
+        .build();
+    return new InMemoryUserDetailsManager(demo);
+  }
+}`,
+        },
+        {
+          type: 'heading',
+          level: 3,
+          text: '6. Consistent API errors',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'ApiExceptionHandler.java',
+          code: `@RestControllerAdvice
+public class ApiExceptionHandler {
+  @ExceptionHandler(UserNotFoundException.class)
+  ProblemDetail notFound(UserNotFoundException ex) {
+    return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+  }
+
+  @ExceptionHandler({
+      DuplicateEmailException.class,
+      DataIntegrityViolationException.class,
+      ObjectOptimisticLockingFailureException.class
+  })
+  ProblemDetail conflict(Exception ex) {
+    return ProblemDetail.forStatusAndDetail(
+        HttpStatus.CONFLICT, "The resource conflicts with current data");
+  }
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  ProblemDetail invalid(MethodArgumentNotValidException ex) {
+    ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+        HttpStatus.BAD_REQUEST, "Request validation failed");
+    problem.setProperty(
+        "errors",
+        ex.getBindingResult().getFieldErrors().stream()
+            .collect(Collectors.toMap(
+                FieldError::getField,
+                error -> Objects.requireNonNullElse(
+                    error.getDefaultMessage(), "Invalid value"),
+                (first, ignored) -> first)));
+    return problem;
+  }
+}`,
+        },
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Verification and Production Hardening',
+          items: [
+            {
+              question: 'How would you test this solution?',
+              answer:
+                'Inject a controllable `Clock`; never wait a real minute in tests. Unit-test that requests 1–10 succeed, request 11 is rejected, `Retry-After` is rounded up correctly, and a request succeeds once the oldest timestamp expires. Run many threads against one identity and assert exactly 10 successes; run different identities and confirm they do not block one another.\n\nWith MockMvc, call mixed CRUD endpoints 11 times as the same principal and verify the 11th response is 429 with JSON and headers. Also test validation (400), missing user (404), duplicate/optimistic conflict (409), create (201 + `Location`), delete (204), health exclusion, and cleanup of inactive keys.',
+            },
+            {
+              question: 'What would you change for production?',
+              answer:
+                'Move cluster-wide quota enforcement to a gateway or Redis atomic script; keep keys bounded and privacy-safe; derive identity from verified authentication; trust forwarded IP headers only from known proxies; make limits configurable per plan/tenant/route; and emit allowed/rejected counters plus active-key and limiter-latency metrics.\n\nDefine behavior when the distributed limiter is unavailable, protect the limiter itself from key-cardinality attacks, use pagination instead of unbounded `findAll`, database migrations instead of `ddl-auto`, and real authentication/authorization. Load-test boundary bursts and multi-instance behavior before claiming the quota is correct.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'integration-production-scenarios',
+      title: 'Microservice Integration and Production Scenarios',
+      blocks: [
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Integration, Data & Reliability Q&A',
+          items: [
+            {
+              question: 'OAuth 2.0 vs JWT?',
+              answer:
+                '**OAuth 2.0 is an authorization framework** describing how a client obtains delegated access through flows and roles such as resource owner, client, authorization server, and resource server. **JWT is a token format**: a signed set of claims. They are not alternatives.\n\nOAuth can issue JWT access tokens or opaque random tokens. JWTs allow local validation and horizontal scaling but are difficult to revoke immediately and expose readable claims; opaque tokens support centralized introspection/revocation but add a network/cache dependency. For user login, use OpenID Connect on top of OAuth 2.0. Validate issuer, audience, signature, expiry, and key rotation—never trust a token merely because it parses.',
+            },
+            {
+              question: 'RestTemplate vs WebClient?',
+              answer:
+                '`RestTemplate` is the older synchronous/blocking client: one request thread generally waits for each response. It is stable but in maintenance mode. `WebClient` supports non-blocking reactive I/O, streaming, backpressure, and high concurrency; it can also be used synchronously with `.block()`, although that gives up most reactive benefits.\n\nChoose WebClient for WebFlux, streaming, or large I/O-bound fan-out where the entire path remains non-blocking. For normal blocking Spring MVC code, a blocking client is often simpler; modern Spring also provides `RestClient`. In every case configure connect/read/overall timeouts, bounded connection pools, observability, and careful retries.',
+            },
+            {
+              question: 'How do microservices communicate?',
+              answer:
+                '**Synchronous** HTTP/gRPC fits immediate request-response and strong caller feedback, but couples latency and availability. **Asynchronous** messaging/events fits decoupling, buffering, fan-out, and long-running workflows, but introduces eventual consistency, duplicate delivery, ordering, and harder debugging.\n\nUse explicit contracts (OpenAPI/Protobuf/event schemas), timeouts and propagated deadlines, trace context, service discovery, TLS, and idempotency. Prefer async events for facts and background workflows; use sync calls when the caller cannot continue without the answer. Avoid long chains of synchronous service calls because latency and failure probability multiply.',
+            },
+            {
+              question: 'What is an API Gateway and why is it required?',
+              answer:
+                'An API Gateway is the controlled edge entry point that routes requests to internal services and centralizes concerns such as TLS termination, authentication, rate limiting, request-size limits, routing, observability, and sometimes protocol transformation or response aggregation. It hides topology and gives clients one stable endpoint.\n\nIt is useful, not universally mandatory. Keep business logic and service-specific authorization inside services; otherwise the gateway becomes a bottleneck and a distributed monolith. Run multiple instances, keep routes/config versioned, bound expensive transformations, and distinguish gateway/BFF responsibilities from internal service-mesh traffic.',
+            },
+            {
+              question: 'An @Async method throws an exception and nobody handles it. What happens?',
+              answer:
+                'For an `@Async` method returning `Future`/`CompletableFuture`, the exception completes that future exceptionally; it is observed only when the caller awaits or attaches error handling. For a `void` method, there is no result channel, so Spring sends the failure to `AsyncUncaughtExceptionHandler`—the default normally logs it.\n\nPrefer `CompletableFuture` or a durable queue for important work, attach recovery/metrics, and configure a named bounded executor plus rejection policy. Also remember that self-invocation bypasses the async proxy and transaction/security context does not automatically cross to the new thread.',
+            },
+            {
+              question: 'Spring Boot startup takes 45 seconds. How do you find the bottleneck?',
+              answer:
+                'Measure phases instead of guessing. Enable `ApplicationStartup` with `BufferingApplicationStartup` or JFR, inspect `/actuator/startup`, and compare condition-evaluation and bean-creation timing. Profile CPU, class loading, disk/DNS/network waits, and capture a thread dump while startup is stalled.\n\nCommon causes include database migrations, eager remote calls in constructors/`@PostConstruct`, slow secret/config resolution, component/entity scanning over broad packages, large classpaths, synchronous cache warm-up, entropy/DNS issues, and oversized Hibernate schema validation. Move nonessential work after readiness, narrow scanning, parallelize only independent safe work, and never declare readiness before required dependencies and migrations are complete.',
+            },
+            {
+              question: 'JPA first-level cache vs second-level cache?',
+              answer:
+                'The **first-level cache** is the mandatory persistence context attached to one `EntityManager`/transaction. Re-reading the same entity ID returns the same managed instance, and dirty checking writes changes at flush. It disappears when the context closes.\n\nThe **second-level cache** is optional, provider-managed, and shared across persistence contexts/JVM requests (and possibly nodes with a suitable provider). It caches entity/collection state, not arbitrary query results unless query cache is separately enabled. Use it for frequently read, rarely changed reference data with explicit eviction/consistency rules. It does not fix N+1, poor SQL, or unbounded result loading.',
+            },
+            {
+              question:
+                'A JPA query is fast at 100 rows but extremely slow at one million. What is the likely cause?',
+              answer:
+                'The small dataset hid the algorithm and plan cost. At scale the database may switch to a full scan, bad nested-loop join, large sort/hash spill, or return far too many rows; missing/stale statistics and non-sargable predicates often cause bad estimates. JPA may add N+1 queries, hydrate large entity graphs, dirty-track every entity, and exhaust heap/GC. Offset pagination also becomes slower on deep pages.\n\nInspect actual SQL and `EXPLAIN ANALYZE`, rows scanned versus returned, spills, indexes/statistics, query count, fetch plan, and JVM allocation. Use a selective/covering index, DTO projection, keyset pagination, fetch join/entity graph where appropriate, streaming/batching for bulk work, and production-sized performance tests.',
+            },
+            {
+              question: 'Design a Payment or NEFT processing system.',
+              answer:
+                'Expose an idempotent transfer API that accepts a client request ID, source/destination, amount, and metadata. Authenticate/authorize, validate limits/beneficiary, reserve or debit funds in a strongly consistent **double-entry ledger**, and persist both state plus an outbox event atomically. A workflow/orchestrator submits to the bank/NEFT connector and tracks `RECEIVED → VALIDATED → SUBMITTED → SETTLED/FAILED/RETURNED`; clients poll status or receive signed webhooks.\n\nUse immutable ledger entries rather than updating balances as the source of truth, unique constraints for idempotency, per-account sequencing/locking to prevent overspend, encrypted PII, maker-checker/risk controls, and complete audit trails. External bank responses are asynchronous and ambiguous, so retry submission only with a stable bank reference, reconcile against acknowledgements/settlement files, and compensate/reverse through new ledger entries—never delete financial history.',
+            },
+            {
+              question: 'How would you handle more than one million transactions per day?',
+              answer:
+                'One million/day averages only about 12 TPS, so design for the measured peak, bursts, and bank cut-off batches—not the daily total. Keep stateless API instances behind a load balancer, partition workflow/queue processing by account or transfer key where ordering matters, and scale consumers with lag while preserving idempotency.\n\nUse an ACID ledger database with proper indexes and partition/archive strategy, connection-pool limits, outbox/CDC, asynchronous bank connectors, backpressure, and separate read models for dashboards. Define SLOs, load test peak plus retry/reconciliation traffic, monitor queue lag and settlement age, and plan multi-zone failover, RPO/RTO, and replay from durable events.',
+            },
+            {
+              question: 'How do you implement distributed locking safely?',
+              answer:
+                'First prefer designs that avoid a lock: database unique constraints/conditional updates, optimistic versions, idempotency keys, or partitioning each key to one consumer. If a lock is necessary, use a proven coordinator such as ZooKeeper/etcd/Consul or a carefully configured Redis approach with atomic acquire (`SET key token NX PX ttl`) and token-checked release.\n\nA lease can expire while the old owner is paused, so attach a monotonically increasing **fencing token** and require the protected resource to reject stale owners. Define timeout, renewal, failure behavior, and observability. Never assume a Redis lock alone makes a database write correct; the database/resource must enforce the invariant.',
+            },
+            {
+              question:
+                'Redis cache is healthy, but database utilization is still 100%. What do you investigate?',
+              answer:
+                'Check cache hit ratio **by endpoint/key**, not merely Redis availability. Look for uncached write-heavy paths, wrong/unstable keys, very short TTLs, mass expiry, evictions, cold starts, cache penetration for missing keys, hot-key stampedes, and code that queries the database before checking cache. Also inspect whether cached data still triggers N+1/lazy loads or whether background jobs, replicas, migrations, and analytics are consuming the database.\n\nCorrelate DB statements with request traces, rank top SQL by total load, and compare cache misses to DB QPS. Fix keys/TTL and negative caching, add request coalescing for stampedes, optimize/index the remaining SQL, and never use caching to conceal an incorrect capacity or query plan.',
+            },
+            {
+              question:
+                'Performance degrades over a weekend without a deployment. What could have changed?',
+              answer:
+                '“No code change” does not mean “no system change.” Traffic/data volume may grow; caches can evict or expire; queues, sessions, logs, temp files, heap live set, threads, connections, or database bloat can accumulate. Scheduled jobs, backups, certificate/credential rotation, feature flags, autoscaling, cloud maintenance, noisy neighbors, dependency latency, statistics/plan changes, and retries can alter behavior.\n\nCompare Friday and Monday metrics/config across heap-after-GC, GC, pools, queues, disk, DB plans/locks, cache hit rate, dependency latency, instance count, feature flags, and infrastructure events. Build a timeline first, then use profiles/dumps for the resource that drifted. Restarting may clear evidence while leaving the cause intact.',
             },
           ],
         },
@@ -373,6 +1522,16 @@ const content: DesignContent = {
                 'A Saga breaks one big operation into a series of small **local transactions**, each with a matching **compensating action** to undo it if something later fails. You can coordinate this either through choreography (each service reacts to events from the previous one) or orchestration (a central coordinator tells each service what to do next).\n\nMake every step idempotent, use timeouts everywhere, persist the saga\u2019s state so it can resume after a crash, and route anything that can\u2019t auto-recover to a dead-letter queue for manual handling. Sagas are generally preferred over two-phase commit (2PC) in microservices — you trade strict consistency for something more scalable, and accept **eventual consistency** instead.',
             },
             {
+              question: 'Why is Saga needed? Explain it with a real-world example.',
+              answer:
+                'A normal ACID transaction cannot safely span autonomous microservices/databases without tightly coupling their availability. A Saga keeps each service’s write local and coordinates the business workflow with durable messages and compensating actions.\n\n**Travel booking example:** create itinerary → reserve flight → reserve hotel → charge payment. If hotel reservation fails, release the flight. If payment fails after both reservations, cancel both. Compensation is a new business action, not a magical database rollback—refunds can fail or complete later, so the workflow persists its state and retries idempotently.\n\nUse an outbox to publish each local commit reliably, deduplicate consumers, define timeouts, and expose an honest state such as `BOOKING_PENDING` while convergence is in progress.',
+            },
+            {
+              question: 'When would you choose Saga over a distributed transaction?',
+              answer:
+                'Choose Saga when work spans independently deployed services or heterogeneous data stores, availability/scalability matter, and the business accepts eventual consistency plus explicit compensation. It is especially suitable for long-running workflows such as orders, travel, fulfillment, and onboarding.\n\nA single local database transaction is still simpler and stronger when all writes can live in one bounded context. XA/2PC may fit a small controlled environment where every resource supports it and strict atomicity outweighs blocking, coordinator failure, and operational coupling. Saga is not free: it adds intermediate states, message reliability, idempotency, reconciliation, and harder testing.',
+            },
+            {
               question: 'How do you design a highly available Spring Boot architecture?',
               answer:
                 'Run multiple instances behind a load balancer. Keep every app instance stateless. Replicate your database and keep backups. Use caches with sensible TTLs (expiry times) so stale data doesn\u2019t linger forever. Set up proper health and readiness checks so traffic only goes to instances that can actually handle it. Spread instances across multiple availability zones. Regularly run chaos drills to see how the system actually behaves when something breaks. And use bulkheads so one dependency\u2019s failure can\u2019t take everything else down.\n\nIn short: **high availability = redundancy + detecting failure fast + a recovery process you\u2019ve actually tested.**',
@@ -387,6 +1546,46 @@ const content: DesignContent = {
               question: 'Ship a new version of a Spring Boot service with zero downtime. How?',
               answer:
                 'Use a **rolling deployment**: only replace instances once new ones report "ready" (readiness gate), and set `maxUnavailable=0` so you never drop below full capacity. Keep your database schema changes **backward compatible** during the rollout — the classic pattern is expand (add new stuff without removing anything) then contract (remove the old stuff later, once nothing uses it). Enable graceful shutdown (`server.shutdown=graceful`) so in-flight requests finish instead of being cut off, and avoid sticky sessions that would break during instance replacement. Migrate data in safe, compatible phases, and make sure autoscaling doesn\u2019t fight against the rollout while it\u2019s happening.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'delivery-containers-collaboration',
+      title: 'Docker, Deployment, and Delivery Scenarios',
+      blocks: [
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Containers & Safe Delivery Q&A',
+          items: [
+            {
+              question:
+                'What is Docker, why do we use it, and how does it provide environment consistency?',
+              answer:
+                'Docker packages an application with its runtime, libraries, filesystem, and startup command into an immutable image. Containers run that image as isolated processes using operating-system namespaces and cgroups; unlike VMs, they share the host kernel.\n\nThe same content-addressed image moves through dev, test, staging, and production, so dependency and filesystem differences are minimized. A Dockerfile makes the environment reproducible and image tags/digests make deployments traceable. It does not make environments identical by itself—configuration, secrets, CPU architecture, kernel, external services, and data still differ and must be managed explicitly.',
+            },
+            {
+              question: 'How do you secure Docker containers in production?',
+              answer:
+                'Use minimal trusted base images, pin by digest, patch/rebuild frequently, and scan images/SBOMs in CI. Use multi-stage builds so compilers and source do not reach runtime. Run as a non-root UID, drop Linux capabilities, enable `no-new-privileges`, use seccomp/AppArmor/SELinux, prefer a read-only root filesystem, and mount only required writable paths.\n\nNever bake secrets into images or environment dumps; inject them through a secret manager. Set CPU/memory/PID limits, restrict egress/ingress, do not expose the Docker socket, sign/verify images, and enforce admission policy. Log/audit runtime behavior and keep hosts/orchestrators patched. Containers are an isolation boundary, not a substitute for application security.',
+            },
+            {
+              question: 'What are the benefits of containerization in microservices?',
+              answer:
+                'Containers provide an independently versioned deployment unit, reproducible runtime, fast startup, efficient density, process/resource isolation, and a standard health/config/logging contract for an orchestrator. This supports independent scaling, rolling/canary releases, immutable infrastructure, and consistent CI artifacts.\n\nTrade-offs remain: image supply-chain risk, orchestration/networking complexity, observability overhead, stateful storage concerns, and resource-limit/JVM tuning. A badly bounded monolith split into containers does not automatically become good microservices.',
+            },
+            {
+              question: 'What is Blue-Green Deployment, and how does rollback work?',
+              answer:
+                'Blue is the current production environment; Green is an equivalent environment running the new release. Deploy and test Green privately, warm caches, verify health/smoke checks, then switch the router/load balancer to Green. Existing connections should drain gracefully, giving near-zero downtime.\n\nRollback is a traffic switch back to Blue while it is still healthy. The difficult part is data: schema changes must be backward compatible (expand first, contract in a later release), and irreversible writes/migrations need restore or forward-fix plans. Also manage background jobs and message consumers so both colors do not process the same work. Compared with canary, Blue-Green switches a large traffic share quickly and costs roughly double capacity during rollout.',
+            },
+            {
+              question:
+                'Two senior stakeholders modify the same code. How do you resolve the conflict and deploy safely?',
+              answer:
+                'Pause the merge and understand both intents before choosing lines. Ask each owner to explain the requirement, invariant, tests, and deadline; use the ticket/ADR/product owner to resolve business priority, not seniority. Pair on a combined design when both behaviors are required, or split the code behind clear interfaces/feature flags.\n\nRebase/merge the latest target branch into a dedicated integration branch, resolve the conflict together, and add tests covering both stakeholders’ scenarios plus regression/contract tests around the shared area. Request review from both owners, run CI and a production-like smoke/load test, then use a small canary or feature-flag rollout with metrics and logs. Define the rollback trigger and owner before deployment. Record the decision so the same semantic conflict does not reappear.',
             },
           ],
         },
@@ -527,7 +1726,7 @@ const content: DesignContent = {
             {
               question: 'How does Spring Security work?',
               answer:
-                'At its core, it\u2019s a **chain of filters** that wraps around every incoming request. Some filters handle authentication (figuring out *who* the caller is, and building a `SecurityContext` to represent that), and others handle authorization (checking *what* that caller is allowed to do) — all of this happens before the request ever reaches your Spring MVC controllers. You configure this filter chain with `SecurityFilterChain` beans. On top of that, method-level security annotations (like `@PreAuthorize`) add an extra AOP-based check right before a specific method runs. The current user\u2019s security info is normally kept in a `ThreadLocal` for standard Spring MVC apps (or in the reactive context for WebFlux apps).',
+                'The servlet container enters `DelegatingFilterProxy`, which delegates to Spring’s `FilterChainProxy`. It selects the first matching `SecurityFilterChain` and runs its ordered filters.\n\n1. The security context is loaded (or starts empty).\n2. An authentication filter extracts credentials: session, Basic, bearer token, or login form.\n3. It builds an unauthenticated `Authentication` and calls `AuthenticationManager` (usually `ProviderManager`).\n4. A matching `AuthenticationProvider` validates it—commonly through `UserDetailsService` + `PasswordEncoder`, or a JWT decoder—and returns an authenticated token with authorities.\n5. Spring stores it in `SecurityContextHolder` for the request; session-based apps may persist it, while stateless APIs rebuild it each request.\n6. `AuthorizationFilter` checks URL rules through an `AuthorizationManager`. Later, method interceptors enforce `@PreAuthorize`/`@PostAuthorize` before/after service calls.\n7. If authentication is missing/invalid, `AuthenticationEntryPoint` returns 401. If the caller is authenticated but forbidden, `AccessDeniedHandler` returns 403. If allowed, the request continues to `DispatcherServlet` and the controller.\n8. The context is cleared at request completion to prevent identity leaking between pooled threads.\n\nCSRF protects browser cookie/session flows; do not disable it merely because an API returns JSON. Stateless bearer-token APIs that do not authenticate with cookies typically disable CSRF, define CORS explicitly, and use `SessionCreationPolicy.STATELESS`.',
             },
             {
               question: 'Explain JWT Authentication flow.',
