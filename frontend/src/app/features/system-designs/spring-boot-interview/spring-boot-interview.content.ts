@@ -11,13 +11,13 @@ const content: DesignContent = {
         {
           type: 'markdown',
           value:
-            'Spring Boot interview prep with **in-depth answers** in sketchnote style — handwritten fonts on a notebook board. Expand each question to reveal the answer.',
+            'Spring Boot interview prep with **simple, clear answers** in sketchnote style — handwritten fonts on a notebook board. Expand each question to reveal the answer.',
         },
         {
           type: 'callout',
           variant: 'tip',
           title: 'How to practise',
-          body: 'Answer out loud in four beats: **abstraction → internals → failure mode → how you observe it in prod**. Strong answers name the proxy, the pool, or the filter chain — not just the annotation.',
+          body: 'Say your answer out loud in four steps: **what it does → how it works underneath → how it can break → how you\u2019d notice that in production**. A strong answer names the actual thing involved — the proxy, the pool, the filter chain — not just the annotation.',
         },
       ],
     },
@@ -33,52 +33,52 @@ const content: DesignContent = {
             {
               question: 'What happens internally when a REST API request reaches Spring Boot?',
               answer:
-                '**Path:** client \u2192 embedded Tomcat \u2192 Servlet filter chain (Security, CORS, \u2026) \u2192 `DispatcherServlet` \u2192 handler mapping \u2192 controller method \u2192 argument resolvers \u2192 business/service \u2192 return value handlers (`@ResponseBody` / message converters) \u2192 HTTP response.\n\n**Key internals:** Boot auto-configures an embedded servlet container and registers `DispatcherServlet` at `/`. Filters run *around* the servlet. Controllers are beans; JSON usually goes through `MappingJackson2HttpMessageConverter`.\n\n**Say in interview:** \u201cFilters first, then DispatcherServlet routes to the mapped controller, binds/validates args, executes the method, then serializes the return value.\u201d',
+                'A request travels through several stops before you get a response.\n\n**The path:** client \u2192 embedded Tomcat (the web server) \u2192 a chain of filters (security, CORS, etc.) \u2192 `DispatcherServlet` \u2192 it finds the right controller method \u2192 arguments are read/validated \u2192 your business logic runs \u2192 the return value is converted (usually to JSON) \u2192 response goes back to the client.\n\n**Behind the scenes:** Boot starts an embedded server for you and registers one `DispatcherServlet` that handles every request at `/`. Filters run *before* the servlet gets involved. Your controllers are just Spring beans, and JSON conversion is usually done by `MappingJackson2HttpMessageConverter`.\n\n**Say in the interview:** "Filters run first, then `DispatcherServlet` routes to the matching controller, binds and validates the input, runs the method, then converts the return value to JSON."',
             },
             {
               question: 'Explain the DispatcherServlet flow.',
               answer:
-                '`DispatcherServlet` is Spring MVC\u2019s **front controller**:\n\n1. `HandlerMapping` finds the handler (`@RequestMapping` method).\n2. `HandlerAdapter` invokes it.\n3. `HandlerInterceptor`s run pre/post/afterCompletion.\n4. Return value is processed (`@ResponseBody`, `ResponseEntity`, view name).\n5. Exceptions go to `HandlerExceptionResolver` / `@ControllerAdvice`.\n\n**Sketch:** one servlet, many controllers \u2014 mapping + adapters keep MVC pluggable.',
+                '`DispatcherServlet` is the single **front door** for every request in Spring MVC. Think of it as a traffic controller that decides where each request goes.\n\n1. `HandlerMapping` figures out which controller method matches the URL.\n2. `HandlerAdapter` actually calls that method.\n3. Any `HandlerInterceptor`s run before and after (e.g. logging, auth checks).\n4. The return value gets turned into a response (JSON body, or a view name).\n5. If something throws, it goes to `HandlerExceptionResolver` or `@ControllerAdvice`.\n\n**Simple picture:** one servlet in front, many controllers behind it. The mapping and adapter layers are what let Spring MVC support many styles of controller without hardcoding anything.',
             },
             {
               question: 'What is the difference between @Component, @Service, and @Repository?',
               answer:
-                'All three mark a class as a **Spring bean** for component scanning.\n\n- **`@Component`**: generic stereotype.\n- **`@Service`**: semantic \u201cbusiness service\u201d (same mechanics as `@Component`).\n- **`@Repository`**: DAO/persistence stereotype; Spring can also apply **exception translation** (e.g. JDBC/JPA \u2192 `DataAccessException`).\n\n**Interview tip:** Prefer stereotypes for readability and AOP pointcuts; behavior difference that matters most is `@Repository` + persistence exception translation.',
+                'All three do the same basic thing: they tell Spring "this class is a bean, please manage it." The difference is mostly about **naming intent**, with one real behavioral extra.\n\n- **`@Component`**: the generic, "this is a Spring-managed class" label.\n- **`@Service`**: same as `@Component`, just says "this holds business logic." Purely for readability.\n- **`@Repository`**: also marks a class for scanning, but Spring adds one real feature — it automatically converts low-level database errors (like a raw JDBC or JPA exception) into Spring\u2019s own `DataAccessException` family, so your code doesn\u2019t need to know which database driver threw the error.\n\n**Interview tip:** use the specific stereotype that matches the class\u2019s job — it makes code easier to read and lets Spring\u2019s tooling apply the right behavior. The one difference that actually matters technically is `@Repository`\u2019s exception translation.',
             },
             {
               question: '@Autowired vs constructor injection?',
               answer:
-                '**Constructor injection** (preferred): dependencies are `final`, required at creation, easy to test, fails fast if a bean is missing. Boot/Spring can omit `@Autowired` on a single constructor.\n\n**Field `@Autowired`**: hidden dependencies, harder to test, allows partially constructed objects, couples you to the container.\n\n**Setter injection**: optional/mutable deps. Use sparingly.\n\n**Rule:** constructor for required deps; avoid field injection in production code.',
+                'Both are ways to give a class its dependencies, but they behave very differently.\n\n**Constructor injection (the preferred way):** dependencies are passed in through the constructor, can be marked `final`, must exist before the object is usable, and are very easy to test — just call `new MyService(fakeDependency)`. If a required bean is missing, the app fails immediately at startup instead of later at runtime. Spring is smart enough to skip the `@Autowired` annotation entirely if there\u2019s only one constructor.\n\n**Field injection (`@Autowired` on a field):** dependencies are set behind the scenes by reflection. It looks simple but hides what the class actually needs, makes unit testing harder (you often need a Spring context just to set the field), and lets you accidentally end up with a half-built object.\n\n**Setter injection:** used rarely, mainly for optional dependencies you might change later.\n\n**Simple rule:** use constructor injection for anything the class truly needs to work. Avoid field injection in real production code.',
             },
             {
               question: 'What is bean scope? Explain Singleton vs Prototype.',
               answer:
-                '**Scope** = how many instances the container creates and how long they live.\n\n- **Singleton (default):** one shared instance per Spring container. Must be **thread-safe** (stateless services).\n- **Prototype:** new instance every injection/lookup. Spring does **not** fully manage prototype destruction for you.\n\nOthers: `request`, `session`, `application` (web). Mixing prototype into singleton injects **one** prototype unless you use `ObjectFactory`/`Provider`/`@Lookup`.',
+                '**Bean scope** just answers: how many copies of this object does Spring create, and how long does each one live?\n\n- **Singleton (the default):** Spring creates exactly **one instance** and hands out the same object everywhere it\u2019s injected. Because it\u2019s shared, it must be **thread-safe** — don\u2019t store per-request data in a singleton\u2019s fields.\n- **Prototype:** Spring creates a **brand-new instance every time** it\u2019s requested. Careful: Spring does not fully manage the cleanup (destruction) of prototype beans for you — you\u2019re on your own there.\n\nOther scopes exist for web apps too: `request`, `session`, `application`.\n\n**A common trap:** if you inject a prototype bean into a singleton, Spring only creates the prototype **once** — at the moment the singleton is built — not fresh each time you use it. To get a truly new instance on every use, inject an `ObjectFactory`, `Provider`, or use `@Lookup` instead.',
             },
             {
               question: 'What is Spring AOP? Where have you used it?',
               answer:
-                '**AOP** adds cross-cutting behavior (tx, logging, metrics, security) via **proxies** around beans (JDK interface proxy or CGLIB subclass).\n\nCommon uses: `@Transactional`, `@Async`, `@Cacheable`, custom `@Around` for timing/audit, method security (`@PreAuthorize`).\n\n**Caveat:** only **external** calls through the proxy are advised \u2014 self-invocation skips AOP.',
+                '**AOP (Aspect-Oriented Programming)** lets you add behavior that cuts across many classes — like logging, security checks, or transactions — without writing that code in every method by hand.\n\nHow it works: Spring wraps your bean in a **proxy** (a stand-in object). When you call a method, the call actually hits the proxy first, which can run extra logic before/after your real method.\n\n**Where you\u2019ll see it used:** `@Transactional` (start/commit a database transaction), `@Async` (run a method on another thread), `@Cacheable` (skip the method if the result is already cached), a custom `@Around` aspect (e.g. to time methods or write audit logs), and method-level security like `@PreAuthorize`.\n\n**Important gotcha:** the proxy only kicks in when the call comes from **outside** the class. If a method calls another method on `this` inside the same class, it skips the proxy entirely — so the AOP behavior (transaction, cache, etc.) silently doesn\u2019t run. This is called self-invocation, and it trips up a lot of people.',
             },
             {
               question: 'How does @Transactional work internally?',
               answer:
-                'Spring creates a **proxy**. On an advised call:\n\n1. `PlatformTransactionManager` starts/joins a transaction (propagation rules).\n2. Bind resources (e.g. EntityManager) to the thread via `TransactionSynchronizationManager`.\n3. Invoke the method.\n4. On success \u2192 commit (unless marked rollback-only). On **runtime** exception (default) \u2192 rollback.\n5. Run synchronizations (flush, afterCommit hooks).\n\n**Requires:** proxy call path, correct manager (JPA/JDBC), and usually public methods for proxy-based AOP.',
+                'Spring wraps the bean in a **proxy**, just like with AOP in general. Here\u2019s what happens on a call to an `@Transactional` method:\n\n1. The proxy asks `PlatformTransactionManager` to either start a new transaction or join an existing one, based on the propagation setting.\n2. It attaches transactional resources (like the database `EntityManager`) to the current thread, using `TransactionSynchronizationManager`.\n3. Your actual method runs.\n4. If it finishes normally, the transaction **commits** (unless something explicitly marked it "rollback-only"). If it throws a **runtime (unchecked) exception**, Spring **rolls back** by default.\n5. Any registered "run after commit/completion" callbacks fire (e.g. flushing changes, sending an event).\n\n**What this requires to actually work:** the call must go through the proxy (no self-invocation), you need the correct transaction manager configured for your data layer (JPA vs plain JDBC), and the method usually needs to be `public` for proxy-based AOP to apply.',
             },
             {
               question: 'What causes LazyInitializationException?',
               answer:
-                'You access a **lazy** JPA association **outside** an open persistence context (transaction/`EntityManager` already closed) \u2014 classic: return entity from `@Transactional` service, then serialize `parent.getChildren()` in the controller/JSON layer.\n\n**Fixes:** fetch join / entity graph; `@Transactional(readOnly=true)` at the right layer; DTO projection; `OpenSessionInView` (usually avoid in APIs); initialize explicitly inside the transaction.',
+                'This happens when you try to read a **lazily loaded** piece of data from a database entity, but the database connection that would fetch it is already closed.\n\n**Classic example:** a `@Transactional` service method loads a `Parent` entity and returns it. The transaction ends (connection closes) as soon as the method returns. Later, when the controller tries to serialize `parent.getChildren()` into JSON, Spring tries to lazily fetch the children — but there\u2019s no open connection anymore, so it throws.\n\n**How to fix it:**\n- Fetch everything you need up front with a **join fetch** or an entity graph.\n- Use `@Transactional(readOnly = true)` at the layer where you actually read the data.\n- Return DTOs (plain data objects) instead of raw entities, so there\u2019s nothing left to lazily load later.\n- As a last resort, "Open Session in View" keeps the connection open longer — but it\u2019s usually best avoided in APIs since it hides the real problem.\n- Or just load the data you need explicitly, while the transaction is still open.',
             },
             {
               question: 'How do you implement pagination and sorting?',
               answer:
-                'Use Spring Data: `Pageable` / `Sort` on repository methods \u2192 `Page<T>` or `Slice<T>`.\n\nController: `Pageable` from query params (`page`, `size`, `sort`) via `PageableHandlerMethodArgumentResolver`. Cap `max-page-size`. Prefer **keyset/seek** pagination for deep pages; `Page` counts are expensive on huge tables.\n\nReturn DTOs, not open entity graphs.',
+                'Spring Data makes this easy: repository methods can accept a `Pageable` or `Sort` parameter, and return `Page<T>` (with total count) or `Slice<T>` (without it, cheaper).\n\nIn the controller, Spring automatically builds a `Pageable` from query params like `?page=0&size=20&sort=name` — you don\u2019t have to parse them yourself.\n\n**Practical tips:**\n- Always cap the max page size so nobody can request `size=1000000`.\n- For very deep pages (page 5000 of a huge table), regular offset pagination gets slow — use **keyset/seek pagination** instead (e.g. "give me rows after this ID").\n- `Page` (which counts total rows) is expensive on huge tables — use `Slice` if you don\u2019t truly need the total.\n- Return DTOs, not full entity graphs, to avoid pulling in unnecessary related data.',
             },
             {
               question: 'How do you validate request payloads?',
               answer:
-                'Bean Validation (`jakarta.validation`): annotate DTOs (`@NotNull`, `@Size`, `@Email`, custom constraints). Put `@Valid` / `@Validated` on controller params. Handle `MethodArgumentNotValidException` in `@ControllerAdvice` \u2192 **400** with field errors.\n\nValidate at boundaries; keep domain invariants in the domain layer too. For path/query params, annotate and use `@Validated` on the controller class.',
+                'Use **Bean Validation** (the `jakarta.validation` annotations): put things like `@NotNull`, `@Size`, `@Email`, or your own custom constraint directly on your DTO fields.\n\nThen add `@Valid` (or `@Validated`) on the controller method\u2019s parameter so Spring actually runs those checks before your method body executes. If validation fails, Spring throws `MethodArgumentNotValidException` — catch that in a `@ControllerAdvice` and turn it into a clean **400 Bad Request** response with the list of field errors.\n\n**Good practice:** validate input right at the boundary (the DTO), but also keep important business rules enforced inside the domain layer itself — don\u2019t rely on annotations alone for things that really matter. For query/path parameters, you can validate those too by adding `@Validated` on the whole controller class.',
             },
           ],
         },
@@ -96,96 +96,96 @@ const content: DesignContent = {
             {
               question: 'How would you trace a request across multiple Spring Boot microservices?',
               answer:
-                'Propagate a **correlation / trace ID** on every hop (W3C Trace Context / B3).\n\nStack: **Micrometer Tracing** + OpenTelemetry/Brave, log MDC (`traceId`, `spanId`), export to Zipkin/Jaeger/Tempo. Gateway injects IDs; each service continues the span for HTTP/messaging.\n\nAlso log `requestId` for support even when full tracing isn\u2019t sampled.',
+                'The trick is to attach one shared ID to a request and carry it through **every service** it touches, so you can follow its whole journey later.\n\n**How it\u2019s usually done:** use a standard format for passing trace info between services (W3C Trace Context, or B3). In Spring, that means **Micrometer Tracing** paired with OpenTelemetry or Brave. Each service logs the `traceId`/`spanId` (via MDC, so it shows up automatically in every log line) and sends span data to a tool like Zipkin, Jaeger, or Tempo. The very first service (often an API gateway) creates the trace ID, and every downstream call — HTTP or messaging — continues that same trace.\n\n**Extra tip:** even if you\u2019re not capturing a full trace for every request (sampling), still log a simple `requestId` on every request so support/on-call folks can search logs by it.',
             },
             {
               question: 'What are the most common causes of connection-pool exhaustion?',
               answer:
-                '1. Slow queries / locks holding connections.\n2. Connections borrowed and not returned (missing try-with-resources / tx boundary bugs).\n3. Pool too small for concurrency (`HikariCP maximumPoolSize`).\n4. Long `@Transactional` methods (HTTP calls inside tx).\n5. Connection leaks from streaming/Blob misuse.\n6. Thread pile-up under downstream latency.\n\n**Debug:** Hikari metrics (`pending`, `active`, `usage`), DB `pg_stat_activity`, thread dumps, slow query log.',
+                'This happens when all the database connections in your pool are "checked out" and none are free for new requests. Common causes:\n\n1. Slow queries or database locks holding a connection for a long time.\n2. Code that borrows a connection and never returns it — usually a missing try-with-resources, or a transaction that doesn\u2019t close properly.\n3. The pool is simply too small for how much traffic you get (`HikariCP maximumPoolSize` set too low).\n4. Long `@Transactional` methods that make slow network/HTTP calls **while holding** a database connection open.\n5. Leaks from mishandling large binary data (BLOBs) or streaming results.\n6. A pile-up of threads waiting because some downstream dependency got slow.\n\n**How to debug:** check HikariCP\u2019s own metrics (`pending`, `active`, `usage`), look at the database\u2019s active session view (e.g. Postgres `pg_stat_activity`), take a thread dump, and check the slow-query log.',
             },
             {
               question: "What's the difference between @PathVariable and @RequestParam?",
               answer:
-                '- **`@PathVariable`**: resource identity in the path (`/orders/{id}`).\n- **`@RequestParam`**: query/form params (`?status=OPEN&page=0`) \u2014 filters, optional flags, pagination.\n\nPath = *which resource*; query = *how to view/filter it*.',
+                '- **`@PathVariable`**: pulls a value out of the URL path itself, and represents **which resource** you\u2019re talking about — e.g. `/orders/{id}`.\n- **`@RequestParam`**: reads values from the query string or form data — e.g. `?status=OPEN&page=0`. Good for filters, optional flags, and pagination info.\n\n**Simple way to remember it:** the path tells you *which* resource; the query params tell you *how* you want to view or filter it.',
             },
             {
               question: 'How would you handle duplicate API requests in a payment service?',
               answer:
-                'Treat payments as **idempotent**:\n\n1. Client sends `Idempotency-Key` (UUID).\n2. Persist key + request hash + result uniquely.\n3. Same key \u2192 return stored outcome; conflicting body \u2192 **409**.\n4. Serialize concurrent same-key requests (unique constraint / row lock).\n5. Outbox for side effects; never charge twice for one key.\n\nAlso make webhook handlers idempotent.',
+                'The key idea is to make the payment operation **idempotent** — calling it twice with the same intent should only charge the customer once.\n\n1. The client generates a unique `Idempotency-Key` (usually a UUID) and sends it with the request.\n2. The server saves that key together with a hash of the request and the eventual result, and enforces that the key is **unique** in storage.\n3. If the same key comes in again: return the previously stored result instead of processing again. If the same key comes in with a **different** request body, that\u2019s a conflict — return **409**.\n4. If two requests with the same key arrive at almost the same time, make sure only one actually processes (a unique database constraint or row lock handles this).\n5. Use an outbox pattern for anything that has side effects (like sending a confirmation email), so retries don\u2019t double-send those either.\n\nDon\u2019t forget: webhook handlers (e.g. from a payment provider) need the same idempotency treatment, since providers often retry webhook deliveries.',
             },
             {
               question: 'What is the N+1 query problem, and how do you fix it?',
               answer:
-                'Load N parents, then **1 query per parent** for children \u2192 1+N round-trips.\n\n**Fixes:** `JOIN FETCH` / `@EntityGraph`; batch size (`@BatchSize` / `default_batch_fetch_size`); DTO/`@Query` projections; avoid lazy serialization. Detect with `spring.jpa.show-sql`, p6spy, or datasource metrics.',
+                'This happens when you load a list of N "parent" records, and then for **each one separately**, the code fires another query to load its related "child" data. So instead of 1 or 2 queries, you end up making **1 + N** queries — which gets slow fast as N grows.\n\n**How to fix it:**\n- Use `JOIN FETCH` (or `@EntityGraph`) to pull the related data in the same query.\n- Turn on batch fetching (`@BatchSize` or `default_batch_fetch_size`) so Hibernate groups the lookups instead of doing them one by one.\n- Use DTO projections or a custom `@Query` to fetch exactly the shape of data you need.\n- Avoid accidentally triggering lazy-loading during JSON serialization.\n\n**How to spot it:** turn on `spring.jpa.show-sql` in a dev environment, use a tool like p6spy, or watch your datasource\u2019s query-count metrics.',
             },
             {
               question:
                 "What's the purpose of Spring Boot Actuator, and which endpoints do you use most?",
               answer:
-                '**Actuator** exposes ops endpoints: health, metrics, info, env (careful), loggers, prometheus.\n\nMost used: `/health` (k8s probes), `/metrics` + **Prometheus**, `/info`, `/loggers` for dynamic levels. Lock down with security; never expose `env`/`heapdump` publicly.',
+                '**Actuator** is a set of built-in endpoints that expose the "operations" side of your app — things ops teams and monitoring tools care about, separate from your actual business API.\n\n**The ones people use most:** `/health` (used by Kubernetes to know if a pod is alive/ready), `/metrics` combined with a **Prometheus** exporter (for dashboards and alerts), `/info` (basic build/version info), and `/loggers` (change log levels at runtime without redeploying — great for debugging live issues).\n\n**Important:** lock these endpoints down with security, and never expose sensitive ones like `/env` or `/heapdump` to the public internet — they can leak secrets or app internals.',
             },
             {
               question: 'What happens if two users update the same record simultaneously?',
               answer:
-                'Last write wins unless you use locking:\n\n- **Optimistic:** `@Version` \u2014 second commit gets `OptimisticLockException`; retry/merge.\n- **Pessimistic:** `LockModeType.PESSIMISTIC_WRITE` \u2014 row lock; watch deadlocks/latency.\n\nAPIs should return **409** on conflict with a clear retry story.',
+                'Without any protection, it\u2019s "last write wins" — whichever update saves last silently overwrites the other one\u2019s changes. To guard against that, you use locking:\n\n- **Optimistic locking:** add a `@Version` column. Whoever commits second gets an `OptimisticLockException` because the version number no longer matches — then your app can retry or ask the user to review the conflict.\n- **Pessimistic locking:** use `LockModeType.PESSIMISTIC_WRITE` to actually lock the row in the database while you work on it. This is stronger, but be careful — it can cause deadlocks or slow things down under load.\n\n**In your API:** when a conflict happens, return **409 Conflict** with a clear message about what to do next (e.g. "refresh and try again").',
             },
             {
               question: 'How would you upload large files without causing memory issues?',
               answer:
-                'Stream, don\u2019t buffer entire files:\n\n- Servlet multipart with disk threshold; or **raw InputStream** / `StreamingResponseBody`.\n- Write to object storage (S3) with multipart upload.\n- Avoid `byte[]` / loading full `MultipartFile.getBytes()`.\n- Size limits, content-type allow-list.\n\nFor downloads: stream from storage to response.',
+                'The main rule is: **never load the whole file into memory at once** — stream it in small chunks instead.\n\n- Configure multipart uploads to spill to disk once they pass a size threshold, or work directly with the raw `InputStream` (or use `StreamingResponseBody` for downloads).\n- Send the file straight to object storage (like S3) using multipart upload, rather than buffering it fully in your app first.\n- Avoid calling things like `multipartFile.getBytes()` on large files — that loads the entire file as a `byte[]` in memory.\n- Enforce a max file size and only allow expected content types.\n\nFor downloads, the same idea applies in reverse: stream bytes from storage directly into the HTTP response instead of loading the whole file first.',
             },
             {
               question: 'Why might @Transactional not roll back a transaction?',
               answer:
-                'Common reasons:\n\n1. **Checked exception** (default: no rollback) \u2014 use `rollbackFor`.\n2. **Self-invocation** \u2014 no proxy.\n3. Not a Spring bean / wrong visibility (proxy AOP).\n4. Exception caught and swallowed inside the method.\n5. Wrong manager / read-only misconfig.\n6. DB DDL auto-commit quirks.\n\nVerify with logs (`DEBUG` tx) and that the call crosses the proxy.',
+                'A few common reasons your rollback silently doesn\u2019t happen:\n\n1. **Checked exception thrown** — by default, Spring only rolls back on **unchecked** exceptions. A checked exception commits unless you explicitly set `rollbackFor`.\n2. **Self-invocation** — the transactional method was called from inside the same class (`this.method()`), so it skipped the proxy entirely.\n3. The class isn\u2019t actually a Spring bean, or the method\u2019s visibility blocks proxy-based AOP (e.g. `private`).\n4. Your code **catches the exception and swallows it** — Spring never even sees that anything went wrong.\n5. Wrong transaction manager is wired up, or `readOnly` is misconfigured.\n6. Some databases auto-commit certain DDL statements regardless of your transaction.\n\n**How to check:** turn on debug logging for Spring transactions, and confirm the call is actually going through the proxy (not a direct internal call).',
             },
             {
               question: 'How does Spring Boot manage database connections using HikariCP?',
               answer:
-                'Boot auto-configures **HikariCP** as the `DataSource`. Pool size, timeouts, leak detection come from `spring.datasource.hikari.*`.\n\nConnections are borrowed for JDBC work / JPA and returned to the pool when the logical session ends (tx completion). Monitor `HikariPool` metrics; set `maximumPoolSize` \u2248 workable DB concurrency, not \u201cthread count.\u201d',
+                'By default, Spring Boot sets up **HikariCP** as your `DataSource` automatically — you usually don\u2019t configure it from scratch. You control its behavior with `spring.datasource.hikari.*` properties: pool size, timeouts, leak detection, and so on.\n\n**How it works in practice:** whenever your code needs a database connection (through JDBC or JPA), it "borrows" one from the pool. When the current logical unit of work finishes (usually when the transaction completes), the connection goes back to the pool for reuse — it isn\u2019t closed and reopened each time, which would be slow.\n\n**Tuning tip:** watch Hikari\u2019s own metrics. Set `maximumPoolSize` based on how much concurrency your **database** can actually handle — it\u2019s not about matching your app\u2019s thread count.',
             },
             {
               question: 'How would you secure REST APIs using Spring Security and JWT?',
               answer:
-                'Stateless JWT API:\n\n1. Login/IdP issues signed JWT (short TTL + refresh strategy).\n2. `SecurityFilterChain`: CSRF off for pure Bearer APIs; authorize requests.\n3. JWT filter validates signature/exp/issuer, builds `Authentication`.\n4. Method security for fine-grained authZ.\n5. Rotate keys (JWKS); never put secrets in JWT claims you must hide.\n\nPrefer opaque tokens + introspection when revocation is critical.',
+                'A typical stateless setup using JWT (JSON Web Tokens) looks like this:\n\n1. The user logs in through your service or an external identity provider, which issues a signed JWT with a short expiry, plus a way to refresh it later.\n2. You configure a `SecurityFilterChain` that turns off CSRF protection (not needed for pure token-based APIs) and defines which endpoints require authentication.\n3. A custom JWT filter checks the token\u2019s signature, expiry, and issuer, then builds an `Authentication` object Spring Security understands.\n4. You can add method-level security (like `@PreAuthorize with a role check`) for finer-grained rules.\n5. Rotate your signing keys using a JWKS endpoint, and never put anything secret inside a JWT — its contents are readable by anyone who has the token, even without the signing key.\n\nIf you need the ability to instantly revoke access (not just wait for expiry), consider opaque tokens with a server-side introspection check instead of pure JWTs.',
             },
             {
               question:
                 "If a production issue is reported but there are no exceptions in the logs, what's your debugging approach?",
               answer:
-                '1. Reproduce with request ID / user / time window.\n2. Check **latency** metrics, saturation (CPU, pool, threads), GC.\n3. Confirm logging level & sampling; look for \u201csuccessful\u201d wrong answers.\n4. Distributed traces for stuck downstream calls.\n5. Thread dump if requests hang; heap dump if memory creeps.\n6. DB slow queries / locks.\n7. Recent deploys, config, feature flags.\n\nAbsence of stack traces often means timeouts, wrong results, or swallowed errors.',
+                'No exceptions usually means the app "worked" but did something wrong or slow — not that it crashed. Approach it like this:\n\n1. Narrow it down using a request ID, user ID, or a specific time window.\n2. Look at **latency** metrics and resource saturation — CPU, connection pool usage, thread counts, GC pauses.\n3. Double-check your logging level and sampling — maybe the relevant log line simply wasn\u2019t captured, or the app returned a "successful" but wrong result.\n4. Check distributed traces for any downstream call that got stuck or timed out.\n5. Take a thread dump if requests seem to hang, or a heap dump if memory usage keeps climbing.\n6. Check the database for slow queries or locks around that time.\n7. Look at recent deploys, config changes, or feature flag flips — a lot of "silent" bugs come from something that changed recently.\n\nThe absence of a stack trace usually points to timeouts, wrong (but "valid-looking") results, or an error that got caught and quietly ignored.',
             },
             {
               question: 'How would you improve a slow Spring Data JPA query?',
               answer:
-                '1. Explain plan / add indexes.\n2. Select only needed columns (DTO projection).\n3. Kill N+1; tune fetch strategy.\n4. Pagination; avoid huge `IN` lists.\n5. Cache hot read-only data.\n6. Rewrite as native SQL if ORM overhead dominates.\n7. Check connection pool wait vs query time.\n\nMeasure before/after with metrics, not guesses.',
+                '1. Look at the query\u2019s execution plan and add missing indexes.\n2. Select only the columns you actually need (a DTO projection instead of a full entity).\n3. Eliminate any N+1 query problem, and tune the fetch strategy.\n4. Add pagination, and avoid queries with huge `IN (...)` lists.\n5. Cache data that\u2019s read often but rarely changes.\n6. If the ORM overhead itself is the bottleneck, consider writing that one query as native SQL.\n7. Confirm the slowness is really the query and not just time spent waiting for a free connection from the pool.\n\nAlways measure before and after with real metrics — don\u2019t guess at what "should" be slow.',
             },
             {
               question:
                 "What's the difference between synchronous and asynchronous processing in Spring Boot?",
               answer:
-                '**Sync:** caller thread waits (typical MVC request thread). Simple, easy error propagation, ties up container threads.\n\n**Async:** `@Async`, `CompletableFuture`, messaging, WebFlux. Free the request thread; process later. Need a **pool**, error handler, and idempotency for retries.\n\nUse async for email, fan-out, long jobs \u2014 not for every DB read.',
+                '**Synchronous:** the calling thread waits for the work to finish before moving on. This is the normal way a typical Spring MVC request works. It\u2019s simple to reason about and errors are easy to catch, but it ties up one of your limited request-handling threads the whole time.\n\n**Asynchronous:** the work happens later or on a different thread, using tools like `@Async`, `CompletableFuture`, message queues, or reactive stacks like WebFlux. This frees up the request thread immediately, but now you need a dedicated thread pool, proper error handling, and (if retries are possible) idempotency to avoid doing the work twice.\n\n**When to use async:** things like sending an email, fanning out work to many services, or long-running background jobs. Don\u2019t reach for async for every simple database read — it adds complexity you don\u2019t need there.',
             },
             {
               question: 'How does Spring Boot auto-configuration work internally?',
               answer:
-                'On startup, Boot loads auto-config classes from `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` (or legacy `spring.factories`) via `AutoConfigurationImportSelector`.\n\nEach class uses `@ConditionalOnClass`, `@ConditionalOnMissingBean`, `@ConditionalOnProperty`, etc. If conditions match, it registers beans (DataSource, DispatcherServlet, \u2026). **Your beans win** over auto-config when you define them (`@ConditionalOnMissingBean`).\n\n`@SpringBootApplication` \u2192 `@EnableAutoConfiguration`.',
+                'On startup, Boot scans a list of candidate auto-configuration classes (listed in a file at `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`, or the older `spring.factories` file) using `AutoConfigurationImportSelector`.\n\nEach of these classes is guarded by **condition annotations** — things like `@ConditionalOnClass` (only apply if a certain library is on the classpath), `@ConditionalOnMissingBean` (only apply if you haven\u2019t already defined this bean yourself), or `@ConditionalOnProperty` (only apply if a certain config property is set). If the conditions match, Boot registers the beans it defines — a `DataSource`, `DispatcherServlet`, and so on.\n\n**Key idea:** your own beans always win over auto-configuration, because most auto-config uses `@ConditionalOnMissingBean` — meaning "only create this if the user hasn\u2019t already."\n\nThis whole mechanism gets kicked off by `@SpringBootApplication`, which includes `@EnableAutoConfiguration`.',
             },
             {
               question: 'What steps would you take before scaling a Spring Boot application?',
               answer:
-                '1. Prove CPU/RAM/GC vs pool/DB bottlenecks with metrics.\n2. Make app **stateless** (external sessions/cache).\n3. Tune pools (Tomcat, Hikari, HTTP clients).\n4. Add caching, async where safe.\n5. DB capacity & indexes first \u2014 horizontal pods won\u2019t fix a saturated DB.\n6. Load test; set HPA on the right signal (CPU/RPS/latency).\n7. Safe shutdown + readiness before sending traffic.',
+                '1. Use real metrics to confirm **what** is actually the bottleneck — CPU/memory/GC, or a connection pool, or the database — don\u2019t guess.\n2. Make sure the app is **stateless** (move sessions/caches to something external like Redis) so you can safely run multiple copies.\n3. Tune your pools — Tomcat threads, HikariCP, HTTP client pools.\n4. Add caching, and move safe work to async processing.\n5. Check the **database\u2019s** capacity and indexes first — adding more app instances won\u2019t help if the database itself is maxed out.\n6. Load test, and set autoscaling (HPA) based on the metric that actually reflects load (CPU, requests-per-second, or latency — not something arbitrary).\n7. Make sure new instances properly signal "ready" before traffic is sent to them, and old ones shut down gracefully.',
             },
             {
               question: "What's the difference between BeanFactory and ApplicationContext?",
               answer:
-                '`BeanFactory` is the basic IoC container (get bean, singleton cache).\n\n`ApplicationContext` extends it with **events**, internationalization, AOP/proxy integration, environment/profiles, and eager singleton startup by default. Boot apps use `ApplicationContext`.\n\n**Rule of thumb:** `BeanFactory` = core; `ApplicationContext` = production-ready container.',
+                '`BeanFactory` is the most basic version of Spring\u2019s container — it can create beans, cache singletons, and wire dependencies. That\u2019s about it.\n\n`ApplicationContext` builds on top of `BeanFactory` and adds the things a real application actually needs: publishing/listening to **events**, internationalization support, easier AOP/proxy integration, environment and profile support, and it eagerly creates singleton beans at startup by default (so failures show up immediately, not on first use).\n\nEvery Spring Boot app uses `ApplicationContext`.\n\n**Simple way to remember it:** `BeanFactory` is the bare-bones engine; `ApplicationContext` is the production-ready container built around it.',
             },
             {
               question:
                 "How would you debug a Spring Boot application that's slow only in production?",
               answer:
-                'Prod-only smells: data volume, concurrency, real downstreams, warm vs cold caches, different config/GC, noisy neighbors.\n\nApproach: compare prod config; enable **percentile** latency; profiling (async profiler/JFR); check DB plans on prod-sized data; pool waits; GC pauses; chatty service calls; feature flags. Avoid turning on `show-sql` globally in prod \u2014 sample traces instead.',
+                'Things that are different in production and can cause "it\u2019s slow only there" bugs: much bigger data volume, real concurrent traffic, real (not mocked) downstream services, cold vs. warm caches, different config or JVM/GC settings, and "noisy neighbor" servers sharing the same infrastructure.\n\n**Approach:**\n- Compare production config against staging/dev line by line.\n- Turn on percentile-based latency metrics (p95/p99, not just averages).\n- Use a profiler (async-profiler, or Java Flight Recorder) to see where time is actually going.\n- Check the database\u2019s query plan against production-sized data (a query that\u2019s fast on 100 rows can be terrible on 10 million).\n- Look at connection pool wait times, GC pause times, and any chatty calls between services.\n- Check if a feature flag behaves differently in prod.\n\nAvoid turning on `show-sql` globally in production — it\u2019s noisy and can hurt performance. Instead, sample traces for a short window when investigating.',
             },
           ],
         },
@@ -203,72 +203,72 @@ const content: DesignContent = {
             {
               question: 'Why does @Transactional sometimes not work?',
               answer:
-                'Proxy not applied (self-call, `final` class/method with CGLIB limits, non-Spring bean), exception type doesn\u2019t trigger rollback, transaction manager missing, or called from another thread without context propagation. Also `REQUIRED` joining an outer tx you didn\u2019t expect.',
+                'Usually one of these: the proxy never got applied in the first place — e.g. the method was called from inside the same class (self-invocation), the class or method is `final` (CGLIB proxies can\u2019t override those), or the class isn\u2019t actually a Spring bean. It can also be that the exception type thrown doesn\u2019t trigger a rollback by default, the transaction manager isn\u2019t configured correctly, or the method got called from a different thread that doesn\u2019t carry the transaction context. Another surprise: with `REQUIRED` propagation, your method might silently join an outer transaction you didn\u2019t expect, and its outcome now depends on that outer transaction too.',
             },
             {
               question: 'What exceptions trigger transaction rollback?',
               answer:
-                '**Default:** rollback on **unchecked** (`RuntimeException`, `Error`). **Checked** exceptions commit unless `rollbackFor` includes them.\n\nBest practice: declare `rollbackFor = Exception.class` for business methods that throw checked failures, or use unchecked domain exceptions consistently.',
+                'By **default**, Spring only rolls back the transaction when an **unchecked exception** is thrown (`RuntimeException` or `Error`). **Checked exceptions** are treated as "expected outcomes" and the transaction still **commits** — unless you tell Spring otherwise.\n\n**Best practice:** if a business method can throw a checked exception that should cancel the transaction, explicitly declare `@Transactional(rollbackFor = Exception.class)`. Or, simpler, design your domain to throw unchecked exceptions for failure cases so the default behavior just works.',
             },
             {
               question: 'What is the difference between REQUIRED and REQUIRES_NEW?',
               answer:
-                '- **`REQUIRED` (default):** join existing tx or create one.\n- **`REQUIRES_NEW`:** **suspend** outer tx, run in a fresh tx, commit/rollback independently, then resume outer.\n\nUse `REQUIRES_NEW` for audit logs that must persist even if the outer work fails \u2014 carefully, it holds extra connections.',
+                '- **`REQUIRED` (the default):** join the current transaction if one already exists, otherwise start a new one.\n- **`REQUIRES_NEW`:** **pause** whatever transaction is currently running, start a completely fresh one, let it commit or roll back on its own, and only then resume the original transaction.\n\n**Where `REQUIRES_NEW` is useful:** writing an audit log entry that must be saved **even if** the rest of the operation later fails and rolls back. Use it carefully though — it means holding a second database connection at the same time, which adds load on your connection pool.',
             },
             {
               question: 'Explain all transaction propagation types.',
               answer:
-                '- **REQUIRED** \u2014 join or create.\n- **REQUIRES_NEW** \u2014 always new.\n- **SUPPORTS** \u2014 use tx if present, else non-tx.\n- **NOT_SUPPORTED** \u2014 suspend tx, run non-tx.\n- **MANDATORY** \u2014 must have existing tx or error.\n- **NEVER** \u2014 error if tx exists.\n- **NESTED** \u2014 nested savepoint (JDBC); rollback to savepoint without full outer rollback.\n\nKnow REQUIRED vs REQUIRES_NEW vs NESTED cold.',
+                '- **REQUIRED** — join the existing transaction, or create a new one if there isn\u2019t one.\n- **REQUIRES_NEW** — always start a brand-new, independent transaction (pausing any existing one).\n- **SUPPORTS** — use the existing transaction if there is one; otherwise just run without a transaction at all.\n- **NOT_SUPPORTED** — pause any existing transaction and run this method without a transaction.\n- **MANDATORY** — there must already be a transaction running, or it throws an error.\n- **NEVER** — throws an error if a transaction is already running.\n- **NESTED** — creates a savepoint inside the current transaction (works with JDBC); if this part fails, it can roll back just to that savepoint instead of rolling back everything.\n\n**For interviews:** know `REQUIRED` vs `REQUIRES_NEW` vs `NESTED` really well — those are the ones people actually ask about.',
             },
             {
               question: 'What is transaction isolation?',
               answer:
-                'Isolation defines **visibility** of concurrent work: what dirty/phantom/non-repeatable phenomena are allowed. Higher isolation \u2192 fewer anomalies, more locking/latency. Set via `@Transactional(isolation = \u2026)` or DB default.',
+                'Isolation controls how much one transaction can "see" of another transaction that\u2019s running **at the same time** — things like half-finished (uncommitted) changes, or rows that appear/disappear mid-transaction. Higher isolation means fewer weird edge cases, but it also usually means more locking and slower performance. You set it with `@Transactional(isolation = ...)`, or just rely on the database\u2019s own default.',
             },
             {
               question: 'Explain all isolation levels.',
               answer:
-                '- **READ_UNCOMMITTED** \u2014 dirty reads possible.\n- **READ_COMMITTED** \u2014 no dirty reads (PG default).\n- **REPEATABLE_READ** \u2014 stable read set for rows you read (MySQL InnoDB approx).\n- **SERIALIZABLE** \u2014 strongest; range locks / serial execution.\n\nPick the weakest level that preserves your invariants.',
+                '- **READ_UNCOMMITTED** — you can see other transactions\u2019 changes even before they commit (a "dirty read"). Rarely used.\n- **READ_COMMITTED** — you never see uncommitted changes from others. This is Postgres\u2019s default.\n- **REPEATABLE_READ** — once you\u2019ve read a row in your transaction, it won\u2019t change underneath you for the rest of that transaction. This is roughly what MySQL\u2019s InnoDB uses by default.\n- **SERIALIZABLE** — the strongest level; the database behaves as if transactions ran one at a time, using range locks or similar tricks.\n\n**Rule of thumb:** pick the **weakest** level that still keeps your data correct — stronger isolation always costs you performance.',
             },
             {
               question: 'What causes dirty reads?',
               answer:
-                'Reading another transaction\u2019s **uncommitted** changes. If that tx rolls back, you acted on data that \u201cnever existed.\u201d Allowed under `READ_UNCOMMITTED`.',
+                'A dirty read happens when you read data that another transaction has changed but **not yet committed**. If that other transaction later rolls back, you just made a decision based on data that technically never really existed. This can only happen at the `READ_UNCOMMITTED` isolation level.',
             },
             {
               question: 'What causes phantom reads?',
               answer:
-                'Re-running a range query in the same tx sees **new rows** committed by others. Mitigated by `SERIALIZABLE` or careful locking (`SELECT \u2026 FOR UPDATE` / predicate locks).',
+                'A phantom read happens when you run the same range query twice inside one transaction, and the second time you see **new rows** that another transaction committed in between — rows that "phantom" appeared. You can prevent this with `SERIALIZABLE` isolation, or by using explicit locking like `SELECT ... FOR UPDATE` on the range you care about.',
             },
             {
               question: 'Why should API calls be avoided inside transactions?',
               answer:
-                'They hold DB connections/locks for network RTT \u2192 pool exhaustion, timeouts, cascading latency. Prefer: local tx \u2192 commit \u2192 outbound call \u2192 compensating action / outbox. Keep transactions **short and local**.',
+                'A database transaction holds onto a connection (and possibly row locks) for as long as it\u2019s open. If you make a slow network call — like an HTTP request to another service — **while** the transaction is still open, you\u2019re holding that connection and those locks hostage for the entire round trip. Do this under load, and you\u2019ll exhaust your connection pool and cause cascading slowness elsewhere.\n\n**Better pattern:** finish your local database work and commit the transaction first, *then* make the outbound call. If the outbound call can fail, use a compensating action or an outbox pattern to handle that safely. Keep transactions **short and local** to the database.',
             },
             {
               question: 'What happens during nested transactions?',
               answer:
-                'Spring \u201cnested\u201d usually means **`NESTED` propagation** (savepoints) or a logical inner `@Transactional` with `REQUIRED` that **same** physical tx.\n\nInner rollback with `REQUIRED` marks the whole tx rollback-only. `NESTED` can roll back to a savepoint. `REQUIRES_NEW` is a separate physical transaction.',
+                'When people say "nested transaction" in Spring, they usually mean one of two things: the `NESTED` propagation type (which uses real database savepoints), or simply calling another `@Transactional` method with `REQUIRED` propagation, which just **joins** the same physical transaction rather than creating a separate one.\n\nWith `REQUIRED`, if the inner method fails, it marks the **whole** transaction as rollback-only — so everything gets rolled back together, even the outer work that otherwise succeeded. With `NESTED`, a failure can roll back to just the savepoint, leaving the earlier work intact. `REQUIRES_NEW`, by contrast, really is a separate, independent physical transaction.',
             },
             {
               question: 'What is transaction synchronization?',
               answer:
-                'Callbacks registered with `TransactionSynchronizationManager` that run on tx lifecycle: `beforeCommit`, `afterCommit`, `afterCompletion`. Used for flushing, cache invalidation **afterCommit**, publishing events only when commit succeeds (avoid listening on rollback).',
+                'This is a way to register callbacks that run at specific points in a transaction\u2019s lifecycle — `beforeCommit`, `afterCommit`, `afterCompletion` — using `TransactionSynchronizationManager`.\n\n**Common uses:** flushing pending changes before commit, invalidating a cache **only after** the commit actually succeeds, or publishing an event only once you know the transaction went through. This last point matters a lot: if you publish an event *during* the transaction and it later rolls back, you\u2019ve told the rest of the system about something that never actually happened.',
             },
             {
               question: 'How do you debug transaction issues?',
               answer:
-                'Enable Spring tx debug logs; verify proxy (`AopUtils.isAopProxy`); check propagation/isolation annotations; watch DB locks (`pg_locks`); confirm one manager; look for swallowed exceptions; assert `@Transactional` on public methods called externally. Tests with `@Transactional` can hide bugs \u2014 prefer explicit scenarios.',
+                'Turn on Spring\u2019s transaction debug logs to see when transactions start, commit, and roll back. Check `AopUtils.isAopProxy(bean)` to confirm the proxy is actually in place. Double-check the propagation and isolation settings on the annotation. Look at the database\u2019s lock view (like Postgres\u2019s `pg_locks`) to see what\u2019s actually blocked. Make sure only **one** transaction manager is configured for the resource you\u2019re debugging. Look for exceptions that are quietly caught and swallowed. And confirm `@Transactional` is on a `public` method that\u2019s actually called from outside the class.\n\n**Watch out:** tests annotated with `@Transactional` automatically roll back after each test, which can hide real bugs (like a missing commit) — write at least a few explicit, non-rolled-back test scenarios too.',
             },
             {
               question: 'What is the self-invocation problem?',
               answer:
-                'Calling `this.method()` inside a class bypasses the Spring **proxy**, so `@Transactional` / `@Async` / `@Cacheable` on the callee don\u2019t run.\n\n**Fixes:** refactor to another bean; `self` injection; AspectJ weaving; redesign boundaries.',
+                'When a method calls another method **on itself** (`this.otherMethod()`) inside the same class, it completely bypasses the Spring proxy — so any AOP behavior on that second method (`@Transactional`, `@Async`, `@Cacheable`, etc.) simply does not run, with no error or warning.\n\n**How to fix it:**\n- Move the second method into a **different** bean and call it through that bean instead.\n- Inject the bean into itself (`self`-injection) and call through that reference.\n- Use AspectJ compile-time weaving instead of proxy-based AOP (more setup, but avoids the problem entirely).\n- Or, often the cleanest fix: redesign the class boundaries so this situation doesn\u2019t come up.',
             },
             {
               question: 'How does Spring use proxies for transaction management?',
               answer:
-                '`TransactionInterceptor` wraps bean methods. JDK proxy if interface; otherwise CGLIB subclass. Interceptor talks to `PlatformTransactionManager`. Only calls entering through the proxy get advice \u2014 architecture must expose transactional fa\u00e7ades cleanly.',
+                'When a bean has `@Transactional` methods, Spring wraps it with a `TransactionInterceptor` — using a JDK dynamic proxy if the bean implements an interface, or a CGLIB subclass proxy otherwise. That interceptor is what actually talks to `PlatformTransactionManager` to start/commit/roll back.\n\n**The catch:** only calls that come in **through the proxy** get this transactional behavior — calls made directly on the raw object (like self-invocation) skip it. This is exactly why it matters to design clean, external-facing "transactional" methods rather than relying on internal method calls to carry transaction behavior.',
             },
           ],
         },
@@ -287,106 +287,106 @@ const content: DesignContent = {
               question:
                 'A production system using IoC Container starts failing intermittently under peak traffic. How would you investigate and redesign it?',
               answer:
-                'Symptoms under load point to **shared singleton state**, pool exhaustion, or blocking calls in request threads.\n\nInvestigate: metrics (latency, error rate, pool active/pending), thread dumps, GC, dependency SLOs. Redesign: remove mutable singleton state; bulkheads; timeouts/circuit breakers; bound queues; scale pools with evidence; isolate hot paths.',
+                'Failures that only show up **under load** almost always point to one of three things: shared mutable state in a singleton bean, connection/thread pool exhaustion, or blocking calls tying up request-handling threads.\n\n**Investigate:** look at latency and error-rate metrics, check pool usage (active vs. pending), take thread dumps during the spike, check GC behavior, and look at the SLOs of anything this service depends on.\n\n**Redesign:** remove any mutable state from singleton beans, add bulkheads (separate pools per dependency), add timeouts and circuit breakers, bound your queues so they can\u2019t grow unbounded, size pools based on actual measured evidence, and isolate the hottest code paths so they can\u2019t starve everything else.',
             },
             {
               question:
                 'Traffic grows 10\u00d7 and the current IoC container design becomes the bottleneck. What would you change first?',
               answer:
-                'First fix **contention**: synchronize less, shrink critical sections, stop storing request data in singletons. Then tune executor/DB pools, add caching for hot reads, move heavy work async. Horizontal scale only after the app is stateless and the DB can take it.',
+                'First, fix **contention** — reduce how much code is synchronized, shrink any critical sections, and stop storing per-request data inside singleton beans (that forces threads to fight over shared state). Next, tune your thread pools and database connection pools based on real numbers, add caching for data that\u2019s read often, and move heavy, non-urgent work to async processing. Only scale **horizontally** (more instances) once the app is fully stateless and you\u2019ve confirmed the database itself can actually handle the extra load — adding more app instances in front of an overloaded database just makes things worse.',
             },
             {
               question:
                 'A dependency outage causes a feature built around IoC Container to cascade across the application. How do you contain it?',
               answer:
-                'Fail fast with **timeouts**, **circuit breakers**, bulkhead thread pools per dependency, graceful degradation (cached/fallback responses). Don\u2019t share one unbounded HTTP client pool across all downstreams. Health checks should reflect deep dependencies carefully (liveness \u2260 readiness).',
+                'The goal is to **fail fast and stay contained**, instead of letting one broken dependency slowly take down everything else. Use timeouts on every outbound call, circuit breakers that stop calling a dependency once it\u2019s clearly unhealthy, separate ("bulkhead") thread pools per dependency so a slow one can\u2019t starve threads meant for others, rate limits, and graceful fallback behavior (like serving cached or default data instead of failing outright).\n\n**Also avoid:** sharing one single, unbounded HTTP client connection pool across every downstream service — one bad dependency can then exhaust it for everyone. And be careful that your health checks reflect the right thing: a **liveness** check (is the process alive) is not the same as a **readiness** check (should traffic be sent here right now).',
             },
             {
               question:
                 'Two concurrent requests interact with the IoC container and produce inconsistent results. How would you make the flow correct?',
               answer:
-                'Almost always **shared mutable singleton** state. Make services stateless; confine mutability to DB with transactions/locks; use request-scoped beans sparingly; `ThreadLocal` only with clear cleanup. Prefer immutable configs and pure functions for request computation.',
+                'This is almost always caused by **shared mutable state in a singleton bean** — two requests running on different threads are reading/writing the same fields at the same time.\n\n**Fix it by:** making services stateless (no per-request data stored in bean fields), keeping all mutable state inside the database where transactions and locks can protect it, using request-scoped beans only when you really need per-request state, and using `ThreadLocal` only with very clear, guaranteed cleanup (otherwise it leaks between requests on pooled threads). Prefer immutable configuration objects and pure functions (same input always gives same output) wherever you can for request-time computation.',
             },
             {
               question:
                 'How would you prove that your redesign actually solved the production problem?',
               answer:
-                'Define SLIs (p95/p99, error rate, saturation). Load test with production-like data; compare golden signals before/after; canary deploy; watch pool metrics and GC. Keep a rollback plan. Proof = metrics, not vibes.',
+                'Don\u2019t just assume the fix worked — measure it. Define your key metrics up front (SLIs): p95/p99 latency, error rate, and resource saturation. Load test with data and traffic patterns that look like production, then directly compare the before-and-after numbers for those same metrics. Roll it out gradually with a canary deployment while watching pool usage and GC behavior closely. Keep a rollback plan ready in case something unexpected shows up. In short: **proof means metrics, not a feeling that it seems faster now.**',
             },
             {
               question:
                 'A production system using Spring Boot Auto-Configuration starts failing intermittently. How would you investigate it?',
               answer:
-                'Dump effective config (`/actuator/env` secured, or startup report). Check profile-specific overrides, conditional beans flipping when classpath/config differs per instance, multiple DataSources, or race on lazy singletons. Enable `ConditionEvaluationReport` / debug auto-config once in a safe env.',
+                'Start by dumping the app\u2019s **effective configuration** — through a secured `/actuator/env` or the startup configuration report — so you know exactly what settings are actually active, not what you assume they are. Then check for profile-specific overrides that differ between instances, conditional beans that flip on or off depending on small classpath/config differences per instance, multiple `DataSource`s accidentally being wired, or a race condition around lazily-created singleton beans. In a safe environment, you can also enable the `ConditionEvaluationReport` (or debug logging for auto-configuration) to see exactly which auto-config classes were applied and why.',
             },
             {
               question:
                 'Traffic increases 10\u00d7 and auto-configuration becomes a bottleneck. What would you optimize first?',
               answer:
-                'Auto-config itself rarely is the bottleneck at runtime \u2014 **defaults** are (pool sizes, Tomcat threads, Jackson, Hibernate). Override starters\u2019 defaults with measured values; replace chatty auto beans; disable unused auto-config with excludes.',
+                'Auto-configuration itself almost never slows things down at runtime — it only runs once, at startup. The real bottleneck is usually the **default settings** it applies: pool sizes, Tomcat thread counts, Jackson serialization behavior, Hibernate defaults. Override those starter defaults with values based on actual measurements, replace any "chatty" auto-configured bean that\u2019s doing more work than you need, and explicitly disable auto-configuration you don\u2019t use with exclude filters.',
             },
             {
               question: 'How do you isolate failures caused by misconfigured auto-configuration?',
               answer:
-                'Binary search: `@SpringBootApplication(exclude=\u2026)`, custom `@Configuration` replacing auto beans, compare `ConditionEvaluationReport` across good/bad nodes, pin Boot/library versions, fail startup on invalid config (`spring.config.on-not-found`, custom validators).',
+                'Treat it like a binary search: use `@SpringBootApplication(exclude = ...)` to rule things out one at a time, or replace an auto-configured bean with your own `@Configuration` to control it directly. Compare the `ConditionEvaluationReport` between a working node and a broken one to see what differs. Pin your Spring Boot and library versions so behavior doesn\u2019t silently shift between deployments. And make the app **fail loudly at startup** on invalid configuration (using `spring.config.on-not-found`, or your own validators) rather than limping along with a bad setting.',
             },
             {
               question: 'How do you handle concurrency issues introduced by auto-configuration?',
               answer:
-                'Audit singleton beans from starters for mutable fields; configure thread-safe templates (shared `RestTemplate`/`WebClient` correctly); bound task executors Boot creates; never inject prototype-looking helpers that are actually singletons without care.',
+                'Audit the singleton beans that starters create for you — check whether any of them keep mutable fields that could be shared unsafely across threads. Make sure shared HTTP clients like `RestTemplate` or `WebClient` are configured and used in a thread-safe way. Bound the size of any task executor that Boot auto-creates so it can\u2019t grow without limit. And be careful never to treat an auto-configured bean as if it were a fresh, per-use object when it\u2019s actually a shared singleton.',
             },
             {
               question: 'How would you validate your solution before deploying to production?',
               answer:
-                'Contract/load/chaos tests in staging; canary + autoscale policy dry-run; migration backward compatibility; feature flags; dashboards & alerts ready; runbooks. Gate deploy on SLOs, not only green unit tests.',
+                'Run contract tests, load tests, and chaos tests in a staging environment first. Do a dry run of your canary deployment and autoscaling policy. Confirm any database migration is backward compatible with the currently-running version. Use feature flags so you can turn a change off quickly without a redeploy. Make sure dashboards and alerts are already set up and ready **before** the release, not added afterward. And have runbooks ready for common failure scenarios. Ultimately, gate the deploy on real SLOs — passing unit tests alone isn\u2019t enough evidence that it\u2019s safe.',
             },
             {
               question:
                 'How would you design authentication for millions of users using Spring Security?',
               answer:
-                'Stateless tokens or external IdP (OAuth2/OIDC). Spring Security resource server validates JWTs via JWKS cache. Horizontal scale authN; store sessions only if needed (Redis). Rate-limit login; MFA; credential stuffing defenses; separate auth service if traffic extreme. AuthZ still local checks on each API.',
+                'Use **stateless tokens** (like JWTs) or delegate to an external identity provider using OAuth2/OIDC, rather than keeping login sessions in your own app\u2019s memory. Spring Security\u2019s resource-server support validates JWTs using a cached JWKS (the provider\u2019s public keys), which scales horizontally without extra coordination between instances.\n\nOnly store sessions somewhere shared (like Redis) if you truly need session-based behavior. Add rate limiting on login endpoints and defenses against credential stuffing, plus multi-factor authentication where appropriate. At very high traffic, it can make sense to split authentication into its own dedicated service. Note that authorization (checking permissions) usually still happens locally in each API, even if authentication is centralized.',
             },
             {
               question: 'How do you prevent cascading failures across Spring Cloud microservices?',
               answer:
-                'Timeouts everywhere, retries with jitter **only** on idempotent calls, circuit breakers, bulkheads, rate limits, backlog bounds, graceful degradation, and chaos testing. Prefer async decoupling for non-critical paths.',
+                'Put timeouts on every call between services. Only retry calls that are safely **idempotent** (repeating them causes no harm), and add random jitter to retry delays so retries don\u2019t all pile up at once. Use circuit breakers to stop calling a service that\u2019s clearly struggling. Use bulkheads (separate pools per dependency) and rate limits, and bound how much backlog/queue can build up. Design for graceful degradation — a feature failing shouldn\u2019t take down the whole app. Where a path isn\u2019t truly critical, decouple it with async messaging instead of a direct synchronous call. Regularly test all of this with chaos testing (deliberately breaking things in a controlled way).',
             },
             {
               question: 'When would you choose WebFlux over Spring MVC?',
               answer:
-                'High concurrency with lots of **I/O wait**, streaming, or gateways \u2014 when you can keep the stack non-blocking end-to-end (reactive drivers). Stick with MVC if the team/JDBC/blocking libs dominate; hybrid often costs more than it buys.',
+                'Choose WebFlux when you have very high concurrency with a lot of **waiting on I/O** — for example, a gateway that fans out to many slow downstream services, or heavy streaming use cases — **and** you can keep the entire stack non-blocking, including your database drivers. If your team, or your JDBC driver, or key libraries are still blocking, stick with regular Spring MVC — mixing blocking code into a reactive stack usually costs you more complexity than it saves in performance.',
             },
             {
               question: 'How do you optimize Hibernate under heavy load?',
               answer:
-                'Eliminate N+1; DTO projections; 2nd-level cache carefully; batch inserts/updates; sensible flush modes; no OSIV for APIs; connection pool right-sizing; read replicas for read-heavy paths; avoid huge persistence contexts.',
+                'Eliminate any N+1 query problems. Use DTO projections instead of loading full entities when you only need a few fields. Use the second-level cache carefully (and only for data that\u2019s safe to be slightly stale). Batch your inserts and updates instead of doing them one at a time. Choose sensible flush modes. Avoid "Open Session in View" for APIs — it hides problems rather than fixing them. Right-size your connection pool for real concurrency. Use read replicas for read-heavy traffic. And avoid loading huge object graphs into a single persistence context — it uses a lot of memory and slows down flush/commit.',
             },
             {
               question: 'How do you troubleshoot deadlocks caused by Spring transactions?',
               answer:
-                'DB deadlock logs show lock order. Fix by consistent **lock ordering**, shorter txs, less aggressive isolation, retry on deadlock victim errors, avoid user interaction mid-tx. Correlate Spring tx boundaries with SQL.',
+                'Your database\u2019s deadlock logs will usually show you the exact lock order that caused the conflict. Fix it by making sure your code always acquires locks in a **consistent order**, keeping transactions as short as possible, avoiding unnecessarily strong isolation levels, and retrying automatically when the database picks your transaction as the "deadlock victim." Never wait on user input while a transaction is still open. When investigating, line up your Spring transaction boundaries against the actual SQL statements running at that time.',
             },
             {
               question:
                 'How do you design resilient distributed transactions using the Saga pattern?',
               answer:
-                'Choreography or orchestration sagas: each local tx + compensating action. Idempotent steps, timeouts, state machine persistence, dead-letter for manual fix. Prefer Saga over 2PC for microservices; accept eventual consistency.',
+                'A Saga breaks one big operation into a series of small **local transactions**, each with a matching **compensating action** to undo it if something later fails. You can coordinate this either through choreography (each service reacts to events from the previous one) or orchestration (a central coordinator tells each service what to do next).\n\nMake every step idempotent, use timeouts everywhere, persist the saga\u2019s state so it can resume after a crash, and route anything that can\u2019t auto-recover to a dead-letter queue for manual handling. Sagas are generally preferred over two-phase commit (2PC) in microservices — you trade strict consistency for something more scalable, and accept **eventual consistency** instead.',
             },
             {
               question: 'How do you design a highly available Spring Boot architecture?',
               answer:
-                'Multi-instance behind LB; stateless apps; replicated DB + backups; caches with TTLs; health/readiness; multi-AZ; chaos drills; dependency bulkheads. HA is redundancy + fast failure detection + tested recovery.',
+                'Run multiple instances behind a load balancer. Keep every app instance stateless. Replicate your database and keep backups. Use caches with sensible TTLs (expiry times) so stale data doesn\u2019t linger forever. Set up proper health and readiness checks so traffic only goes to instances that can actually handle it. Spread instances across multiple availability zones. Regularly run chaos drills to see how the system actually behaves when something breaks. And use bulkheads so one dependency\u2019s failure can\u2019t take everything else down.\n\nIn short: **high availability = redundancy + detecting failure fast + a recovery process you\u2019ve actually tested.**',
             },
             {
               question:
                 'What trade-offs would you make as an Architect when performance, consistency, and scalability conflict?',
               answer:
-                'State the invariant: money \u2192 stronger consistency; feeds \u2192 eventual. Use CQRS/cache where staleness is OK; sync commands for critical writes. Document RPO/RTO and user-visible consistency. Optimize the bottleneck you measured.',
+                'Start by naming the actual invariant you must protect. Money and payments usually need **strong** consistency; a social feed or recommendation list can usually tolerate **eventual** consistency just fine. Use patterns like CQRS or caching where a little staleness is acceptable, and reserve fully synchronous, strongly consistent writes for the truly critical operations. Write down your target RPO/RTO (how much data loss and downtime is acceptable) and what "consistency" means from the user\u2019s point of view. And always optimize the bottleneck you\u2019ve actually **measured** — not the one that seems scariest in theory.',
             },
             {
               question: 'Ship a new version of a Spring Boot service with zero downtime. How?',
               answer:
-                'Rolling deploy: readiness gate, `maxUnavailable=0`, backward-compatible schema (expand/contract), drain with graceful shutdown (`server.shutdown=graceful`), sticky sessions avoided. Migrate data in compatible phases; autoscale during rollout.',
+                'Use a **rolling deployment**: only replace instances once new ones report "ready" (readiness gate), and set `maxUnavailable=0` so you never drop below full capacity. Keep your database schema changes **backward compatible** during the rollout — the classic pattern is expand (add new stuff without removing anything) then contract (remove the old stuff later, once nothing uses it). Enable graceful shutdown (`server.shutdown=graceful`) so in-flight requests finish instead of being cut off, and avoid sticky sessions that would break during instance replacement. Migrate data in safe, compatible phases, and make sure autoscaling doesn\u2019t fight against the rollout while it\u2019s happening.',
             },
           ],
         },
@@ -404,97 +404,97 @@ const content: DesignContent = {
             {
               question: 'How does Spring Boot decide which auto-configuration to apply?',
               answer:
-                'It loads candidate auto-config classes, then evaluates **condition annotations** against classpath, beans, properties, and web app type. Matching configs import; failures are silent skips (see condition report). User `@Configuration`/`@Bean` usually overrides via missing-bean conditions.',
+                'Boot first loads a list of candidate auto-configuration classes, then checks each one\u2019s **condition annotations** against things like what\u2019s on the classpath, what beans already exist, what properties are set, and what kind of app you\u2019re running (web, reactive, etc.). If the conditions match, that configuration gets applied and registers its beans; if not, it\u2019s silently skipped — you can see exactly why in the condition evaluation report if you need to debug it. If you define your own bean of the same type, it usually wins automatically, because most auto-configuration is written with `@ConditionalOnMissingBean`.',
             },
             {
               question: 'What happens internally when you add spring-boot-starter-web?',
               answer:
-                'Pulls Spring MVC, Jackson, embedded Tomcat (by default), validation, etc. Auto-config sets up `DispatcherServlet`, message converters, error pages, and a web server factory. Your app becomes a servlet web application without manual XML.',
+                'This one starter dependency pulls in a whole bundle of things: Spring MVC, the Jackson library for JSON, an embedded Tomcat server (by default), and Bean Validation support. Boot\u2019s auto-configuration then wires up a `DispatcherServlet`, message converters (for turning objects into JSON and back), default error pages, and a web server factory. The end result: your app becomes a fully working web application without you writing any XML or manual server setup.',
             },
             {
               question: 'Why does Spring Boot prefer convention over configuration?',
               answer:
-                'Sensible defaults (component scan from main class, `application.properties`, embedded server, starter deps) get you productive fast. You override only differences. Reduces boilerplate while staying replaceable when conventions don\u2019t fit.',
+                'Spring Boot ships with sensible defaults for almost everything — it scans for components starting from your main class, reads config from `application.properties`, starts an embedded server automatically, and starter dependencies bring in the versions and beans that usually work together out of the box. This means you can get a working app running fast, and you only write configuration for the parts where your needs are different from the default. It cuts down on repetitive setup code while still letting you override anything that doesn\u2019t fit your case.',
             },
             {
               question: 'How does Spring Boot load application.properties internally?',
               answer:
-                '`ConfigDataEnvironmentPostProcessor` loads config data from known locations (classpath, file, optional imports) with profile-specific files and priority rules. Property sources feed `Environment`; `@ConfigurationProperties` / `@Value` bind later. YAML supported via `application.yml`.',
+                'A component called `ConfigDataEnvironmentPostProcessor` looks for configuration in a set of known locations — the classpath, the filesystem, or explicit "imports" — and loads them with the correct priority (e.g. `application-prod.properties` should override `application.properties` when the `prod` profile is active). All of this ends up in Spring\u2019s `Environment` object, and later, annotations like `@ConfigurationProperties` or `@Value` bind those values into your actual Java objects. YAML files (`application.yml`) are supported the same way.',
             },
             {
               question: 'Exact startup flow of a Spring Boot application.',
               answer:
-                '`main` \u2192 `SpringApplication.run` \u2192 prepare environment \u2192 print banner \u2192 create `ApplicationContext` \u2192 load sources \u2192 apply initializers \u2192 refresh context (bean defs, auto-config, singletons) \u2192 start web server \u2192 `ApplicationRunner`/`CommandLineRunner` \u2192 ready.\n\nFailures during refresh prevent traffic.',
+                'Roughly: `main()` calls `SpringApplication.run()` \u2192 Spring prepares the `Environment` \u2192 prints the startup banner \u2192 creates an `ApplicationContext` \u2192 loads your configuration classes \u2192 runs any registered initializers \u2192 "refreshes" the context (this is where bean definitions are processed, auto-configuration runs, and singleton beans actually get created) \u2192 the embedded web server starts \u2192 any `ApplicationRunner`/`CommandLineRunner` beans execute \u2192 the app is now ready to serve traffic.\n\nIf anything fails during the "refresh" step, the app never becomes ready and won\u2019t accept traffic — which is usually the desired, safe behavior.',
             },
             {
               question: 'Difference between @ComponentScan and @SpringBootApplication.',
               answer:
-                '`@SpringBootApplication` = `@Configuration` + `@EnableAutoConfiguration` + `@ComponentScan` (and more). `@ComponentScan` alone only discovers annotated beans \u2014 no Boot auto-config. Customize scan packages when modules live outside the main class package.',
+                '`@SpringBootApplication` is actually a combination of three annotations: `@Configuration` + `@EnableAutoConfiguration` + `@ComponentScan` (plus a couple of smaller extras). `@ComponentScan` **by itself** only tells Spring to find and register your `@Component`/`@Service`/etc. classes — it does **not** trigger Boot\u2019s auto-configuration on its own. If your classes live in packages outside your main class\u2019s package, you\u2019ll need to customize the scan base packages so Spring can actually find them.',
             },
             {
               question: 'How does Spring Boot detect embedded Tomcat and configure it?',
               answer:
-                'If Tomcat classes are present and no reactive stack takes precedence, `ServletWebServerFactoryAutoConfiguration` registers `TomcatServletWebServerFactory`. Properties under `server.*` / `server.tomcat.*` tune connectors, threads, limits.',
+                'If the Tomcat classes are present on the classpath, and nothing has pushed the app toward a reactive setup instead, `ServletWebServerFactoryAutoConfiguration` registers a `TomcatServletWebServerFactory` for you. From there, properties like `server.port`, `server.tomcat.threads.max`, and other `server.*` settings let you tune the connector, thread pool, and connection limits without writing any Tomcat configuration code yourself.',
             },
             {
               question: 'What happens if two beans of the same type exist without @Qualifier?',
               answer:
-                'Injection by type fails with `NoUniqueBeanDefinitionException`. Fix with `@Primary`, `@Qualifier`, or `@Resource(name=\u2026)`. Constructor params can use `@Qualifier` on each argument.',
+                'Spring can\u2019t decide which one you meant, so injecting by type throws a `NoUniqueBeanDefinitionException`. You fix this by marking one bean as the default with `@Primary`, or by being explicit about which one you want using `@Qualifier` (or `@Resource(name = ...)`). If you\u2019re using constructor injection with multiple candidates, you can put `@Qualifier` right on the individual constructor parameter.',
             },
             {
               question: 'How does Spring Boot handle profile-specific configuration?',
               answer:
-                '`spring.profiles.active` / groups activate profiles. Loads `application-{profile}.properties` and `@Profile` beans. Use profiles for env differences; keep secrets in a vault, not git.',
+                'You activate one or more profiles using `spring.profiles.active` (or profile groups). Once active, Boot loads matching `application-{profile}.properties` files, and any bean marked `@Profile("that-profile")` becomes eligible to be created. Profiles are meant for differences between environments (dev, staging, prod) — but keep actual secrets in a proper secrets vault, never committed to your repository.',
             },
             {
               question: 'What is the role of SpringFactoriesLoader under the hood?',
               answer:
-                'Legacy loader for `META-INF/spring.factories` entries (ApplicationContextInitializers, auto-configs, Listeners). Boot 3 prefers `AutoConfiguration.imports`, but the idea remains: classpath meta-data drives plugin-like loading without hardcoding.',
+                'This is the older mechanism Spring uses to read `META-INF/spring.factories` files, which list things like application context initializers, auto-configuration classes, and listeners — without you having to hardcode any of that wiring yourself. Spring Boot 3 mostly moved to a newer `AutoConfiguration.imports` file instead, but the underlying idea is the same: metadata sitting on the classpath drives plugin-style loading automatically.',
             },
             {
               question: 'Difference between @RestController and @Controller internally.',
               answer:
-                '`@RestController` = `@Controller` + `@ResponseBody` on the type \u2192 return values go through message converters, not view resolution. `@Controller` is for MVC views unless methods are annotated `@ResponseBody`.',
+                '`@RestController` is really just `@Controller` plus `@ResponseBody` applied automatically to the whole class. That means every method\u2019s return value gets passed through Spring\u2019s message converters (turning it into JSON, for example) instead of being treated as the name of a view to render. Plain `@Controller` is meant for traditional MVC apps that return view names — unless you add `@ResponseBody` on individual methods yourself.',
             },
             {
               question: 'How does Spring Boot manage dependency versions automatically?',
               answer:
-                'The **BOM** (`spring-boot-dependencies`) imported by `spring-boot-starter-parent` or `spring-boot-dependencies` pins compatible versions. You omit versions on starters; override deliberately when needed.',
+                'Spring Boot publishes a **BOM** (Bill of Materials) called `spring-boot-dependencies`, which lists compatible, tested versions for a huge range of libraries. When you use `spring-boot-starter-parent` (or import `spring-boot-dependencies` directly), that BOM is pulled in, so you can add starter dependencies **without specifying a version** — Boot picks one that\u2019s known to work well with everything else. You can still override a specific version deliberately if you have a good reason to.',
             },
             {
               question: 'Lifecycle of a Spring Bean in Spring Boot.',
               answer:
-                'instantiate \u2192 populate properties \u2192 BeanName/Factory aware \u2192 BeanPostProcessor before \u2192 `@PostConstruct` / `InitializingBean` \u2192 BPP after \u2192 ready \u2192 on shutdown `@PreDestroy` / `DisposableBean` / close hooks. Proxies may wrap the bean during post-processing.',
+                'Roughly: the bean is **instantiated** \u2192 its properties/dependencies are set \u2192 if it implements bean-aware interfaces, those callbacks run (like getting its own name) \u2192 any `BeanPostProcessor`s run their "before init" step \u2192 `@PostConstruct` (or `InitializingBean`) runs \u2192 `BeanPostProcessor`s run their "after init" step (this is where proxies often get applied) \u2192 the bean is now ready to use \u2192 later, on shutdown, `@PreDestroy` (or `DisposableBean`) runs, along with other close hooks. Note that the final object you actually use might be a proxy wrapping your real bean, created during that post-processing step.',
             },
             {
               question: 'Fat jar vs normal jar \u2014 internal difference.',
               answer:
-                'Boot **fat/uber jar** nests dependency jars and uses a custom `JarLauncher`/`LaunchedURLClassLoader` to run nested archives. Thin jar needs external classpath. Fat jar = `java -jar app.jar` deployability.',
+                'A Spring Boot **fat jar** (sometimes called an "uber jar") packages all of your dependency jars **nested inside** one single jar file, and uses a custom `JarLauncher` (with a special `LaunchedURLClassLoader`) to actually run code straight out of those nested archives. A regular ("thin") jar only contains your own code, and expects you to supply the classpath (all the dependency jars) separately when you run it. The fat jar\u2019s whole benefit is simplicity: `java -jar app.jar` and you\u2019re done — no separate classpath setup needed.',
             },
             {
               question: 'How Spring Boot decides server port priority.',
               answer:
-                '`server.port` from Environment (properties, env vars `SERVER_PORT`, CLI args). Random port: `server.port=0`. Cloud platforms inject `PORT`. Highest-precedence property source wins per Spring\u2019s property order.',
+                'The port comes from whichever property source has the highest precedence in Spring\u2019s standard ordering — that could be a properties file, an environment variable (`SERVER_PORT`), or a command-line argument (`--server.port=8081`), among others. Setting `server.port=0` tells the app to pick a random free port — handy for tests. Many cloud platforms automatically inject a `PORT` environment variable that your app needs to respect.',
             },
             {
               question: 'What happens internally when you hit a REST endpoint.',
               answer:
-                'Same as DispatcherServlet flow: filters \u2192 servlet \u2192 mapping \u2192 controller \u2192 service \u2192 converters. Actuator/security filters may short-circuit earlier.',
+                'This is the same flow as the general `DispatcherServlet` flow described earlier: request \u2192 filters \u2192 servlet \u2192 handler mapping \u2192 controller \u2192 service \u2192 message converters \u2192 response. The one thing to add: security or Actuator filters can short-circuit the request earlier in the chain — for example, rejecting an unauthenticated request before it ever reaches your controller.',
             },
             {
               question: 'How Spring Boot integrates with Actuator internally.',
               answer:
-                'Actuator auto-config registers management endpoints as beans + a management web mapping (same or separate port). Endpoint exposure via `management.endpoints.web.exposure`. Health contributors aggregate into `/health`.',
+                'When Actuator is on the classpath, its auto-configuration registers each management endpoint (`/health`, `/metrics`, etc.) as its own bean, and sets up a web mapping for them — either on the same port as your app or a separate management port, depending on configuration. Which endpoints are actually reachable over the web is controlled by `management.endpoints.web.exposure.*`. Behind `/health`, multiple "health contributors" (database, disk space, custom checks, etc.) each report their own status, and Actuator combines them into one overall result.',
             },
             {
               question: 'How exception translation works in Spring Boot.',
               answer:
-                '`@Repository` proxies translate low-level persistence exceptions to Spring\u2019s hierarchy. MVC: `@ControllerAdvice` + `@ExceptionHandler`, or `ProblemDetail` handlers. Boot\u2019s default error attributes render `/error` for unhandled cases.',
+                'On the data layer, `@Repository` beans get wrapped with a proxy that automatically converts low-level, driver-specific persistence exceptions into Spring\u2019s own consistent `DataAccessException` hierarchy — so your service code doesn\u2019t need to know or care which database driver actually threw the error. On the web layer, you handle exceptions with `@ControllerAdvice` + `@ExceptionHandler` (or the newer `ProblemDetail` approach) to turn them into proper HTTP responses. If nothing catches an exception, Boot\u2019s default error handling renders a generic `/error` response.',
             },
             {
               question: 'Common performance mistakes in Spring Boot applications.',
               answer:
-                'OSIV enabled for APIs; unbounded caches; sync remote calls in txs; tiny/huge pools; N+1; blocking in WebFlux; logging huge payloads; `fetch = EAGER` everywhere; missing indexes; starting too many Netty/Tomcat threads without measuring.',
+                'Leaving "Open Session in View" enabled for APIs (it hides lazy-loading problems instead of fixing them). Unbounded caches that grow forever and eventually cause memory pressure. Making slow, synchronous remote calls while holding a database transaction open. Connection/thread pools that are either far too small or far too large for real traffic. The N+1 query problem. Blocking calls inside a WebFlux reactive pipeline (which defeats the whole point of using it). Logging huge request/response payloads. Marking JPA relationships as `fetch = EAGER` everywhere, causing large object graphs to load when you only wanted one field. Missing database indexes. And starting way more Tomcat/Netty threads than the workload actually needs, without measuring first.',
             },
           ],
         },
@@ -512,42 +512,42 @@ const content: DesignContent = {
             {
               question: 'What is Dependency Injection?',
               answer:
-                'A technique where an object receives its dependencies from the outside (the container) instead of constructing them. Enables loose coupling, easier testing, and centralized lifecycle. Spring\u2019s IoC container is the DI engine.',
+                'It\u2019s a simple idea: instead of a class creating its own dependencies (with `new SomeClass()`), something else — "the container" — hands those dependencies to it from the outside. This keeps classes loosely coupled (easy to swap out an implementation), much easier to test (you can pass in a fake/mock dependency), and lets one central place manage object lifecycles. Spring\u2019s IoC (Inversion of Control) container is exactly this: the engine that creates your objects and injects their dependencies for you.',
             },
             {
               question: 'Types of Dependency Injection.',
               answer:
-                '**Constructor**, **setter**, **field**. Constructor injection is the default best practice for required deps; setter for optional; field discouraged. Spring also supports provider injection (`ObjectProvider`) for lazy/optional multi-bean cases.',
+                'There are three common styles: **constructor** injection, **setter** injection, and **field** injection.\n\nConstructor injection is the recommended default for anything a class truly needs to function — it makes dependencies explicit and required. Setter injection fits optional dependencies that might be set later or changed. Field injection (`@Autowired` directly on a field) is generally discouraged because it hides dependencies and makes testing harder.\n\nSpring also supports **provider-style** injection (`ObjectProvider`) for cases where you need a dependency lazily, optionally, or when there might be multiple matching beans and you want to choose at runtime.',
             },
             {
               question: 'Explain Spring Boot application flow.',
               answer:
-                'Startup builds the context and embedded server; runtime requests enter filters \u2192 DispatcherServlet \u2192 controllers \u2192 services \u2192 repositories \u2192 DB; cross-cuts via AOP; Actuator observes; Security gatekeeps. Shutdown drains requests then closes beans.',
+                'At **startup**, Boot builds the application context and starts the embedded server. At **runtime**, each incoming request flows through filters \u2192 `DispatcherServlet` \u2192 controller \u2192 service \u2192 repository \u2192 database, with cross-cutting behavior (like transactions or logging) layered in through AOP along the way. Actuator quietly observes health and metrics in the background, and Spring Security gatekeeps access before requests even reach your controllers. At **shutdown**, the app stops accepting new requests, finishes any in-flight ones, and then closes its beans cleanly.',
             },
             {
               question: 'How does Spring Security work?',
               answer:
-                'A **filter chain** wraps every request. Filters authenticate (establish `SecurityContext`) and authorize before reaching MVC. Configured via `SecurityFilterChain` beans. Method security adds AOP checks. Context held in `ThreadLocal` (or reactive context).',
+                'At its core, it\u2019s a **chain of filters** that wraps around every incoming request. Some filters handle authentication (figuring out *who* the caller is, and building a `SecurityContext` to represent that), and others handle authorization (checking *what* that caller is allowed to do) — all of this happens before the request ever reaches your Spring MVC controllers. You configure this filter chain with `SecurityFilterChain` beans. On top of that, method-level security annotations (like `@PreAuthorize`) add an extra AOP-based check right before a specific method runs. The current user\u2019s security info is normally kept in a `ThreadLocal` for standard Spring MVC apps (or in the reactive context for WebFlux apps).',
             },
             {
               question: 'Explain JWT Authentication flow.',
               answer:
-                'User authenticates \u2192 issuer returns JWT \u2192 client sends `Authorization: Bearer` \u2192 resource server verifies signature & claims \u2192 builds `Authentication` \u2192 authorization rules apply. Refresh tokens rotate access tokens; revoke via short TTL + denylist/versioning if required.',
+                '1. The user logs in with their credentials.\n2. The identity provider (or your own auth service) verifies them and issues a **JWT** (a signed token containing some claims about the user).\n3. The client stores that token and sends it on every future request in an `Authorization: Bearer <token>` header.\n4. The resource server (your API) checks the token\u2019s signature and claims (like expiry) to confirm it\u2019s valid and untampered.\n5. Spring builds an `Authentication` object from the token\u2019s contents, and your authorization rules then decide what that user is allowed to do.\n\nA **refresh token** is used to get a new access token once the short-lived one expires, without making the user log in again. If you need to be able to instantly revoke access before a token naturally expires, you\u2019ll need extra machinery like a denylist or a token-version check, since a JWT by itself can\u2019t be "recalled" once issued.',
             },
             {
               question: 'How do you handle exceptions globally?',
               answer:
-                '`@ControllerAdvice` + `@ExceptionHandler` mapping domain errors to HTTP status + body (`ProblemDetail`). Translate validation errors to 400, authZ to 403, not found to 404. Log with correlation ID; don\u2019t leak internals.',
+                'Use a `@ControllerAdvice` class with `@ExceptionHandler` methods that map your domain-specific errors to the right HTTP status code and a clean response body (often using Spring\u2019s built-in `ProblemDetail` format). For example: validation failures become **400**, permission errors become **403**, "not found" becomes **404**. Always log the error with a correlation/request ID so you can trace it later — but never leak internal details (like stack traces or SQL) back to the client.',
             },
             {
               question: 'Difference between @Qualifier and @Primary.',
               answer:
-                '`@Primary` marks the default bean when multiple candidates exist. `@Qualifier` selects a **specific** bean by name/annotation. Qualifier is precise; Primary is convenience for the common case.',
+                '`@Primary` marks one specific bean as the "default choice" whenever there are multiple candidates of the same type and Spring has to pick one automatically. `@Qualifier` is more precise — it lets you say exactly **which** bean, by name or a custom qualifier annotation, you want injected in a particular spot. Think of `@Primary` as a convenient fallback for the common case, and `@Qualifier` as being explicit when you need control.',
             },
             {
               question: 'How do you perform graceful shutdown for in-flight requests?',
               answer:
-                '`server.shutdown=graceful` + sufficient `spring.lifecycle.timeout-per-shutdown-phase`. K8s: preStop sleep, readiness fail, then SIGTERM; stop accepting traffic, finish in-flight, close pools. Align `terminationGracePeriodSeconds` with drain time.',
+                'Set `server.shutdown=graceful` along with a reasonable `spring.lifecycle.timeout-per-shutdown-phase`, so the app stops accepting new requests but lets requests already in progress finish first.\n\nIn Kubernetes, the usual pattern is: a short `preStop` sleep, the readiness probe starts failing (so no new traffic is routed here), and only then does Kubernetes send `SIGTERM`. The app stops taking new work, finishes what\u2019s in flight, and closes its connection pools cleanly. Make sure `terminationGracePeriodSeconds` in your pod spec is long enough to cover this whole drain process — otherwise Kubernetes will forcibly kill the pod before it finishes.',
             },
           ],
         },

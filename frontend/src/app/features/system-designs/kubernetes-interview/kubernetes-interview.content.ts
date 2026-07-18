@@ -11,7 +11,7 @@ const content: DesignContent = {
         {
           type: 'markdown',
           value:
-            'The smallest technology section from the source question set, answered first. These scenarios test whether you can connect Kubernetes status to application, networking, and lifecycle behavior.',
+            "A short set of Kubernetes scenario questions, answered first because it's the smallest section in the source question set. These scenarios test whether you can connect what Kubernetes reports (pod status, endpoints, events) to what is actually happening with your application, its networking, and its lifecycle.",
         },
       ],
     },
@@ -21,40 +21,41 @@ const content: DesignContent = {
       blocks: [
         {
           type: 'interviewQa',
+          variant: 'sketch',
           items: [
             {
               question:
                 'A pod keeps restarting but its application logs show nothing. How do you debug it?',
               answer:
-                'Run `kubectl describe pod` and inspect container state, exit code, events, probes, OOMKilled, image/config errors, and node pressure. Read the prior container with `kubectl logs --previous`. If it exits before logging, inspect the entrypoint, command, mounted config/secrets, security context, and runtime events.',
+                "Start with `kubectl describe pod`. It shows the container's state, exit code, recent events, probe results, whether it was OOMKilled (killed for using too much memory), image or config errors, and whether the node itself is under resource pressure.\n\nNext, check logs from the previous, crashed container with `kubectl logs --previous` — the current one may not have logged anything yet. If the app is crashing before it even starts logging, look at the entrypoint/command, mounted config files and secrets, the security context, and the container runtime's own events.",
             },
             {
               question: 'How do you ship a Spring Boot service with zero downtime?',
               answer:
-                'Use a RollingUpdate with multiple replicas, correct readiness probes, `maxUnavailable: 0`, controlled `maxSurge`, and enough capacity. Make schema/API changes backward-compatible, wait for readiness before traffic, use a PodDisruptionBudget, and automatically roll back on health or SLO regression.',
+                'Use a RollingUpdate strategy with multiple replicas, so old pods are only removed as new ones become ready to take traffic. Set correct readiness probes (so Kubernetes only routes traffic to pods that can actually handle it), `maxUnavailable: 0` (never drop below the capacity you need), and a sensible `maxSurge` (how many extra pods can exist during the rollout).\n\nMake schema and API changes backward-compatible, since old and new versions will briefly run side by side. Wait for new pods to be ready before shifting traffic to them, use a PodDisruptionBudget to limit voluntary disruptions, and set up automatic rollback if health checks or SLOs (service level objectives) get worse.',
             },
             {
               question:
                 'A pod is terminating. What happens to in-flight requests, and how do you shut down cleanly?',
               answer:
-                'Kubernetes sets a deletion timestamp, removes the pod from service endpoints, runs `preStop`, and sends SIGTERM. The app should fail readiness, stop accepting work, drain requests/consumers, and exit before `terminationGracePeriodSeconds`; otherwise Kubernetes sends SIGKILL.',
+                "When a pod is deleted, Kubernetes marks it with a deletion timestamp, removes it from the Service's list of endpoints so no new traffic is routed to it, runs the `preStop` hook if one is defined, and then sends the SIGTERM signal.\n\nYour application should respond by failing its readiness check, stopping acceptance of new work, finishing (draining) requests or messages already in progress, and exiting before `terminationGracePeriodSeconds` runs out. If it doesn't exit in time, Kubernetes forcibly kills it with SIGKILL.",
             },
             {
               question:
                 'Kubernetes says the service is healthy, but users receive 503 errors. Where do you start?',
               answer:
-                'Trace client → ingress/gateway → Service → EndpointSlice → pod. Verify selectors and ports, ready endpoints, ingress routes/TLS, network policies, sidecars, and upstream timeouts. A liveness check only proves the process is alive; readiness must prove it can serve traffic.',
+                "Trace the request path step by step: client → ingress/gateway → Service → EndpointSlice (the list of pod IPs behind a Service) → pod.\n\nCheck that the Service's selector and ports actually match the pods, that pods are marked ready in the EndpointSlice, that ingress routes and TLS certificates are correct, that network policies aren't silently blocking traffic, that sidecars are configured correctly, and that upstream timeouts aren't too short.\n\nKey distinction: a liveness probe only proves the process hasn't crashed — it says nothing about whether the app can serve traffic. Only the readiness probe proves that.",
             },
             {
               question: 'You have ten pods, but traffic reaches only two. How do you investigate?',
               answer:
-                'Check EndpointSlices for all ready pods, Service selectors, readiness failures, topology-aware routing, session affinity, ingress/upstream connection reuse, and zonal skew. Compare per-pod request metrics and test direct pod/service traffic before changing replica count.',
+                "Check the EndpointSlices to see which pods are actually marked ready and receiving traffic. Review the Service's selector and look for pods failing readiness checks.\n\nAlso check topology-aware routing (which can prefer pods in the same zone as the caller), session affinity (which can pin a client to the same pod), connection reuse at the ingress or upstream layer, and an uneven number of ready pods across zones.\n\nCompare request metrics per pod, and try sending traffic directly to individual pods or to the Service, before deciding to just change the replica count.",
             },
             {
               question:
                 'One pod uses much more CPU than other replicas. How do you find the cause?',
               answer:
-                'Compare request distribution, partition or shard ownership, scheduled jobs, cache warm-up, retries, and pod limits/throttling. Capture application profiles or thread dumps from the hot pod, correlate traces and logs by route/key, then verify whether traffic skew or unique work explains it.',
+                "Start by comparing how requests are distributed across pods. Check whether that pod owns a specific partition or shard of work, runs scheduled jobs, is doing a cache warm-up, is stuck retrying something, or is hitting its CPU limit and being throttled.\n\nCapture a profile or thread dump from the busy pod, and line up its traces and logs by route or key against the other pods. That lets you confirm whether the extra load comes from uneven traffic, or because that pod is genuinely doing unique work the others aren't.",
             },
           ],
         },
