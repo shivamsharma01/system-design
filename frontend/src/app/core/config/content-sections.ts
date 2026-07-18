@@ -9,7 +9,7 @@ export const CONTENT_SECTIONS: ContentSectionMeta[] = [
     id: 'interview-questions',
     title: 'Interview Questions',
     description:
-      'Technology-focused backend interview questions for Java, Spring Boot, Kafka, and Kubernetes.',
+      'Backend interview prep — Java, Spring Boot, Kafka, Kubernetes, and OWASP Top 10 sketchnotes.',
     order: 0,
   },
   {

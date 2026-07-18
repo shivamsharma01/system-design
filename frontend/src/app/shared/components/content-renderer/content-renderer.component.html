@@ -166,5 +166,13 @@
     @case ('references') {
       <app-reference-list [items]="asReferences(block).items" />
     }
+
+    @case ('sketchnote') {
+      <app-sketchnote-board
+        [title]="asSketchnote(block).title"
+        [intro]="asSketchnote(block).intro"
+        [items]="asSketchnote(block).items"
+      />
+    }
   }
 }

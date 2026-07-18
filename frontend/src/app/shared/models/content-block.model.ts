@@ -40,6 +40,21 @@ export interface ReferenceItem {
   source?: string;
 }
 
+export interface SketchnoteItem {
+  /** Short badge, e.g. A01. */
+  code?: string;
+  title: string;
+  subtitle?: string;
+  /** Short visual glyph (1–2 characters), not an emoji cluster. */
+  glyph?: string;
+  /** CSS color for marker / accent strokes. */
+  accent?: string;
+  /** Short sketchnote bullets. */
+  points: string[];
+  /** Optional margin tip / sticky note. */
+  tip?: string;
+}
+
 /** Discriminated union of every supported content block. */
 export type ContentBlock =
   | MarkdownBlock
@@ -62,7 +77,8 @@ export type ContentBlock =
   | FeatureComparisonBlock
   | MathBlock
   | ExpandableBlock
-  | ReferencesBlock;
+  | ReferencesBlock
+  | SketchnoteBlock;
 
 export interface MarkdownBlock {
   type: 'markdown';
@@ -211,4 +227,11 @@ export interface ExpandableBlock {
 export interface ReferencesBlock {
   type: 'references';
   items: ReferenceItem[];
+}
+
+export interface SketchnoteBlock {
+  type: 'sketchnote';
+  title?: string;
+  intro?: string;
+  items: SketchnoteItem[];
 }

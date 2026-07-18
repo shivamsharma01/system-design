@@ -18,6 +18,7 @@ import {
   MetricsBlock,
   ProsConsBlock,
   ReferencesBlock,
+  SketchnoteBlock,
   TableBlock,
   TimelineBlock,
   VideoBlock,
@@ -43,6 +44,7 @@ import { FeatureComparisonComponent } from '../feature-comparison/feature-compar
 import { MathBlockComponent } from '../math-block/math-block.component';
 import { ExpandablePanelComponent } from '../expandable-panel/expandable-panel.component';
 import { ReferenceListComponent } from '../reference-list/reference-list.component';
+import { SketchnoteBoardComponent } from '../sketchnote-board/sketchnote-board.component';
 
 /**
  * The data-driven rendering engine: maps each `ContentBlock` to its reusable
@@ -73,6 +75,7 @@ import { ReferenceListComponent } from '../reference-list/reference-list.compone
     MathBlockComponent,
     ExpandablePanelComponent,
     ReferenceListComponent,
+    SketchnoteBoardComponent,
     // Self-reference: lets expandable blocks render nested content blocks.
     ContentRendererComponent,
   ],
@@ -122,4 +125,5 @@ export class ContentRendererComponent {
   protected asMath = (b: ContentBlock): MathBlock => b as MathBlock;
   protected asExpandable = (b: ContentBlock): ExpandableBlock => b as ExpandableBlock;
   protected asReferences = (b: ContentBlock): ReferencesBlock => b as ReferencesBlock;
+  protected asSketchnote = (b: ContentBlock): SketchnoteBlock => b as SketchnoteBlock;
 }

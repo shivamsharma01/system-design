@@ -1,0 +1,55 @@
+<section class="sketch" aria-label="Sketchnote board">
+  @if (title() || intro()) {
+    <header class="sketch__header">
+      @if (title()) {
+        <h3 class="sketch__title font-sketch-title">{{ title() }}</h3>
+      }
+      @if (intro()) {
+        <p class="sketch__intro font-sketch-body">{{ intro() }}</p>
+      }
+      <div class="sketch__scribble" aria-hidden="true"></div>
+    </header>
+  }
+
+  <div class="sketch__grid">
+    @for (item of items(); track item.title; let i = $index) {
+      <article class="sketch-card" [style.--accent]="accent(item, i)" [style.--tilt]="tilt(i)">
+        <div class="sketch-card__tape" aria-hidden="true"></div>
+        <div class="sketch-card__top">
+          @if (item.code) {
+            <span class="sketch-card__code font-sketch-label">{{ item.code }}</span>
+          }
+          @if (item.glyph) {
+            <span class="sketch-card__glyph font-sketch-accent" aria-hidden="true">{{
+              item.glyph
+            }}</span>
+          }
+        </div>
+        <h4 class="sketch-card__title font-sketch-title">{{ item.title }}</h4>
+        @if (item.subtitle) {
+          <p class="sketch-card__subtitle font-sketch-accent">{{ item.subtitle }}</p>
+        }
+        <ul class="sketch-card__points font-sketch-body">
+          @for (point of item.points; track point) {
+            <li>{{ point }}</li>
+          }
+        </ul>
+        @if (item.tip) {
+          <p class="sketch-card__tip font-comic">
+            <span class="sketch-card__tip-label font-sketch-label">tip</span>
+            {{ item.tip }}
+          </p>
+        }
+        <svg class="sketch-card__doodle" viewBox="0 0 120 24" aria-hidden="true">
+          <path
+            d="M4 14 C 20 4, 40 22, 58 12 S 96 4, 116 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+          />
+        </svg>
+      </article>
+    }
+  </div>
+</section>

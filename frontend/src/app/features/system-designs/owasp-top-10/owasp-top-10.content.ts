@@ -1,0 +1,247 @@
+import { DesignContent } from '../../../shared/models';
+import { OWASP_TOP_10_META } from './owasp-top-10.meta';
+
+const content: DesignContent = {
+  meta: OWASP_TOP_10_META,
+  sections: [
+    {
+      id: 'overview',
+      title: 'Overview',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'The **OWASP Top 10** is the industry’s shared checklist of the most critical web application risks. This page is a **sketchnote board**: short, hand-lettered cards you can scan before an interview or security review.',
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'How to use these notes',
+          body: 'For each risk, remember three beats: **what it is**, **how attackers abuse it**, and **the practical fix**. Prefer concrete controls (authz checks, parameterized queries, least privilege) over buzzwords.',
+        },
+      ],
+    },
+    {
+      id: 'sketchnotes',
+      title: 'Sketchnotes',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'OWASP Top 10 — pocket sketchnotes',
+          intro:
+            'Ten sticky cards. Each one: risk name, how it bites, and the fix you should say out loud in an interview.',
+          items: [
+            {
+              code: 'A01',
+              glyph: 'AC',
+              title: 'Broken Access Control',
+              subtitle: 'Users reach stuff they shouldn’t',
+              accent: '#c2410c',
+              points: [
+                'Missing / wrong authZ on APIs & IDs (IDOR).',
+                'Privilege escalation: user → admin paths.',
+                'Fix: deny-by-default, check permission every request, enforce ownership server-side.',
+              ],
+              tip: 'Never trust the UI to hide a button — hide the capability on the server.',
+            },
+            {
+              code: 'A02',
+              glyph: 'CF',
+              title: 'Cryptographic Failures',
+              subtitle: 'Secrets & data left weakly protected',
+              accent: '#1d4ed8',
+              points: [
+                'Data in transit/rest without strong crypto.',
+                'Weak hashes, hardcoded keys, leaked tokens.',
+                'Fix: TLS everywhere, modern KMS, hash passwords with Argon2/bcrypt, rotate keys.',
+              ],
+              tip: 'Encrypt for confidentiality; sign/MAC for integrity — know which you need.',
+            },
+            {
+              code: 'A03',
+              glyph: 'IN',
+              title: 'Injection',
+              subtitle: 'Untrusted input becomes code',
+              accent: '#047857',
+              points: [
+                'SQL, NoSQL, OS command, LDAP, template injection.',
+                'Attacker changes query / command meaning.',
+                'Fix: parameterized queries, allow-lists, escape contextually, least DB privilege.',
+              ],
+              tip: 'If you concatenate user input into a query string, you already lost.',
+            },
+            {
+              code: 'A04',
+              glyph: 'ID',
+              title: 'Insecure Design',
+              subtitle: 'The blueprint was unsafe',
+              accent: '#7c3aed',
+              points: [
+                'Missing threat model, no abuse cases.',
+                'Business logic flaws (race, coupon, refund).',
+                'Fix: threat model early, secure design patterns, limits & invariants in domain.',
+              ],
+              tip: 'Perfect code can’t save a design that allows the wrong thing.',
+            },
+            {
+              code: 'A05',
+              glyph: 'SM',
+              title: 'Security Misconfiguration',
+              subtitle: 'Defaults, leftovers, open doors',
+              accent: '#b45309',
+              points: [
+                'Default creds, verbose errors, open cloud buckets.',
+                'Unused features & debug endpoints in prod.',
+                'Fix: harden baselines, IaC reviews, remove unused stacks, separate envs.',
+              ],
+              tip: 'Misconfig is often “we left staging settings in production.”',
+            },
+            {
+              code: 'A06',
+              glyph: 'VC',
+              title: 'Vulnerable Components',
+              subtitle: 'Known-bad libraries in the build',
+              accent: '#be123c',
+              points: [
+                'Outdated jars/npm packages with CVEs.',
+                'Unmaintained transitive deps.',
+                'Fix: SBOM + SCA scanning, pin versions, patch cadence, remove dead deps.',
+              ],
+              tip: 'You inherit every CVE in your dependency tree.',
+            },
+            {
+              code: 'A07',
+              glyph: 'AF',
+              title: 'Auth Failures',
+              subtitle: 'Weak identity & session handling',
+              accent: '#0f766e',
+              points: [
+                'Credential stuffing, weak passwords, broken MFA.',
+                'Session fixation / stolen cookies.',
+                'Fix: MFA, secure cookies, rate-limit login, short-lived tokens, logout everywhere.',
+              ],
+              tip: 'Authentication proves who; authorization still decides what.',
+            },
+            {
+              code: 'A08',
+              glyph: 'SI',
+              title: 'Integrity Failures',
+              subtitle: 'Tampered code, data, or pipelines',
+              accent: '#4338ca',
+              points: [
+                'Unsigned updates, poisoned CI artifacts.',
+                'Insecure deserialization, trust of client blobs.',
+                'Fix: sign & verify artifacts, lock CI, integrity checks, avoid unsafe deserialize.',
+              ],
+              tip: 'If you can’t prove where the binary came from, don’t run it.',
+            },
+            {
+              code: 'A09',
+              glyph: 'LM',
+              title: 'Logging & Monitoring Gaps',
+              subtitle: 'Attacks happen in the dark',
+              accent: '#a16207',
+              points: [
+                'No audit trail for authZ denials / admin actions.',
+                'Alerts missing → slow incident response.',
+                'Fix: structured security logs, detect anomalies, alert on abuse patterns.',
+              ],
+              tip: 'If you can’t detect it, you can’t contain it.',
+            },
+            {
+              code: 'A10',
+              glyph: 'SR',
+              title: 'SSRF',
+              subtitle: 'Server fetches attacker URLs',
+              accent: '#9f1239',
+              points: [
+                'App requests internal metadata / services.',
+                'Bypass firewalls via the app as proxy.',
+                'Fix: allow-list hosts, block link-local/metadata IPs, no raw URL fetch from users.',
+              ],
+              tip: 'Treat every outbound URL as hostile until proven otherwise.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'interview-cheat-sheet',
+      title: 'Interview Cheat Sheet',
+      blocks: [
+        {
+          type: 'table',
+          caption: 'One-liner answers for each OWASP risk.',
+          headers: ['Code', 'Risk', 'Say this'],
+          rows: [
+            [
+              'A01',
+              'Broken Access Control',
+              'Enforce authorization on every request; deny by default.',
+            ],
+            [
+              'A02',
+              'Cryptographic Failures',
+              'Protect data in transit and at rest with modern crypto & key management.',
+            ],
+            ['A03', 'Injection', 'Never concatenate untrusted input into queries or commands.'],
+            ['A04', 'Insecure Design', 'Threat-model abuse cases before you write features.'],
+            [
+              'A05',
+              'Security Misconfiguration',
+              'Harden baselines; no default creds or debug in prod.',
+            ],
+            [
+              'A06',
+              'Vulnerable Components',
+              'Scan, patch, and remove unused dependencies continuously.',
+            ],
+            ['A07', 'Auth Failures', 'Strong identity: MFA, safe sessions, rate-limited login.'],
+            [
+              'A08',
+              'Integrity Failures',
+              'Verify provenance of code, artifacts, and serialized data.',
+            ],
+            ['A09', 'Logging Gaps', 'Log security events and alert when abuse patterns appear.'],
+            ['A10', 'SSRF', 'Don’t let users decide where your servers make requests.'],
+          ],
+        },
+        {
+          type: 'bestPractices',
+          title: 'Defense-in-depth checklist',
+          practices: [
+            '**AuthN ≠ AuthZ** — identity and permission are separate checks.',
+            '**Parameterize** all database access; validate on allow-lists where possible.',
+            '**Least privilege** for services, DB roles, cloud IAM, and CI tokens.',
+            '**Secure defaults** in frameworks: CSRF, secure cookies, CSP, HSTS.',
+            '**Shift left**: threat models, SAST/SCA in CI, dependency updates.',
+            '**Observe**: audit logs for auth failures, admin actions, and anomalous SSRF-like egress.',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'references',
+      title: 'References',
+      blocks: [
+        {
+          type: 'references',
+          items: [
+            {
+              label: 'OWASP Top 10:2021',
+              url: 'https://owasp.org/Top10/',
+              source: 'OWASP',
+            },
+            {
+              label: 'OWASP Cheat Sheet Series',
+              url: 'https://cheatsheetseries.owasp.org/',
+              source: 'OWASP',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+export default content;

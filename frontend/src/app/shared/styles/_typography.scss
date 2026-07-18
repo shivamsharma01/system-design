@@ -1,0 +1,76 @@
+// Reusable typography utilities and mixins for sketchnote / handwritten styles.
+// Import via `@use 'typography' as type;` (includePaths: src/app/shared/styles).
+
+@mixin font-hand {
+  font-family: var(--font-hand);
+}
+
+@mixin font-comic {
+  font-family: var(--font-comic);
+}
+
+@mixin font-caveat {
+  font-family: var(--font-caveat);
+}
+
+@mixin font-architects {
+  font-family: var(--font-architects);
+}
+
+@mixin font-sketch-title {
+  font-family: var(--font-sketch-title);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+}
+
+@mixin font-sketch-body {
+  font-family: var(--font-sketch-body);
+  letter-spacing: 0.01em;
+  line-height: 1.45;
+}
+
+@mixin font-sketch-accent {
+  font-family: var(--font-sketch-accent);
+  letter-spacing: 0.02em;
+}
+
+@mixin font-sketch-label {
+  font-family: var(--font-sketch-label);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+// Global utility classes — available on any element without a component import.
+.font-hand {
+  @include font-hand;
+}
+
+.font-comic {
+  @include font-comic;
+}
+
+.font-caveat {
+  @include font-caveat;
+}
+
+.font-architects {
+  @include font-architects;
+}
+
+.font-sketch-title {
+  @include font-sketch-title;
+}
+
+.font-sketch-body {
+  @include font-sketch-body;
+}
+
+.font-sketch-accent {
+  @include font-sketch-accent;
+}
+
+.font-sketch-label {
+  @include font-sketch-label;
+}

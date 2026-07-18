@@ -1,6 +1,7 @@
 @use '@angular/material' as mat;
 @use './app/shared/styles/tokens';
 @use './app/shared/styles/mixins' as mix;
+@use './app/shared/styles/typography';
 @use './app/shared/styles/highlight';
 
 // Angular Material baseline theme. We use Material sparingly, but wire its

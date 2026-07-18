@@ -5,6 +5,7 @@ import { JAVA_INTERVIEW_META } from '../../features/system-designs/java-intervie
 import { SPRING_BOOT_INTERVIEW_META } from '../../features/system-designs/spring-boot-interview/spring-boot-interview.meta';
 import { KAFKA_INTERVIEW_META } from '../../features/system-designs/kafka-interview/kafka-interview.meta';
 import { KUBERNETES_INTERVIEW_META } from '../../features/system-designs/kubernetes-interview/kubernetes-interview.meta';
+import { OWASP_TOP_10_META } from '../../features/system-designs/owasp-top-10/owasp-top-10.meta';
 import { INTERVIEW_FRAMEWORK_META } from '../../features/system-designs/interview-framework/interview-framework.meta';
 import { SOLID_PRINCIPLES_META } from '../../features/system-designs/solid-principles/solid-principles.meta';
 import { PARKING_LOT_META } from '../../features/system-designs/parking-lot/parking-lot.meta';
@@ -186,6 +187,10 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
     meta: KUBERNETES_INTERVIEW_META,
     load: () =>
       import('../../features/system-designs/kubernetes-interview/kubernetes-interview.content'),
+  },
+  {
+    meta: OWASP_TOP_10_META,
+    load: () => import('../../features/system-designs/owasp-top-10/owasp-top-10.content'),
   },
   {
     meta: INTERVIEW_FRAMEWORK_META,

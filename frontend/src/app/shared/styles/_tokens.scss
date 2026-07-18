@@ -55,6 +55,16 @@
   --font-mono:
     'JetBrains Mono', 'Fira Code', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 
+  // Handwritten / sketchnote fonts (reusable across the app)
+  --font-hand: 'Patrick Hand', 'Comic Sans MS', cursive;
+  --font-comic: 'Comic Neue', 'Comic Sans MS', cursive;
+  --font-caveat: 'Caveat', 'Segoe Print', cursive;
+  --font-architects: 'Architects Daughter', 'Segoe Print', cursive;
+  --font-sketch-title: var(--font-caveat);
+  --font-sketch-body: var(--font-hand);
+  --font-sketch-accent: var(--font-architects);
+  --font-sketch-label: var(--font-comic);
+
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;

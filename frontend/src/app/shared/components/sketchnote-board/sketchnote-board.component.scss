@@ -1,0 +1,206 @@
+@use 'mixins' as mix;
+@use 'typography' as type;
+
+.sketch {
+  --paper: #f7f1e3;
+  --paper-line: rgba(59, 130, 246, 0.12);
+  --ink: #1f2937;
+  --margin: #f43f5e;
+
+  margin: var(--space-6) 0 var(--space-10);
+  padding: var(--space-6);
+  border: 2px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  border-radius: 4px 18px 8px 14px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 39px,
+      var(--margin) 39px,
+      var(--margin) 41px,
+      transparent 41px
+    ),
+    repeating-linear-gradient(
+      transparent,
+      transparent 27px,
+      var(--paper-line) 27px,
+      var(--paper-line) 28px
+    ),
+    var(--paper);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55) inset,
+    var(--shadow-md);
+  color: var(--ink);
+}
+
+[data-theme='dark'] .sketch {
+  --paper: #1c1917;
+  --paper-line: rgba(147, 197, 253, 0.12);
+  --ink: #f5f5f4;
+  --margin: #fb7185;
+  border-color: color-mix(in srgb, var(--ink) 22%, transparent);
+}
+
+.sketch__header {
+  position: relative;
+  margin: 0 0 var(--space-6);
+  padding-left: var(--space-8);
+}
+
+.sketch__title {
+  @include type.font-sketch-title;
+  margin: 0 0 var(--space-2);
+  font-size: clamp(1.85rem, 3vw, 2.5rem);
+  color: var(--ink);
+}
+
+.sketch__intro {
+  @include type.font-sketch-body;
+  margin: 0;
+  max-width: 52ch;
+  font-size: var(--text-lg);
+  color: color-mix(in srgb, var(--ink) 78%, transparent);
+}
+
+.sketch__scribble {
+  position: absolute;
+  left: var(--space-8);
+  bottom: -0.35rem;
+  width: min(220px, 55%);
+  height: 10px;
+  border-bottom: 3px solid color-mix(in srgb, var(--margin) 70%, transparent);
+  border-radius: 50%;
+  transform: rotate(-1deg);
+}
+
+.sketch__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+  padding-left: var(--space-8);
+
+  @include mix.below(mix.$bp-md) {
+    grid-template-columns: 1fr;
+    padding-left: var(--space-4);
+  }
+}
+
+.sketch-card {
+  position: relative;
+  padding: var(--space-5) var(--space-4) var(--space-4);
+  border: 2px solid color-mix(in srgb, var(--accent) 55%, var(--ink));
+  border-radius: 14px 10px 16px 8px;
+  background: color-mix(in srgb, var(--paper) 92%, white);
+  box-shadow: 3px 4px 0 color-mix(in srgb, var(--accent) 25%, transparent);
+  transform: rotate(var(--tilt, 0deg));
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base);
+
+  &:hover {
+    transform: rotate(0deg) translateY(-2px);
+    box-shadow: 5px 8px 0 color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+}
+
+[data-theme='dark'] .sketch-card {
+  background: color-mix(in srgb, var(--paper) 88%, #44403c);
+}
+
+.sketch-card__tape {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: 64px;
+  height: 18px;
+  margin-left: -32px;
+  background: color-mix(in srgb, var(--accent) 35%, #fde68a);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  transform: rotate(-2deg);
+  opacity: 0.9;
+}
+
+.sketch-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.sketch-card__code {
+  @include type.font-sketch-label;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border: 2px dashed var(--accent);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: var(--text-xs);
+}
+
+.sketch-card__glyph {
+  @include type.font-sketch-accent;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.sketch-card__title {
+  @include type.font-sketch-title;
+  margin: 0 0 var(--space-1);
+  font-size: clamp(1.35rem, 2vw, 1.7rem);
+  color: var(--ink);
+}
+
+.sketch-card__subtitle {
+  @include type.font-sketch-accent;
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-base);
+  color: color-mix(in srgb, var(--accent) 75%, var(--ink));
+}
+
+.sketch-card__points {
+  @include type.font-sketch-body;
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 1.05rem;
+  color: color-mix(in srgb, var(--ink) 88%, transparent);
+
+  li + li {
+    margin-top: 0.35rem;
+  }
+
+  li::marker {
+    color: var(--accent);
+  }
+}
+
+.sketch-card__tip {
+  @include type.font-comic;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.55rem;
+  align-items: baseline;
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3);
+  border: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 4px 12px 6px 10px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--paper));
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
+
+.sketch-card__tip-label {
+  @include type.font-sketch-label;
+  color: var(--accent);
+  font-size: 0.7rem;
+}
+
+.sketch-card__doodle {
+  display: block;
+  width: 100%;
+  max-width: 140px;
+  margin-top: var(--space-3);
+  color: color-mix(in srgb, var(--accent) 70%, transparent);
+  opacity: 0.85;
+}
