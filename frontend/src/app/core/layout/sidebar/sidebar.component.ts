@@ -36,8 +36,8 @@ export class SidebarComponent {
     'system-design': true,
     'high-level-design': true,
     'low-level-design': true,
-    'solid-principles': true,
     'design-patterns': true,
+    miscellaneous: true,
   });
 
   protected readonly sections: SectionNav[] = this.registry.getSections().map((section) => {

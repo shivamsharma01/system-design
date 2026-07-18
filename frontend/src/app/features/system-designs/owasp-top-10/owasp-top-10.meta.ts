@@ -5,7 +5,7 @@ export const OWASP_TOP_10_META: DesignMeta = {
   title: 'OWASP Top 10',
   tagline:
     'Sketchnotes for the OWASP Top 10 — what each risk means, how it shows up, and how to stop it.',
-  section: 'interview-questions',
+  section: 'miscellaneous',
   category: 'Security',
   tags: ['owasp', 'security', 'web', 'interview', 'sketchnotes'],
   technologies: ['OWASP', 'Web Security'],

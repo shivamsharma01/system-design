@@ -1,0 +1,1042 @@
+import { DesignContent } from '../../../shared/models';
+import { JAVA_VERSIONS_META } from './java-versions.meta';
+
+const content: DesignContent = {
+  meta: JAVA_VERSIONS_META,
+  sections: [
+    {
+      id: 'overview',
+      title: 'Overview',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Java ships on a **six-month cadence**. **LTS** releases (8, 11, 17, 21, 25) are what most production teams standardize on. This page is a **sketchnote tour** of what each version introduced for everyday application developers — language features first, with a few runtime callouts that change how you write or run code.',
+        },
+        {
+          type: 'callout',
+          variant: 'info',
+          title: 'How to read these notes',
+          body: 'Each version is a **notebook board**. Cards = headline features. **LTS** versions get denser boards. Preview features are marked so you know what was experimental vs final in that release.',
+        },
+        {
+          type: 'table',
+          caption: 'LTS roadmap (high level).',
+          headers: ['Version', 'GA', 'Role', 'Remember for'],
+          rows: [
+            ['Java 8', 'Mar 2014', 'LTS', 'Lambdas, Streams, Optional, java.time'],
+            ['Java 11', 'Sep 2018', 'LTS', 'HttpClient, String/Files helpers, single-file launch'],
+            ['Java 17', 'Sep 2021', 'LTS', 'Sealed classes, strong encapsulation'],
+            [
+              'Java 21',
+              'Sep 2023',
+              'LTS',
+              'Virtual threads, pattern switch, sequenced collections',
+            ],
+            [
+              'Java 25',
+              'Sep 2025',
+              'LTS (current)',
+              'Compact source, scoped values, module imports',
+            ],
+            ['Java 26', 'Mar 2026', 'Non-LTS (latest)', 'HTTP/3 HttpClient'],
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Interview / learning path',
+          body: 'Master **8 → 11 → 17 → 21** first. Then skim 9–10, 12–16, 18–20, 22–24 as “what landed when.” Finish with **25/26** for the current edge.',
+        },
+      ],
+    },
+    {
+      id: 'java-8',
+      title: 'Java 8 (LTS) \u2014 March 2014',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 8 (LTS) \u2014 March 2014',
+          intro:
+            'The \u201cmodern Java\u201d baseline. Most teams still treat 8 as the shared language foundation.',
+          items: [
+            {
+              code: 'J8',
+              glyph: 'fn',
+              title: 'Lambdas & method refs',
+              subtitle: 'Functions as values',
+              points: [
+                'Arrow syntax: (a,b) -> a+b',
+                'Method refs: String::toUpperCase',
+                'Enables Streams & cleaner APIs',
+              ],
+              tip: 'Capture effectively-final locals only.',
+            },
+            {
+              code: 'J8',
+              glyph: 'St',
+              title: 'Stream API',
+              subtitle: 'Declarative data pipelines',
+              points: [
+                'filter / map / flatMap / reduce',
+                'Lazy until terminal op',
+                'parallel() when CPU-bound & careful',
+              ],
+              tip: 'Prefer streams for clarity \u2014 not every loop.',
+            },
+            {
+              code: 'J8',
+              glyph: 'Op',
+              title: 'Optional',
+              subtitle: 'Explicit absence',
+              points: [
+                'Avoid null for \u201cmaybe a value\u201d',
+                'map / flatMap / orElseGet',
+                'Don\u2019t use as a field everywhere',
+              ],
+              tip: 'Return Optional; rarely store it.',
+            },
+            {
+              code: 'J8',
+              glyph: 'TM',
+              title: 'Date & Time API',
+              subtitle: 'java.time',
+              points: [
+                'LocalDate / LocalDateTime / Instant',
+                'ZoneId & ZonedDateTime',
+                'Immutable & thread-safe',
+              ],
+              tip: 'Retire Date / Calendar in new code.',
+            },
+            {
+              code: 'J8',
+              glyph: 'API',
+              title: 'Default & static interface methods',
+              subtitle: 'Evolve APIs safely',
+              points: [
+                'default methods on interfaces',
+                'static helpers on interfaces',
+                'Multiple inheritance of behavior (with care)',
+              ],
+              tip: 'Keep defaults thin \u2014 not a second base class.',
+            },
+            {
+              code: 'J8',
+              glyph: '+',
+              title: 'Other 8 highlights',
+              subtitle: 'Runtime & tooling',
+              points: [
+                'CompletableFuture',
+                'Nashorn JS engine (later removed)',
+                'PermGen \u2192 Metaspace groundwork via HotSpot changes',
+              ],
+              tip: '8 is LTS \u2014 still widely deployed.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-9',
+      title: 'Java 9 \u2014 September 2017',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 9 \u2014 September 2017',
+          intro:
+            'Modules redefine the JDK. Everyday wins: factory methods, JShell, and stream helpers.',
+          items: [
+            {
+              code: 'J9',
+              glyph: 'M',
+              title: 'JPMS / Jigsaw',
+              subtitle: 'Platform Module System',
+              points: [
+                'module-info.java',
+                'Strong encapsulation of JDK internals',
+                'jlink for custom runtimes',
+              ],
+              tip: 'App modules are optional; knowing the model helps debugging.',
+            },
+            {
+              code: 'J9',
+              glyph: 'Col',
+              title: 'Collection factories',
+              subtitle: 'List/Set/Map.of',
+              points: ['List.of / Set.of / Map.of', 'Immutable & compact', 'Nulls rejected'],
+              tip: 'Prefer of() for small fixed collections.',
+            },
+            {
+              code: 'J9',
+              glyph: 'Str',
+              title: 'Stream & Optional extras',
+              subtitle: 'takeWhile / dropWhile',
+              points: [
+                'takeWhile / dropWhile / iterate enhancements',
+                'Optional.ifPresentOrElse / stream()',
+                'Collectors.filtering / flatMapping',
+              ],
+              tip: 'Great for \u201cstop when condition flips\u201d pipelines.',
+            },
+            {
+              code: 'J9',
+              glyph: 'SH',
+              title: 'JShell & multi-release JARs',
+              subtitle: 'DX upgrades',
+              points: ['jshell REPL', 'Multi-release JARs', 'Private methods in interfaces'],
+              tip: 'HTTP Client arrives as incubator/preview path.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-10',
+      title: 'Java 10 \u2014 March 2018',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 10 \u2014 March 2018',
+          intro: 'A short release \u2014 one headline language feature everyone uses.',
+          items: [
+            {
+              code: 'J10',
+              glyph: 'v',
+              title: 'Local-variable type inference',
+              subtitle: 'var',
+              points: [
+                'var name = "\u2026"; still statically typed',
+                'Locals only \u2014 not fields/params',
+                'Improve readability when type is obvious',
+              ],
+              tip: 'Don\u2019t hide important types behind var.',
+            },
+            {
+              code: 'J10',
+              glyph: 'GC',
+              title: 'GC & runtime',
+              subtitle: 'Parallel Full GC for G1',
+              points: [
+                'G1 improvements',
+                'Application Class-Data Sharing (AppCDS) enhancements',
+                'Root certificates in jdk.jartool',
+              ],
+              tip: 'Language surface is tiny; JVM keeps moving.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-11',
+      title: 'Java 11 (LTS) \u2014 September 2018',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 11 (LTS) \u2014 September 2018',
+          intro:
+            'First LTS after 8. Standard HTTP Client, string helpers, and single-file source launch.',
+          items: [
+            {
+              code: 'J11',
+              glyph: 'HTTP',
+              title: 'HttpClient (standard)',
+              subtitle: 'java.net.http',
+              points: [
+                'sync & async requests',
+                'HTTP/2 support',
+                'Replaces HttpURLConnection for new code',
+              ],
+              tip: 'Use for service-to-service calls without extra libs.',
+            },
+            {
+              code: 'J11',
+              glyph: 'S',
+              title: 'String & Files helpers',
+              subtitle: 'Everyday ergonomics',
+              points: [
+                'isBlank / lines / strip / repeat',
+                'Files.readString / writeString',
+                'Path.of',
+              ],
+              tip: 'Small APIs, huge day-to-day value.',
+            },
+            {
+              code: 'J11',
+              glyph: 'Run',
+              title: 'Single-file source programs',
+              subtitle: 'java Hello.java',
+              points: [
+                'Run .java without explicit javac',
+                'Great for scripts & katas',
+                'Nest-based access control',
+              ],
+              tip: 'Lambda params can use var.',
+            },
+            {
+              code: 'J11',
+              glyph: '-',
+              title: 'Removals & flight recorder',
+              subtitle: 'Platform cleanup',
+              points: [
+                'Java EE / CORBA modules removed from JDK',
+                'JFR open-sourced',
+                'Epsilon GC (no-op) experimental',
+              ],
+              tip: 'Upgrade tests must check removed modules.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-12',
+      title: 'Java 12 \u2014 March 2019',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 12 \u2014 March 2019',
+          intro: 'Small language surface \u2014 switch expressions begin as preview.',
+          items: [
+            {
+              code: 'J12',
+              glyph: 'sw',
+              title: 'Switch expressions (preview)',
+              subtitle: 'Toward Java 14',
+              points: [
+                'Arrow case labels',
+                'Multiple constants per case',
+                'Expression form returns a value',
+              ],
+              tip: 'Finalized in 14 \u2014 learn the mental model here.',
+            },
+            {
+              code: 'J12',
+              glyph: 'gath',
+              title: 'JVM & libs',
+              subtitle: 'Shenandoah experiment etc.',
+              points: [
+                'Shenandoah GC experimental (OpenJDK builds)',
+                'Collectors.teeing',
+                'Compact number formatting',
+              ],
+              tip: 'Non-LTS \u2014 use for learning, not long support.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-13',
+      title: 'Java 13 \u2014 September 2019',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 13 \u2014 September 2019',
+          intro: 'Text blocks preview \u2014 multi-line strings without escape hell.',
+          items: [
+            {
+              code: 'J13',
+              glyph: 'TB',
+              title: 'Text blocks (preview)',
+              subtitle: 'Multi-line literals',
+              points: [
+                '""" \u2026 """ syntax',
+                'Incidental indentation stripped',
+                'Ideal for JSON / SQL / HTML',
+              ],
+              tip: 'Finalized in 15.',
+            },
+            {
+              code: 'J13',
+              glyph: 'sw',
+              title: 'Switch yield',
+              subtitle: 'Preview polish',
+              points: [
+                'yield in switch expressions',
+                'Continues 12\u2019s switch work',
+                'Dynamic CDS archives',
+              ],
+              tip: 'Keep an eye on preview \u2192 final path.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-14',
+      title: 'Java 14 \u2014 March 2020',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 14 \u2014 March 2020',
+          intro: 'Switch expressions land. Records & pattern instanceof preview. Better NPEs.',
+          items: [
+            {
+              code: 'J14',
+              glyph: 'sw',
+              title: 'Switch expressions (final)',
+              subtitle: 'Expression switches',
+              points: [
+                'case A, B -> \u2026',
+                'Must be exhaustive',
+                'No accidental fall-through with arrows',
+              ],
+              tip: 'Prefer expression switch for mapping logic.',
+            },
+            {
+              code: 'J14',
+              glyph: 'Rec',
+              title: 'Records (preview)',
+              subtitle: 'Data carriers',
+              points: [
+                'record Point(int x, int y) {}',
+                'Auto equals/hashCode/toString',
+                'Immutable by default',
+              ],
+              tip: 'Finalized in 16 \u2014 perfect for DTOs.',
+            },
+            {
+              code: 'J14',
+              glyph: 'pat',
+              title: 'Pattern instanceof (preview)',
+              subtitle: 'Bind & test',
+              points: ['if (obj instanceof String s)', 'No extra cast', 'Safer downcasting'],
+              tip: 'Finalized in 16.',
+            },
+            {
+              code: 'J14',
+              glyph: 'NPE',
+              title: 'Helpful NullPointerExceptions',
+              subtitle: 'Which field was null?',
+              points: [
+                'Detailed NPE messages',
+                'Shows which dereference failed',
+                'Huge for production debugging',
+              ],
+              tip: 'Enable remains default in modern JDKs.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-15',
+      title: 'Java 15 \u2014 September 2020',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 15 \u2014 September 2020',
+          intro: 'Text blocks final. Sealed classes preview. Nashorn removed.',
+          items: [
+            {
+              code: 'J15',
+              glyph: 'TB',
+              title: 'Text blocks (final)',
+              subtitle: 'Production-ready',
+              points: [
+                'Stable multi-line strings',
+                'Escape sequences refined',
+                'Great for embedded snippets',
+              ],
+              tip: 'Use for readable SQL/JSON in tests & code.',
+            },
+            {
+              code: 'J15',
+              glyph: 'seal',
+              title: 'Sealed classes (preview)',
+              subtitle: 'Controlled hierarchies',
+              points: [
+                'sealed \u2026 permits A, B',
+                'Exhaustive switches later',
+                'Models closed domains',
+              ],
+              tip: 'Finalized in 17.',
+            },
+            {
+              code: 'J15',
+              glyph: 'rm',
+              title: 'Nashorn removed',
+              subtitle: 'No JDK JS engine',
+              points: [
+                'javax.script Nashorn gone',
+                'Use GraalJS / external engines',
+                'Hidden classes (JVM)',
+              ],
+              tip: 'Audit old scripting integrations.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-16',
+      title: 'Java 16 \u2014 March 2021',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 16 \u2014 March 2021',
+          intro: 'Records & pattern matching for instanceof become final.',
+          items: [
+            {
+              code: 'J16',
+              glyph: 'Rec',
+              title: 'Records (final)',
+              subtitle: 'First-class data types',
+              points: [
+                'Canonical constructor',
+                'Compact constructor for validation',
+                'Can implement interfaces',
+              ],
+              tip: 'Prefer records over boilerplate POJOs.',
+            },
+            {
+              code: 'J16',
+              glyph: 'pat',
+              title: 'Pattern instanceof (final)',
+              subtitle: 'Everyday pattern matching',
+              points: [
+                'Binding variables in instanceof',
+                'Works with records soon after',
+                'Cleaner polymorphism checks',
+              ],
+              tip: 'Combine with sealed types in 17+.',
+            },
+            {
+              code: 'J16',
+              glyph: 'UX',
+              title: 'Unix-domain sockets',
+              subtitle: 'j.n.channels',
+              points: [
+                'Unix domain socket channels',
+                'Stream.toList() convenience',
+                'Warnings for value-based classes',
+              ],
+              tip: 'toList() returns unmodifiable list.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-17',
+      title: 'Java 17 (LTS) \u2014 September 2021',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 17 (LTS) \u2014 September 2021',
+          intro:
+            'LTS after 11. Sealed classes final. Strong encapsulation by default. Pattern switch preview.',
+          items: [
+            {
+              code: 'J17',
+              glyph: 'seal',
+              title: 'Sealed classes (final)',
+              subtitle: 'Closed type hierarchies',
+              points: [
+                'permits clause required',
+                'Enables exhaustive switches',
+                'Great for domain modeling',
+              ],
+              tip: 'Pair with records for algebraic-style data.',
+            },
+            {
+              code: 'J17',
+              glyph: 'sw',
+              title: 'Pattern switch (preview)',
+              subtitle: 'Toward 21',
+              points: [
+                'switch on type patterns',
+                'Guarded patterns evolve later',
+                'Works with sealed hierarchies',
+              ],
+              tip: 'Finalized in 21.',
+            },
+            {
+              code: 'J17',
+              glyph: 'enc',
+              title: 'Strong encapsulation',
+              subtitle: 'JDK internals',
+              points: [
+                'Illegal reflective access denied by default',
+                '--add-opens as escape hatch',
+                'Security Manager deprecated',
+              ],
+              tip: 'Upgrade pain often = illegal reflection.',
+            },
+            {
+              code: 'J17',
+              glyph: 'RNG',
+              title: 'RandomGenerator & more',
+              subtitle: 'API polish',
+              points: [
+                'New RandomGenerator SPI',
+                'macOS/AArch64 enhancements',
+                'Context-specific deserialization filters',
+              ],
+              tip: 'Solid \u201cmodern baseline\u201d LTS for many orgs.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-18',
+      title: 'Java 18 \u2014 March 2022',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 18 \u2014 March 2022',
+          intro:
+            'UTF-8 by default \u2014 small change, big portability win. Simple web server tool.',
+          items: [
+            {
+              code: 'J18',
+              glyph: 'UTF8',
+              title: 'UTF-8 default charset',
+              subtitle: 'Cross-platform consistency',
+              points: [
+                'Default charset is UTF-8',
+                'Fewer Windows vs Linux surprises',
+                'Revisit code that assumed platform default',
+              ],
+              tip: 'Audit file I/O that omitted charset.',
+            },
+            {
+              code: 'J18',
+              glyph: 'web',
+              title: 'Simple Web Server',
+              subtitle: 'jwebserver',
+              points: [
+                'Static file server CLI',
+                'Handy for local demos',
+                'Code snippets API (preview era)',
+              ],
+              tip: 'Not a production app server.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-19',
+      title: 'Java 19 \u2014 September 2022',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 19 \u2014 September 2022',
+          intro: 'Preview heavy: Loom\u2019s virtual threads direction becomes clear.',
+          items: [
+            {
+              code: 'J19',
+              glyph: 'VT',
+              title: 'Virtual threads (preview)',
+              subtitle: 'Project Loom',
+              points: [
+                'Lightweight threads on JVM carriers',
+                'Huge concurrency with blocking style',
+                'Structured concurrency preview',
+              ],
+              tip: 'Finalized in 21 \u2014 start designing for it.',
+            },
+            {
+              code: 'J19',
+              glyph: 'pat',
+              title: 'Record patterns (preview)',
+              subtitle: 'Deconstruct records',
+              points: [
+                'Pattern match record components',
+                'Nested patterns',
+                'Foreign Function & Memory incubating',
+              ],
+              tip: 'Finalized in 21.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-20',
+      title: 'Java 20 \u2014 March 2023',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 20 \u2014 March 2023',
+          intro: 'Iteration release \u2014 scoped values, patterns, Loom previews continue.',
+          items: [
+            {
+              code: 'J20',
+              glyph: '..',
+              title: 'Preview treadmill',
+              subtitle: 'Toward 21 LTS',
+              points: [
+                'Scoped values preview',
+                'Record patterns 2nd preview',
+                'Pattern switch refinements',
+                'Virtual threads 2nd preview',
+              ],
+              tip: 'Use 20 to experiment; ship on 21 LTS.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-21',
+      title: 'Java 21 (LTS) \u2014 September 2023',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 21 (LTS) \u2014 September 2023',
+          intro:
+            'Landmark LTS: virtual threads, pattern switch, record patterns, sequenced collections.',
+          items: [
+            {
+              code: 'J21',
+              glyph: 'VT',
+              title: 'Virtual threads (final)',
+              subtitle: 'Cheap concurrency',
+              points: [
+                'Thread.startVirtualThread',
+                'Executors.newVirtualThreadPerTaskExecutor()',
+                'Don\u2019t pool virtual threads',
+                'Watch pinning with synchronized',
+              ],
+              tip: 'Ideal for high-count blocking I/O.',
+            },
+            {
+              code: 'J21',
+              glyph: 'sw',
+              title: 'Pattern matching for switch (final)',
+              subtitle: 'Type-safe dispatch',
+              points: ['case Point(int x, int y) ->', 'Guarded patterns', 'Null-friendly switch'],
+              tip: 'Exhaustiveness with sealed types.',
+            },
+            {
+              code: 'J21',
+              glyph: 'Rec',
+              title: 'Record patterns (final)',
+              subtitle: 'Deconstruct in place',
+              points: [
+                'Nested deconstruction',
+                'Works in instanceof & switch',
+                'Less boilerplate getters',
+              ],
+              tip: 'Pairs beautifully with sealed + records.',
+            },
+            {
+              code: 'J21',
+              glyph: 'Seq',
+              title: 'Sequenced collections',
+              subtitle: 'Encounter order APIs',
+              points: [
+                'SequencedCollection / Set / Map',
+                'addFirst / addLast / getFirst / reversed',
+                'Consistent order semantics',
+              ],
+              tip: 'Finally a shared vocabulary for \u201cordered\u201d.',
+            },
+            {
+              code: 'J21',
+              glyph: '+',
+              title: 'Also in 21',
+              subtitle: 'Previews & GC',
+              points: [
+                'Generational ZGC',
+                'String templates preview (later dropped)',
+                'Unnamed patterns/vars preview',
+                'Scoped values / structured concurrency preview',
+              ],
+              tip: 'Current widely adopted modern LTS.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-22',
+      title: 'Java 22 \u2014 March 2024',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 22 \u2014 March 2024',
+          intro:
+            'FFM API final. Unnamed variables. Multi-file source programs. Stream gatherers preview.',
+          items: [
+            {
+              code: 'J22',
+              glyph: 'FFM',
+              title: 'Foreign Function & Memory (final)',
+              subtitle: 'Replace much of JNI',
+              points: [
+                'Arena / MemorySegment',
+                'Linker for native calls',
+                'Safer than classic JNI for many cases',
+              ],
+              tip: 'Prefer FFM for new native interop.',
+            },
+            {
+              code: 'J22',
+              glyph: '_',
+              title: 'Unnamed variables & patterns',
+              subtitle: 'Ignore deliberately',
+              points: ['int _ = \u2026', 'case Point(_, int y)', 'Cleaner unused bindings'],
+              tip: 'Signals \u201cintentionally unused\u201d.',
+            },
+            {
+              code: 'J22',
+              glyph: 'Run',
+              title: 'Multi-file source launch',
+              subtitle: 'java Main.java Util.java',
+              points: [
+                'Launch programs spanning files',
+                'Statements before super() preview',
+                'Stream gatherers preview',
+              ],
+              tip: 'Nice for teaching & small tools.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-23',
+      title: 'Java 23 \u2014 September 2024',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 23 \u2014 September 2024',
+          intro: 'Markdown docs, module imports preview, gatherers & primitive patterns continue.',
+          items: [
+            {
+              code: 'J23',
+              glyph: 'doc',
+              title: 'Markdown documentation comments',
+              subtitle: 'Modern JavaDoc',
+              points: [
+                '/// Markdown doc comments',
+                'Richer readable docs',
+                'Module import declarations preview',
+              ],
+              tip: 'Docs become nicer to write & read.',
+            },
+            {
+              code: 'J23',
+              glyph: 'gath',
+              title: 'Stream gatherers (preview+)',
+              subtitle: 'Custom intermediate ops',
+              points: [
+                'Gatherers.windowFixed etc.',
+                'Extends Stream beyond map/filter',
+                'Primitive patterns in switch preview',
+              ],
+              tip: 'Finalized in 24.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-24',
+      title: 'Java 24 \u2014 March 2025',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 24 \u2014 March 2025',
+          intro:
+            'Stream gatherers & Class-File API final. AOT class loading. Security Manager gone. VT sync improvements.',
+          items: [
+            {
+              code: 'J24',
+              glyph: 'gath',
+              title: 'Stream gatherers (final)',
+              subtitle: 'Custom stream ops',
+              points: [
+                'windowFixed / windowSliding / fold',
+                'Build your own gatherers',
+                'Class-File API finalized',
+              ],
+              tip: 'Power tool for advanced stream pipelines.',
+            },
+            {
+              code: 'J24',
+              glyph: 'AOT',
+              title: 'AOT class loading & linking',
+              subtitle: 'Faster startup path',
+              points: [
+                'Ahead-of-time class loading/linking',
+                'Complements CDS / Leyden direction',
+                'Security Manager permanently disabled',
+              ],
+              tip: 'Startup-sensitive apps benefit.',
+            },
+            {
+              code: 'J24',
+              glyph: 'VT',
+              title: 'Virtual thread sync fix',
+              subtitle: 'Less pinning',
+              points: [
+                'synchronized no longer pins VTs the old way',
+                'Safer blocking style on Loom',
+                'Previews continue (primitives in patterns)',
+              ],
+              tip: 'Revisit earlier VT pinning guidance.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-25',
+      title: 'Java 25 (LTS) \u2014 September 2025',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 25 (LTS) \u2014 September 2025',
+          intro:
+            'Current LTS. Compact source files, module imports, flexible constructors, scoped values.',
+          items: [
+            {
+              code: 'J25',
+              glyph: 'Run',
+              title: 'Compact source & instance main',
+              subtitle: 'Simpler entry points',
+              points: [
+                'void main() { \u2026 }',
+                'IO.println helpers',
+                'Great for learning & scripts',
+              ],
+              tip: 'Lowers the \u201cHello World\u201d ceremony.',
+            },
+            {
+              code: 'J25',
+              glyph: 'mod',
+              title: 'Module import declarations (final)',
+              subtitle: 'module import java.base',
+              points: [
+                'Import all packages from a module',
+                'Flexible constructor bodies final',
+                'Scoped values finalized',
+              ],
+              tip: 'Scoped values \u2248 safer ThreadLocal story.',
+            },
+            {
+              code: 'J25',
+              glyph: 'API',
+              title: 'Runtime & GC',
+              subtitle: 'Under the hood',
+              points: [
+                'Compact object headers',
+                'AOT method profiling',
+                'Generational Shenandoah',
+                'JFR enhancements',
+              ],
+              tip: 'Newest LTS \u2014 prefer for greenfield if ecosystem ready.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'java-26',
+      title: 'Java 26 \u2014 March 2026',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Java 26 \u2014 March 2026',
+          intro:
+            'Latest non-LTS. HTTP/3 for HttpClient. Applet API removed. Final-means-final prep.',
+          items: [
+            {
+              code: 'J26',
+              glyph: 'H3',
+              title: 'HTTP/3 for HttpClient',
+              subtitle: 'QUIC era',
+              points: [
+                'HttpClient.Version.HTTP_3',
+                'Falls back to HTTP/2 / 1.1',
+                'Opt-in via builder',
+              ],
+              tip: 'Biggest app-dev facing feature in 26.',
+            },
+            {
+              code: 'J26',
+              glyph: 'AOT',
+              title: 'AOT object caching',
+              subtitle: 'Any GC',
+              points: [
+                'Ahead-of-time object caching with any GC',
+                'G1 throughput sync improvements',
+                'Structured concurrency still preview',
+              ],
+              tip: 'Startup & warm-up keep improving.',
+            },
+            {
+              code: 'J26',
+              glyph: 'rm',
+              title: 'Removals & previews',
+              subtitle: 'Platform hygiene',
+              points: [
+                'Applet API removed',
+                'Prepare to make final mean final',
+                'PEM encodings / lazy constants / Vector API continue',
+              ],
+              tip: 'Track previews toward the next LTS.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'cheat-sheet',
+      title: 'Quick Cheat Sheet',
+      blocks: [
+        {
+          type: 'table',
+          caption: 'Feature → first final (or notable) version.',
+          headers: ['Feature', 'Version', 'Notes'],
+          rows: [
+            ['Lambdas / Streams / Optional / java.time', '8', 'Modern Java baseline'],
+            ['Modules (JPMS), List.of', '9', 'Platform modularization'],
+            ['var', '10', 'Local type inference'],
+            ['HttpClient, Files.readString', '11 LTS', 'Everyday networking & I/O'],
+            ['Switch expressions', '14', 'Previewed in 12–13'],
+            ['Text blocks', '15', 'Previewed in 13'],
+            ['Records, pattern instanceof', '16', 'Previewed in 14'],
+            ['Sealed classes', '17 LTS', 'Previewed in 15'],
+            ['UTF-8 default charset', '18', 'Portability'],
+            ['Virtual threads, pattern switch, record patterns', '21 LTS', 'Loom + patterns'],
+            ['Foreign Function & Memory API', '22', 'Modern native interop'],
+            ['Stream gatherers', '24', 'Custom intermediate ops'],
+            ['Compact source / scoped values', '25 LTS', 'Current LTS'],
+            ['HTTP/3 HttpClient', '26', 'Latest non-LTS'],
+          ],
+        },
+        {
+          type: 'bestPractices',
+          title: 'Version strategy',
+          practices: [
+            'Prefer an **LTS** for production (21 or 25 today) unless you need a specific newer API.',
+            'Treat **previews** as learning tools — don’t ship them without an upgrade plan.',
+            'When upgrading, fix **illegal reflective access** and removed modules early.',
+            'Language features are additive: Java 8 skills still matter on Java 26.',
+          ],
+        },
+        {
+          type: 'references',
+          items: [
+            { label: 'OpenJDK project', url: 'https://openjdk.org/', source: 'OpenJDK' },
+            {
+              label: 'Oracle Java SE Support Roadmap',
+              url: 'https://www.oracle.com/java/technologies/java-se-support-roadmap.html',
+              source: 'Oracle',
+            },
+            { label: 'JDK 26', url: 'https://openjdk.org/projects/jdk/26/', source: 'OpenJDK' },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+export default content;

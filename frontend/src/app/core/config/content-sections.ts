@@ -8,8 +8,7 @@ export const CONTENT_SECTIONS: ContentSectionMeta[] = [
   {
     id: 'interview-questions',
     title: 'Interview Questions',
-    description:
-      'Backend interview prep — Java, Spring Boot, Kafka, Kubernetes, and OWASP Top 10 sketchnotes.',
+    description: 'Backend interview prep — Java, Spring Boot, Kafka, and Kubernetes.',
     order: 0,
   },
   {
@@ -40,15 +39,16 @@ export const CONTENT_SECTIONS: ContentSectionMeta[] = [
     order: 4,
   },
   {
-    id: 'solid-principles',
-    title: 'SOLID Principles',
-    description: 'Object-oriented design principles for maintainable, interview-ready LLD.',
-    order: 5,
-  },
-  {
     id: 'design-patterns',
     title: 'Design Patterns',
     description: 'GoF, concurrency, architectural, distributed, cloud, messaging, and ML patterns.',
+    order: 5,
+  },
+  {
+    id: 'miscellaneous',
+    title: 'Miscellaneous',
+    description:
+      'SOLID, OWASP Top 10, Java version sketchnotes, and other cross-cutting reference material.',
     order: 6,
   },
 ];

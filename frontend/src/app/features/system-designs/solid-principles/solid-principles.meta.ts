@@ -5,7 +5,7 @@ export const SOLID_PRINCIPLES_META: DesignMeta = {
   title: 'SOLID Design Principles',
   tagline:
     'Five object-oriented principles for maintainable code — with examples, violations, and interview Q&A.',
-  section: 'solid-principles',
+  section: 'miscellaneous',
   category: 'OOP Fundamentals',
   tags: ['solid', 'oop', 'lld', 'srp', 'ocp', 'lsp', 'isp', 'dip'],
   technologies: ['Java', 'Python', 'Interfaces', 'Abstraction'],
