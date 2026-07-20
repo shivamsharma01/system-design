@@ -1,0 +1,127 @@
+import { DesignContent } from '../../../shared/models';
+import { AI_AGENT_SKILLS_META } from './ai-agent-skills.meta';
+
+const content: DesignContent = {
+  meta: AI_AGENT_SKILLS_META,
+  sections: [
+    {
+      id: 'overview',
+      title: 'Overview',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'An **agent** is the active runtime that pursues a goal: it reasons, plans, selects capabilities, acts, observes results, and adapts. A **skill** is a reusable package of instructions and domain workflow that teaches an agent how to perform one recurring kind of task. A **tool** is the executable operation that reads or changes something.',
+        },
+        {
+          type: 'callout',
+          variant: 'info',
+          title: 'The shortest correct answer',
+          body: '**Agent = actor**, **skill = reusable know-how**, **tool = executable action**. An agent can load several skills, and a skill can direct the agent to use several tools.',
+        },
+      ],
+    },
+    {
+      id: 'agent-vs-skill',
+      title: 'Agent vs Skill — Sketchnote',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Agent vs Skill',
+          intro: 'The distinction is autonomy and state versus repeatable guidance.',
+          items: [
+            {
+              code: 'Agent',
+              glyph: 'A',
+              title: 'Actor with a goal',
+              subtitle: 'Plans, decides, acts, and observes',
+              points: [
+                'Owns the current task and conversational/runtime state',
+                'Chooses tools and adapts from intermediate results',
+                'Can combine several skills during one workflow',
+              ],
+              tip: 'Agent = who is doing the work.',
+            },
+            {
+              code: 'Skill',
+              glyph: 'S',
+              title: 'Reusable capability',
+              subtitle: 'Instructions, workflow, and domain knowledge',
+              points: [
+                'Loaded when a task matches its purpose',
+                'Standardizes repeatable work and quality checks',
+                'Does not independently pursue goals or maintain a task loop',
+              ],
+              tip: 'Skill = how a particular kind of work should be done.',
+            },
+            {
+              code: 'Tool',
+              glyph: 'T',
+              title: 'Executable operation',
+              subtitle: 'Reads, computes, or changes state',
+              points: [
+                'Examples: search, database query, shell command, API call',
+                'Has a defined input/output contract and permissions',
+                'Does not decide when or why it should be used',
+              ],
+              tip: 'Tool = what performs the concrete action.',
+            },
+            {
+              code: 'Use',
+              glyph: '＋',
+              title: 'They compose',
+              subtitle: 'Agent selects skills and tools',
+              points: [
+                'One agent may use review, deployment, and documentation skills',
+                'One skill can be reused by many agents and tasks',
+                'A skill can prescribe tool order, checks, and constraints',
+              ],
+              tip: 'A recipe is not the chef—and a utensil is neither one.',
+            },
+            {
+              code: 'Pick',
+              glyph: '?',
+              title: 'When to create which',
+              subtitle: 'Autonomy vs repeatability',
+              points: [
+                'Create a skill for a recurring bounded procedure',
+                'Use an agent when work needs planning, judgment, and iteration',
+                'Add a tool when a missing external action must be executable',
+              ],
+              tip: 'Do not create a new agent when reusable instructions are enough.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'example',
+      title: 'Example',
+      blocks: [
+        {
+          type: 'mermaid',
+          caption:
+            'A code-change agent loads a review skill, then uses concrete tools to inspect and verify the change.',
+          definition: `flowchart LR
+  Goal[Goal: review a change] --> Agent[Agent]
+  Agent --> Skill[Code-review skill]
+  Skill --> Search[Search tool]
+  Skill --> Diff[Diff tool]
+  Skill --> Tests[Test tool]
+  Search --> Agent
+  Diff --> Agent
+  Tests --> Agent
+  Agent --> Result[Findings + recommendation]`,
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Design rule',
+          body: 'Keep skills focused and testable. They should define when they apply, the expected workflow, safety constraints, and completion checks—while leaving task-specific judgment to the agent.',
+        },
+      ],
+    },
+  ],
+};
+
+export default content;

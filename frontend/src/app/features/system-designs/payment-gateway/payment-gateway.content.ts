@@ -657,6 +657,16 @@ COMMIT;
           type: 'interviewQa',
           items: [
             {
+              question: 'Design a Payment or NEFT processing system.',
+              answer:
+                'Expose an idempotent transfer API that accepts a client request ID, source/destination, amount, and metadata. Authenticate/authorize, validate limits/beneficiary, reserve or debit funds in a strongly consistent **double-entry ledger**, and persist both state plus an outbox event atomically. A workflow/orchestrator submits to the bank/NEFT connector and tracks `RECEIVED → VALIDATED → SUBMITTED → SETTLED/FAILED/RETURNED`; clients poll status or receive signed webhooks.\n\nUse immutable ledger entries rather than updating balances as the source of truth, unique constraints for idempotency, per-account sequencing/locking to prevent overspend, encrypted PII, maker-checker/risk controls, and complete audit trails. External bank responses are asynchronous and ambiguous, so retry submission only with a stable bank reference, reconcile against acknowledgements/settlement files, and compensate/reverse through new ledger entries—never delete financial history.',
+            },
+            {
+              question: 'How would you handle more than one million transactions per day?',
+              answer:
+                'One million/day averages only about 12 TPS, so design for the measured peak, bursts, and bank cut-off batches—not the daily total. Keep stateless API instances behind a load balancer, partition workflow/queue processing by account or transfer key where ordering matters, and scale consumers with lag while preserving idempotency.\n\nUse an ACID ledger database with proper indexes and partition/archive strategy, connection-pool limits, outbox/CDC, asynchronous bank connectors, backpressure, and separate read models for dashboards. Define SLOs, load test peak plus retry/reconciliation traffic, monitor queue lag and settlement age, and plan multi-zone failover, RPO/RTO, and replay from durable events.',
+            },
+            {
               question: 'How do you guarantee a customer is never double-charged?',
               answer:
                 'End-to-end **idempotency keys**: the merchant sends a key per operation; the gateway atomically reserves it (unique constraint) and, on any retry with the same key, **replays the stored result** instead of re-executing. For the "timed out but actually succeeded" case, the gateway **queries the PSP by the original network reference** before ever retrying an authorization.',

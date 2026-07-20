@@ -22,124 +22,6 @@ const content: DesignContent = {
       ],
     },
     {
-      id: 'oauth-agent-sketchnotes',
-      title: 'OAuth, JWT, Agents, and Skills — Sketchnotes',
-      blocks: [
-        {
-          type: 'sketchnote',
-          title: 'OAuth 2.0 vs JWT',
-          intro:
-            'One defines delegated authorization; the other defines a portable token format. They solve different problems and are commonly used together.',
-          items: [
-            {
-              code: 'OAuth',
-              glyph: '↗',
-              title: 'Authorization framework',
-              subtitle: 'How a client gets delegated access',
-              points: [
-                'Defines roles, grants, scopes, consent, and token issuance',
-                'Actors: client, user, authorization server, resource server',
-                'OAuth access tokens may be opaque or JWT-formatted',
-              ],
-              tip: 'OAuth is a protocol/framework—not a token format.',
-            },
-            {
-              code: 'JWT',
-              glyph: 'J',
-              title: 'Signed token format',
-              subtitle: 'Header.Payload.Signature',
-              points: [
-                'Carries claims such as sub, iss, aud, exp, and scope',
-                'Resource server can validate locally using a public key',
-                'Readable by holders unless separately encrypted',
-              ],
-              tip: 'Signed does not mean secret. Never put passwords or sensitive PII in claims.',
-            },
-            {
-              code: 'OIDC',
-              glyph: 'ID',
-              title: 'Authentication layer',
-              subtitle: 'Login on top of OAuth 2.0',
-              points: [
-                'Adds ID Token, UserInfo, nonce, and identity semantics',
-                'Use Authorization Code + PKCE for browser/mobile login',
-                'The ID token is for the client; access token is for the API',
-              ],
-              tip: 'Say “OIDC for login, OAuth for delegated API access.”',
-            },
-            {
-              code: 'Trade',
-              glyph: '⇄',
-              title: 'JWT vs opaque token',
-              subtitle: 'Local speed vs central control',
-              points: [
-                'JWT: local validation, low latency, harder immediate revocation',
-                'Opaque: introspection/revocation, but adds network/cache dependency',
-                'Validate signature, issuer, audience, expiry, and key rotation',
-              ],
-              tip: 'Do not accept a token merely because it parses.',
-            },
-          ],
-        },
-        {
-          type: 'sketchnote',
-          title: 'Agent vs Skill',
-          intro:
-            'An agent is the active problem-solving runtime. A skill is reusable know-how the agent can load and apply.',
-          items: [
-            {
-              code: 'Agent',
-              glyph: 'A',
-              title: 'Actor with a goal',
-              subtitle: 'Plans, decides, acts, and observes',
-              points: [
-                'Owns the current task and conversational/runtime state',
-                'Chooses tools and adapts from intermediate results',
-                'Can combine several skills during one workflow',
-              ],
-              tip: 'Agent = who is doing the work.',
-            },
-            {
-              code: 'Skill',
-              glyph: 'S',
-              title: 'Reusable capability',
-              subtitle: 'Instructions, workflow, and domain knowledge',
-              points: [
-                'Loaded when a task matches its purpose',
-                'Standardizes repeatable work and quality checks',
-                'Does not independently pursue goals or maintain a task loop',
-              ],
-              tip: 'Skill = how a particular kind of work should be done.',
-            },
-            {
-              code: 'Use',
-              glyph: '＋',
-              title: 'They compose',
-              subtitle: 'Agent selects and executes skills',
-              points: [
-                'One agent may use review, deployment, and documentation skills',
-                'One skill can be reused by many agents and tasks',
-                'Tools perform actions; skills teach usage; agent makes decisions',
-              ],
-              tip: 'A recipe is not the chef—and a tool is not either one.',
-            },
-            {
-              code: 'Pick',
-              glyph: '?',
-              title: 'When to create which',
-              subtitle: 'Autonomy vs repeatability',
-              points: [
-                'Create a skill for a recurring bounded procedure',
-                'Use an agent when work needs planning, judgment, and iteration',
-                'Keep skills focused, testable, and explicit about constraints',
-              ],
-              tip: 'Do not create a new agent when a reusable instruction package is enough.',
-            },
-          ],
-        },
-      ],
-    },
-    {
       id: 'spring-core',
       title: 'Spring and Web Fundamentals',
       blocks: [
@@ -306,238 +188,6 @@ const content: DesignContent = {
                 'Things that are different in production and can cause "it\u2019s slow only there" bugs: much bigger data volume, real concurrent traffic, real (not mocked) downstream services, cold vs. warm caches, different config or JVM/GC settings, and "noisy neighbor" servers sharing the same infrastructure.\n\n**Approach:**\n- Compare production config against staging/dev line by line.\n- Turn on percentile-based latency metrics (p95/p99, not just averages).\n- Use a profiler (async-profiler, or Java Flight Recorder) to see where time is actually going.\n- Check the database\u2019s query plan against production-sized data (a query that\u2019s fast on 100 rows can be terrible on 10 million).\n- Look at connection pool wait times, GC pause times, and any chatty calls between services.\n- Check if a feature flag behaves differently in prod.\n\nAvoid turning on `show-sql` globally in production — it\u2019s noisy and can hurt performance. Instead, sample traces for a short window when investigating.',
             },
           ],
-        },
-      ],
-    },
-    {
-      id: 'advanced-sql-sketchnotes',
-      title: 'Advanced SQL Interview Sketchnotes',
-      blocks: [
-        {
-          type: 'sketchnote',
-          title: 'Five SQL Patterns Worth Knowing',
-          intro:
-            'PostgreSQL-style examples: reduce repeated scans by expressing ranking, sequence, and cumulative state with window functions.',
-          items: [
-            {
-              code: 'SQL-1',
-              glyph: '#',
-              title: 'N-th highest salary',
-              subtitle: 'Rank distinct salary values without gaps',
-              points: [
-                'DENSE_RANK gives equal salaries the same rank',
-                'Ranks continue 1, 2, 3—no gaps after ties',
-                'Filter the ranked result by the requested N',
-              ],
-              tip: 'ROW_NUMBER ranks employees; DENSE_RANK ranks distinct salary levels.',
-            },
-            {
-              code: 'SQL-2',
-              glyph: '30m',
-              title: 'Sessionize events',
-              subtitle: 'New session after inactivity',
-              points: [
-                'LAG reads the previous event per user',
-                'Mark a boundary when the gap exceeds 30 minutes',
-                'Cumulative SUM turns boundaries into session IDs',
-              ],
-              tip: 'Add a deterministic tie-breaker such as event_id to the window order.',
-            },
-            {
-              code: 'SQL-3',
-              glyph: '%',
-              title: 'YoY + running total',
-              subtitle: 'Aggregate once, compare adjacent years',
-              points: [
-                'CTE computes one row per year',
-                'LAG supplies previous-year revenue',
-                'SUM OVER computes the cumulative total in the same pass',
-              ],
-              tip: 'NULLIF(previous, 0) prevents divide-by-zero.',
-            },
-            {
-              code: 'SQL-4',
-              glyph: '5d',
-              title: 'Consecutive login streak',
-              subtitle: 'Gaps and Islands',
-              points: [
-                'Deduplicate to one login row per user/day',
-                'Subtract ROW_NUMBER days from each date',
-                'Consecutive dates share one island key; keep count ≥ 5',
-              ],
-              tip: 'Deduplication prevents multiple logins on one day from inflating the streak.',
-            },
-            {
-              code: 'SQL-5',
-              glyph: 'Ix',
-              title: 'Keep predicates SARGable',
-              subtitle: 'Let indexes search—not calculate every row',
-              points: [
-                'Functions on indexed columns often block a normal index seek',
-                'Rewrite predicates as ranges or equivalent raw-column comparisons',
-                'Use an expression/function index only when rewriting is impossible',
-              ],
-              tip: 'Confirm with EXPLAIN ANALYZE; “function in WHERE” is a risk, not an automatic verdict.',
-            },
-          ],
-        },
-        {
-          type: 'code',
-          language: 'sql',
-          filename: '01_nth_highest_salary.sql',
-          showLineNumbers: true,
-          code: `-- Returns every employee at the N-th distinct salary level.
-WITH ranked AS (
-  SELECT
-    employee_id,
-    employee_name,
-    salary,
-    DENSE_RANK() OVER (ORDER BY salary DESC) AS salary_rank
-  FROM employees
-  WHERE salary IS NOT NULL
-)
-SELECT employee_id, employee_name, salary
-FROM ranked
-WHERE salary_rank = :n;
-
--- Why not a correlated COUNT(DISTINCT salary)?
--- It can logically work, but expresses repeated per-row comparison and is
--- harder to extend. DENSE_RANK states the ranking intent directly and lets
--- the optimizer use one ordered window operation.`,
-        },
-        {
-          type: 'code',
-          language: 'sql',
-          filename: '02_sessionize_events.sql',
-          showLineNumbers: true,
-          code: `WITH ordered AS (
-  SELECT
-    event_id,
-    user_id,
-    event_time,
-    LAG(event_time) OVER (
-      PARTITION BY user_id
-      ORDER BY event_time, event_id
-    ) AS previous_event_time
-  FROM user_events
-),
-boundaries AS (
-  SELECT *,
-    CASE
-      WHEN previous_event_time IS NULL
-        OR event_time > previous_event_time + INTERVAL '30 minutes'
-      THEN 1 ELSE 0
-    END AS starts_new_session
-  FROM ordered
-),
-sessionized AS (
-  SELECT *,
-    SUM(starts_new_session) OVER (
-      PARTITION BY user_id
-      ORDER BY event_time, event_id
-      ROWS UNBOUNDED PRECEDING
-    ) AS session_number
-  FROM boundaries
-)
-SELECT
-  user_id,
-  session_number,
-  MIN(event_time) AS session_start,
-  MAX(event_time) AS session_end,
-  COUNT(*) AS event_count
-FROM sessionized
-GROUP BY user_id, session_number;`,
-        },
-        {
-          type: 'code',
-          language: 'sql',
-          filename: '03_yoy_and_running_total.sql',
-          showLineNumbers: true,
-          code: `WITH annual AS (
-  SELECT
-    EXTRACT(YEAR FROM order_date)::int AS year,
-    SUM(revenue) AS revenue
-  FROM orders
-  GROUP BY EXTRACT(YEAR FROM order_date)::int
-),
-compared AS (
-  SELECT
-    year,
-    revenue,
-    LAG(revenue) OVER (ORDER BY year) AS previous_year_revenue,
-    SUM(revenue) OVER (
-      ORDER BY year
-      ROWS UNBOUNDED PRECEDING
-    ) AS running_revenue
-  FROM annual
-)
-SELECT
-  year,
-  revenue,
-  previous_year_revenue,
-  ROUND(
-    100.0 * (revenue - previous_year_revenue)
-    / NULLIF(previous_year_revenue, 0),
-    2
-  ) AS yoy_growth_percent,
-  running_revenue
-FROM compared
-ORDER BY year;`,
-        },
-        {
-          type: 'code',
-          language: 'sql',
-          filename: '04_five_day_login_streak.sql',
-          showLineNumbers: true,
-          code: `WITH login_days AS (
-  SELECT DISTINCT user_id, login_at::date AS login_day
-  FROM logins
-),
-numbered AS (
-  SELECT
-    user_id,
-    login_day,
-    login_day
-      - ROW_NUMBER() OVER (
-          PARTITION BY user_id ORDER BY login_day
-        ) * INTERVAL '1 day' AS island_key
-  FROM login_days
-)
-SELECT
-  user_id,
-  MIN(login_day) AS streak_start,
-  MAX(login_day) AS streak_end,
-  COUNT(*) AS streak_days
-FROM numbered
-GROUP BY user_id, island_key
-HAVING COUNT(*) >= 5
-ORDER BY user_id, streak_start;`,
-        },
-        {
-          type: 'code',
-          language: 'sql',
-          filename: '05_sargable_predicates.sql',
-          showLineNumbers: true,
-          code: `-- Non-SARGable: normal index on balance cannot directly seek ABS(balance).
-SELECT * FROM accounts WHERE ABS(balance) > 1000;
-
--- SARGable equivalent.
-SELECT *
-FROM accounts
-WHERE balance > 1000 OR balance < -1000;
-
--- Another common rewrite: do not wrap an indexed timestamp in DATE().
--- Bad:
-SELECT * FROM orders WHERE DATE(created_at) = DATE '2026-07-19';
-
--- Better half-open range:
-SELECT *
-FROM orders
-WHERE created_at >= TIMESTAMP '2026-07-19 00:00:00'
-  AND created_at <  TIMESTAMP '2026-07-20 00:00:00';
-
--- If the expression is the real access pattern, PostgreSQL can index it:
-CREATE INDEX idx_accounts_abs_balance ON accounts ((ABS(balance)));`,
         },
       ],
     },
@@ -1310,16 +960,6 @@ public class ApiExceptionHandler {
                 'The small dataset hid the algorithm and plan cost. At scale the database may switch to a full scan, bad nested-loop join, large sort/hash spill, or return far too many rows; missing/stale statistics and non-sargable predicates often cause bad estimates. JPA may add N+1 queries, hydrate large entity graphs, dirty-track every entity, and exhaust heap/GC. Offset pagination also becomes slower on deep pages.\n\nInspect actual SQL and `EXPLAIN ANALYZE`, rows scanned versus returned, spills, indexes/statistics, query count, fetch plan, and JVM allocation. Use a selective/covering index, DTO projection, keyset pagination, fetch join/entity graph where appropriate, streaming/batching for bulk work, and production-sized performance tests.',
             },
             {
-              question: 'Design a Payment or NEFT processing system.',
-              answer:
-                'Expose an idempotent transfer API that accepts a client request ID, source/destination, amount, and metadata. Authenticate/authorize, validate limits/beneficiary, reserve or debit funds in a strongly consistent **double-entry ledger**, and persist both state plus an outbox event atomically. A workflow/orchestrator submits to the bank/NEFT connector and tracks `RECEIVED → VALIDATED → SUBMITTED → SETTLED/FAILED/RETURNED`; clients poll status or receive signed webhooks.\n\nUse immutable ledger entries rather than updating balances as the source of truth, unique constraints for idempotency, per-account sequencing/locking to prevent overspend, encrypted PII, maker-checker/risk controls, and complete audit trails. External bank responses are asynchronous and ambiguous, so retry submission only with a stable bank reference, reconcile against acknowledgements/settlement files, and compensate/reverse through new ledger entries—never delete financial history.',
-            },
-            {
-              question: 'How would you handle more than one million transactions per day?',
-              answer:
-                'One million/day averages only about 12 TPS, so design for the measured peak, bursts, and bank cut-off batches—not the daily total. Keep stateless API instances behind a load balancer, partition workflow/queue processing by account or transfer key where ordering matters, and scale consumers with lag while preserving idempotency.\n\nUse an ACID ledger database with proper indexes and partition/archive strategy, connection-pool limits, outbox/CDC, asynchronous bank connectors, backpressure, and separate read models for dashboards. Define SLOs, load test peak plus retry/reconciliation traffic, monitor queue lag and settlement age, and plan multi-zone failover, RPO/RTO, and replay from durable events.',
-            },
-            {
               question: 'How do you implement distributed locking safely?',
               answer:
                 'First prefer designs that avoid a lock: database unique constraints/conditional updates, optimistic versions, idempotency keys, or partitioning each key to one consumer. If a lock is necessary, use a proven coordinator such as ZooKeeper/etcd/Consul or a carefully configured Redis approach with atomic acquire (`SET key token NX PX ttl`) and token-checked release.\n\nA lease can expire while the old owner is paused, so attach a monotonically increasing **fencing token** and require the protected resource to reject stale owners. Define timeout, renewal, failure behavior, and observability. Never assume a Redis lock alone makes a database write correct; the database/resource must enforce the invariant.',
@@ -1703,6 +1343,62 @@ public class ApiExceptionHandler {
       id: 'security-basics',
       title: 'Dependency Injection, Security, and Errors',
       blocks: [
+        {
+          type: 'sketchnote',
+          title: 'OAuth 2.0 vs JWT',
+          intro:
+            'One defines delegated authorization; the other defines a portable token format. They solve different problems and are commonly used together.',
+          items: [
+            {
+              code: 'OAuth',
+              glyph: '↗',
+              title: 'Authorization framework',
+              subtitle: 'How a client gets delegated access',
+              points: [
+                'Defines roles, grants, scopes, consent, and token issuance',
+                'Actors: client, user, authorization server, resource server',
+                'OAuth access tokens may be opaque or JWT-formatted',
+              ],
+              tip: 'OAuth is a protocol/framework—not a token format.',
+            },
+            {
+              code: 'JWT',
+              glyph: 'J',
+              title: 'Signed token format',
+              subtitle: 'Header.Payload.Signature',
+              points: [
+                'Carries claims such as sub, iss, aud, exp, and scope',
+                'Resource server can validate locally using a public key',
+                'Readable by holders unless separately encrypted',
+              ],
+              tip: 'Signed does not mean secret. Never put passwords or sensitive PII in claims.',
+            },
+            {
+              code: 'OIDC',
+              glyph: 'ID',
+              title: 'Authentication layer',
+              subtitle: 'Login on top of OAuth 2.0',
+              points: [
+                'Adds ID Token, UserInfo, nonce, and identity semantics',
+                'Use Authorization Code + PKCE for browser/mobile login',
+                'The ID token is for the client; access token is for the API',
+              ],
+              tip: 'Say “OIDC for login, OAuth for delegated API access.”',
+            },
+            {
+              code: 'Trade',
+              glyph: '⇄',
+              title: 'JWT vs opaque token',
+              subtitle: 'Local speed vs central control',
+              points: [
+                'JWT: local validation, low latency, harder immediate revocation',
+                'Opaque: introspection/revocation, but adds network/cache dependency',
+                'Validate signature, issuer, audience, expiry, and key rotation',
+              ],
+              tip: 'Do not accept a token merely because it parses.',
+            },
+          ],
+        },
         {
           type: 'interviewQa',
           variant: 'sketch',
