@@ -306,6 +306,24 @@ CREATE INDEX idx_accounts_abs_balance ON accounts ((ABS(balance)));`,
         },
       ],
     },
+    {
+      id: 'production-plan-drift',
+      title: '6. Fast in Development, Slow in Production',
+      blocks: [
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          items: [
+            {
+              question:
+                "A SQL query is fast in development but slow in production. What's the first thing you compare?",
+              answer:
+                'Compare the **actual execution plans with representative bind values and row counts**—not the SQL text alone. Development’s tiny/uniform data may make a sequential scan or nested loop cheap; production may have skew, many more rows, stale statistics, different indexes, bloated tables, cold caches, spills, locks, or a parameter-sensitive generic plan. Use `EXPLAIN (ANALYZE, BUFFERS)` safely in a production-like environment (or capture the production plan without executing a dangerous query) and compare estimated versus actual rows at each node.\n\nThen compare schema/index definitions, database/version/configuration, statistics freshness, data distribution/cardinality, parameter types/implicit casts, partition pruning, memory/work settings, parallelism, cache state, I/O latency, lock/wait events, and connection-pool time. Confirm the application emits the same SQL and bindings—ORM fetch plans and tenant predicates often differ.\n\nThe first diagnosis is usually **plan + data shape**. Do not add an index based only on development timing; fix bad estimates/query shape/indexing and verify total load and p95/p99 after the change.',
+            },
+          ],
+        },
+      ],
+    },
   ],
 };
 

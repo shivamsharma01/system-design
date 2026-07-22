@@ -713,6 +713,11 @@ COMMIT;
                 'Convert using a locked rate at auth/capture time, store **both** currencies and the rate on the payment, and compute in **integer minor units** with an explicit rounding mode (usually banker’s or half-up per scheme rules). Post any FX fee as its own ledger line so settlement reconciliation can explain residuals.',
             },
             {
+              question: 'The same webhook arrives multiple times. How do you process it safely?',
+              answer:
+                'Assume at-least-once delivery: providers retry after timeouts and may deliver concurrently or out of order. First verify the raw-body signature, timestamp, endpoint/account, and replay window. Extract the provider’s stable `eventId` plus business object/version; do not use payload hash alone when an official ID exists.\n\nInside one database transaction, insert the event ID into an inbox/processed-events table with a **unique constraint** and apply an idempotent state transition/ledger update. If the insert conflicts, return the previously successful acknowledgement without repeating effects. Lock/version the target aggregate and reject stale transitions so `payment.succeeded` cannot be undone by an older `payment.pending`. Persist the raw event/audit status, then publish email/Kafka work through an outbox so those effects are also retryable/deduplicated.\n\nReturn 2xx only after durable acceptance; return retryable failure for transient problems and quarantine invalid/permanent events. Monitor duplicate rate, processing lag, signature failures, and reconciliation against provider state. Exactly-once delivery is unnecessary—idempotent effects make repeated delivery safe.',
+            },
+            {
               question: 'Webhook replay attack prevention?',
               answer:
                 'Sign payloads with an HMAC (shared secret) or asymmetric signature, include a **timestamp + nonce/event id**, reject stale timestamps, and **dedupe event ids** so replays are no-ops. Always verify signatures before mutating state; serve webhooks only over TLS.',

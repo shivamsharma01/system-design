@@ -85,6 +85,98 @@ const content: DesignContent = {
       ],
     },
     {
+      id: 'advanced-container-internals',
+      title: 'Advanced Container, Proxy, and Auto-Configuration Internals',
+      blocks: [
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Advanced Container, Proxy & Auto-Configuration Failures',
+          items: [
+            {
+              question:
+                'Why can returning a new object from a custom BeanPostProcessor silently remove @Transactional, @Cacheable, and @Secured proxies?',
+              answer:
+                'Spring chains `BeanPostProcessor`s: each processor must pass its result to the next. Infrastructure auto-proxy creators wrap eligible beans with proxies that carry transaction, cache, and method-security interceptors. If a later custom processor ignores the `bean` argument and returns a fresh raw object, it discards the proxy and all advice already attached to it. If it runs earlier, the replacement may still be proxied, but it may have lost injected state, identity, annotations/type metadata, and lifecycle callbacks.\n\nThe failure is silent because the replacement still implements the expected API and methods still run—just without advice. Never instantiate a replacement casually inside `postProcessAfterInitialization`; normally mutate/decorate and return the supplied bean. If replacement is intentional, preserve ordering, delegate to the original/proxy, and test with `AopUtils.isAopProxy`, transaction/cache/security integration tests, and startup logs. `Ordered` controls sequence, but relying on order to replace managed identity is fragile.',
+            },
+            {
+              question:
+                'Why does declaring a BeanFactoryPostProcessor as a non-static @Bean sometimes break @Value placeholder injection?',
+              answer:
+                '`BeanFactoryPostProcessor` runs after bean definitions are loaded but **before ordinary beans and BeanPostProcessors are created**. To invoke a non-static `@Bean` method, Spring must instantiate its containing `@Configuration` class early. That instance is created before normal annotation injection is fully available, so `@Autowired`, `@Value`, and other post-processor-driven features on the configuration class may be skipped or see unresolved placeholders. Spring logs warnings about non-static post-processor factory methods for this reason.\n\nDeclare infrastructure post-processors as `static @Bean`; Spring can invoke the factory method without prematurely creating the configuration instance. Prefer constructor/factory-method parameters or `Environment` for values needed during this phase, and keep BFPP creation independent of application beans—requesting regular beans from it can trigger more premature initialization.',
+            },
+            {
+              question:
+                'How can a custom FactoryBean accidentally bypass Spring AOP proxy creation?',
+              answer:
+                'A correctly used `FactoryBean` does **not** inherently bypass AOP: when callers obtain the product through `ApplicationContext.getBean(...)`/dependency injection, Spring obtains `getObject()` and post-processes the product. Bypass happens when application code injects the factory itself (`&beanName`) and calls `getObject()` directly, when the factory publishes/caches a manually created product outside the container, or when it creates products during infrastructure startup before auto-proxy creators are ready. Those raw instances never traverse the normal post-processor chain.\n\nLet consumers request the product type, not the factory; do not expose raw products through static holders; declare accurate `getObjectType()` and singleton semantics; and use normal `@Bean`/component construction where possible. Verify the injected product—not merely the factory—with `AopUtils.isAopProxy` and an integration test proving advice executes.',
+            },
+            {
+              question:
+                'Why does a manually instantiated bean (new MyService()) never receive dependency injection or AOP advice?',
+              answer:
+                '`new MyService()` creates a plain Java object outside the `ApplicationContext`. Spring never sees its bean definition, does not run dependency injection, aware callbacks, `@PostConstruct`, destruction callbacks, BeanPostProcessors, or auto-proxy creators. Therefore `@Autowired` fields remain unset and `@Transactional`, `@Async`, `@Cacheable`, and `@Secured` are just metadata with no runtime interceptor.\n\nInject the Spring-managed service through constructor injection, expose third-party objects with `@Bean`, or ask an `ObjectProvider` for scoped/lazy instances. `AutowireCapableBeanFactory` can initialize external objects for framework-integration edge cases, but it increases lifecycle ambiguity and should not replace normal container ownership.',
+            },
+            {
+              question:
+                'How does Spring decide between JDK Dynamic Proxy and CGLIB, and what production issues can that choice introduce?',
+              answer:
+                'In core Spring AOP, an interface-based target can use a **JDK dynamic proxy**; a class without suitable interfaces needs a **CGLIB subclass**. `proxyTargetClass=true` forces class-based proxying; Spring Boot’s AOP auto-configuration commonly defaults that property to true, so verify the effective configuration rather than assuming.\n\nJDK proxies expose only proxied interfaces: injecting/casting to the concrete class or advising a method absent from the interface can fail. CGLIB proxies subclass the target, so final classes/methods and private methods cannot be overridden/advised; Kotlin classes are final unless opened, and module/native-image constraints may matter. Both approaches still have self-invocation bypass, proxy identity/`equals` surprises, and advice only on eligible method calls.\n\nProgram to interfaces where practical, avoid final advised methods, use constructor injection, inspect the runtime class/AOP logs, and test the chosen packaging/runtime. Do not cast a proxied bean to an implementation unless class-based proxying is an explicit contract.',
+            },
+            {
+              question:
+                'Why can SmartInitializingSingleton trigger expensive database calls before your application is actually ready?',
+              answer:
+                '`afterSingletonsInstantiated()` runs near the end of `ApplicationContext.refresh()`, after regular non-lazy singletons have been created—but before refresh completes, the web server/application readiness lifecycle fully settles, and `ApplicationReadyEvent` is published. A database scan, cache warm-up, remote call, or migration there blocks startup, holds the context refresh thread, can exceed orchestration startup probes, and may run before downstream infrastructure is ready.\n\nUse it only for fast in-memory validation/wiring that genuinely must happen before the context is usable. Put schema migrations in Flyway/Liquibase; move optional warm-up to an `ApplicationRunner`, `ApplicationReadyEvent`, controlled `SmartLifecycle`, or background job; expose readiness as false until mandatory warm-up completes. Add timeouts, idempotency, metrics, and a policy for partial failure.',
+            },
+            {
+              question:
+                'What happens when two auto-configurations define the same bean with conflicting conditions?',
+              answer:
+                'Well-designed auto-configurations use `@ConditionalOnMissingBean`, ordering (`@AutoConfigureBefore/@AutoConfigureAfter`), class/property conditions, and distinct names so one backs off deterministically. If both definitions share a name and bean-definition overriding is disabled (Boot’s safe default), startup fails with `BeanDefinitionOverrideException`. If names differ but types are identical, startup may succeed until injection raises `NoUniqueBeanDefinitionException`. If conditions are sensitive to processing order, the first registered bean may make the second back off.\n\nInspect the `ConditionEvaluationReport` (`--debug` or Actuator conditions), bean-definition origins, auto-configuration imports, and ordering. Fix by making conditions mutually exclusive, ordering explicitly, using `@Primary/@Qualifier` only when both beans are intentional, or excluding/replacing one auto-configuration. Enabling global bean overriding hides ambiguity and makes upgrades order-dependent.',
+            },
+            {
+              question:
+                'Why can overriding an auto-configured bean unintentionally disable metrics, tracing, or health checks?',
+              answer:
+                'Boot auto-configuration is a graph of conditional beans. Supplying a custom `DataSource`, HTTP client, executor, cache manager, or connection factory makes `@ConditionalOnMissingBean` back off. The replacement may omit observation interceptors, Micrometer customizers, tracing propagation, health contributors, pool metadata, lifecycle hooks, or properties that the auto-configured builder would have applied. Sometimes a downstream observation configuration is conditional on the auto-configured type/name itself.\n\nBefore overriding, inspect the conditions report and source of the relevant auto-configuration. Prefer a supported `Customizer`, builder callback, properties, or decorator so Boot retains instrumentation. If replacement is necessary, apply the framework’s customizers/observation registry and register health/metrics deliberately. Compare `/actuator/metrics`, traces, `/health`, bean inventory, and integration tests before and after the override.',
+            },
+            {
+              question:
+                'How do ApplicationContextInitializer, BeanFactoryPostProcessor, and BeanPostProcessor execute during the Spring lifecycle?',
+              answer:
+                'The simplified order is:\n\n1. Boot creates the `ApplicationContext` and applies **`ApplicationContextInitializer`** instances before refresh; they can alter the environment/context and register definitions/property sources, but ordinary beans do not exist.\n2. During refresh, Spring loads bean definitions, then invokes **`BeanDefinitionRegistryPostProcessor`** and **`BeanFactoryPostProcessor`** instances. They modify metadata/definitions—not normal bean instances. Placeholder configuration is prepared in this phase.\n3. Spring registers **`BeanPostProcessor`** instances.\n4. Each ordinary bean is instantiated, dependencies populated, aware callbacks invoked, then BPP before-initialization → `@PostConstruct`/init → BPP after-initialization. Auto-proxy creators commonly return proxies in the after step.\n5. `SmartInitializingSingleton`, lifecycle start, context-refreshed/ready events, and runners follow according to their contracts.\n\nCreating application beans during phases 1–2 can bypass later processing. Use the earliest extension point that actually matches the job and keep infrastructure callbacks lightweight.',
+            },
+            {
+              question:
+                'How does @Configuration(proxyBeanMethods = false) improve startup performance, and what trade-offs does it introduce?',
+              answer:
+                'Full `@Configuration` classes (`proxyBeanMethods=true`) are enhanced with a CGLIB subclass. Calls from one `@Bean` method to another are intercepted and redirected to the container, preserving singleton/scoped semantics. Enhancement adds class generation, proxying, and method interception at startup/runtime.\n\nWith `proxyBeanMethods=false`, Spring treats it as “lite” configuration and skips that CGLIB enhancement, reducing startup work and native-image/proxy complexity. The trade-off: a direct Java call such as `dataSource()` from another `@Bean` method invokes the method normally and creates a new unmanaged instance instead of retrieving the container bean.\n\nUse false when `@Bean` methods are independent and receive dependencies as method parameters—`service(DataSource dataSource)`—rather than calling each other. Keep true only when inter-bean method calls intentionally rely on interception, or refactor those calls first.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'servlet-filter-internals',
+      title: 'Servlet Filter Internals',
+      blocks: [
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'OncePerRequestFilter Production Traps',
+          items: [
+            {
+              question:
+                'Why can a poorly written OncePerRequestFilter execute multiple times for a single request?',
+              answer:
+                '`OncePerRequestFilter` means once per **configured dispatch**, enforced by a request attribute based on the filter name—not magically once across every possible registration and dispatch. It can run more than expected when the same filter is registered twice (for example `@Component` servlet auto-registration **and** `http.addFilter...` in Spring Security), when two filter instances/names use different already-filtered attributes, or when a request performs `ASYNC`, `ERROR`, or forward dispatches and the filter opts into those dispatch types. Multiple matching `SecurityFilterChain`s or manual delegation can also duplicate custom logic.\n\nKeep one registration path. If the filter belongs inside Spring Security, create it as a bean, disable standalone servlet registration with `FilterRegistrationBean#setEnabled(false)`, and add it once at a deliberate security-chain position. Put logic only in `doFilterInternal`, call `filterChain.doFilter` exactly once on allowed paths, and override `shouldNotFilterAsyncDispatch`, `shouldNotFilterErrorDispatch`, and `shouldNotFilter` explicitly for the intended semantics. Log dispatcher type, filter instance/name, and correlation ID when diagnosing duplicates; test REQUEST, ERROR, ASYNC, and forwarded flows.',
+            },
+          ],
+        },
+      ],
+    },
+    {
       id: 'data-production',
       title: 'Data Access and Production',
       blocks: [
@@ -356,6 +448,31 @@ public class ApiExceptionHandler {
     return ResponseEntity.status(HttpStatus.CONFLICT).body(p);
   }
 }`,
+        },
+      ],
+    },
+    {
+      id: 'jpa-api-production-traps',
+      title: 'JPA and REST Production Traps',
+      blocks: [
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Entity Serialization and Open Session in View',
+          items: [
+            {
+              question:
+                'Why does exposing JPA entities directly from REST APIs eventually become a production problem?',
+              answer:
+                'A persistence entity models database identity, relationships, dirty checking, and ORM lifecycle—not a stable public API contract. Jackson serialization can traverse lazy associations and trigger N+1 queries, throw `LazyInitializationException` after the session closes, recurse through bidirectional relationships, load huge graphs/BLOBs, or expose internal/sensitive columns. Hibernate proxy types and entity annotations leak into the wire format, and schema/refactoring changes become accidental breaking API changes.\n\nAccepting entities as request bodies is worse: clients can bind fields they should not control, relationships become difficult to validate, and detached entities/`merge` can overwrite data unexpectedly. `@JsonIgnore` and disabling lazy serialization treat symptoms while coupling remains.\n\nUse request/response DTOs or records, explicit mapping, validation at the boundary, and query-specific DTO/interface projections. Fetch exactly the required graph with joins/entity graphs inside a transaction. Version the API independently of persistence and keep domain invariants in services/entities rather than in JSON shape.',
+            },
+            {
+              question:
+                'How can Open Session in View hide performance bottlenecks until the database connection pool gets exhausted?',
+              answer:
+                'OSIV binds a JPA `EntityManager`/Hibernate `Session` to the web request after the service transaction ends. Controllers, mappers, or Jackson can therefore initialize lazy relationships successfully, making missing fetch design look harmless in development. In production, serializing N parents may issue N extra queries—often outside the original transaction and in auto-commit mode—so query count and connection borrowing scale with response size.\n\nThe session does not necessarily hold one physical connection for the entire request in every configuration, but each hidden lazy load needs a connection; slow serialization, database waits, and concurrent large responses create sustained pool pressure. The service layer’s query metrics may miss work executed later, so teams increase pool size instead of fixing access patterns.\n\nDisable `spring.jpa.open-in-view` for APIs, return DTOs, map/fetch required data inside explicit read-only transactions, use projections/entity graphs/batch fetching deliberately, and monitor SQL count plus pool active/pending time per endpoint. Add integration tests that fail on unexpected query counts; do not “fix” it by making every association EAGER.',
+            },
+          ],
         },
       ],
     },
@@ -944,9 +1061,10 @@ public class ApiExceptionHandler {
                 'For an `@Async` method returning `Future`/`CompletableFuture`, the exception completes that future exceptionally; it is observed only when the caller awaits or attaches error handling. For a `void` method, there is no result channel, so Spring sends the failure to `AsyncUncaughtExceptionHandler`—the default normally logs it.\n\nPrefer `CompletableFuture` or a durable queue for important work, attach recovery/metrics, and configure a named bounded executor plus rejection policy. Also remember that self-invocation bypasses the async proxy and transaction/security context does not automatically cross to the new thread.',
             },
             {
-              question: 'Spring Boot startup takes 45 seconds. How do you find the bottleneck?',
+              question:
+                'Spring Boot takes five minutes to start in production but only 20 seconds locally. How do you debug it?',
               answer:
-                'Measure phases instead of guessing. Enable `ApplicationStartup` with `BufferingApplicationStartup` or JFR, inspect `/actuator/startup`, and compare condition-evaluation and bean-creation timing. Profile CPU, class loading, disk/DNS/network waits, and capture a thread dump while startup is stalled.\n\nCommon causes include database migrations, eager remote calls in constructors/`@PostConstruct`, slow secret/config resolution, component/entity scanning over broad packages, large classpaths, synchronous cache warm-up, entropy/DNS issues, and oversized Hibernate schema validation. Move nonessential work after readiness, narrow scanning, parallelize only independent safe work, and never declare readiness before required dependencies and migrations are complete.',
+                'Measure startup phases instead of guessing. Enable `ApplicationStartup` with `BufferingApplicationStartup` or JFR, inspect `/actuator/startup`, and capture repeated thread dumps while production is stalled. Compare timestamps for environment/config loading, context refresh, bean creation, migrations, web-server start, runners, and readiness.\n\nProduction-only causes include slow DNS/metadata/secret-vault calls, unreachable proxy endpoints and retry timeouts, database connection/TLS negotiation, Flyway/Liquibase lock contention or much larger schema/data, Hibernate validation, synchronous cache warm-up, broad classpath/entity scanning, slow disk/image extraction, low CPU requests or throttling, entropy, service-mesh sidecars, agents, and `@PostConstruct`/`SmartInitializingSingleton` remote calls.\n\nRun the same image and production profile/config under equivalent CPU/memory/network constraints; diff condition reports, active profiles, JVM flags, dependency endpoints, and migration history. Move optional work after readiness, put deadlines on mandatory calls, narrow scanning, right-size startup resources/probes, and never mark ready before essential initialization is complete.',
             },
             {
               question: 'JPA first-level cache vs second-level cache?',
@@ -975,6 +1093,30 @@ public class ApiExceptionHandler {
                 'Performance degrades over a weekend without a deployment. What could have changed?',
               answer:
                 '“No code change” does not mean “no system change.” Traffic/data volume may grow; caches can evict or expire; queues, sessions, logs, temp files, heap live set, threads, connections, or database bloat can accumulate. Scheduled jobs, backups, certificate/credential rotation, feature flags, autoscaling, cloud maintenance, noisy neighbors, dependency latency, statistics/plan changes, and retries can alter behavior.\n\nCompare Friday and Monday metrics/config across heap-after-GC, GC, pools, queues, disk, DB plans/locks, cache hit rate, dependency latency, instance count, feature flags, and infrastructure events. Build a timeline first, then use profiles/dumps for the resource that drifted. Restarting may clear evidence while leaving the cause intact.',
+            },
+            {
+              question:
+                'A REST API returns duplicate responses after a deployment, but the controller did not change. Where do you investigate?',
+              answer:
+                'Clarify “duplicate”: one HTTP request cannot normally receive two independent terminal responses, so this often means the client sent/retried twice, the gateway retried upstream, duplicate business side effects/webhooks occurred, or a response list contains duplicate data. Correlate a client-generated request/idempotency ID through CDN/LB, gateway/mesh, access logs, controller, database, and response. Count distinct inbound attempts and upstream attempts.\n\nDeployment changes can duplicate filter/interceptor registration, enable both servlet and security-chain filters, run old and new routes simultaneously, alter gateway retry policy, lose sticky/session/idempotency state on restart, start duplicate schedulers/consumers, or register the same endpoint/handler twice. Ingress retry-on-reset is especially likely while old pods drain; a backend may complete after the proxy retries because the connection closed before acknowledgement.\n\nInspect rollout/ingress/service-mesh config, pod overlap, connection draining, retry logs, filter chains, scheduled-job locks, consumer groups, and database unique/idempotency records. Make mutating APIs idempotent and propagate one stable request ID; do not disable retries until you know whether they protect safe reads or duplicate unsafe writes.',
+            },
+            {
+              question:
+                'A customer reports missing records, but database logs show the transaction committed. What could have happened?',
+              answer:
+                '“Committed” only proves one transaction committed on one database connection. Verify the record by primary key on the **writer/primary** and confirm database, cluster, schema, tenant, shard, region, and transaction ID. The application may read a lagging replica; route to a different shard/tenant; apply soft-delete, row-level-security, time-zone, status, or pagination filters; serve stale negative cache; or query before an asynchronous projection/index/CDC pipeline catches up.\n\nAlso check a later compensating/delete/update transaction, duplicate request overwriting state, wrong commit logs caused by nested/`REQUIRES_NEW` transactions, outbox/consumer failure, and user-visible read model versus source-of-truth table. Trace the write and subsequent read with correlation/business IDs, inspect WAL/binlog/CDC and audit history, cache keys, replica lag, and query bindings.\n\nFix routing/read-after-write guarantees, cache invalidation, outbox/replay, audit/versioning, or business state transitions. Never infer data loss from one API response, and never infer end-to-end visibility from a single “commit successful” log.',
+            },
+            {
+              question:
+                'After enabling caching, database load drops but memory usage keeps increasing. What might be wrong?',
+              answer:
+                'The cache may be unbounded, use a very long/no TTL, cache high-cardinality keys or large object graphs, retain tenant/user/request-specific variants, or store values twice through layered local caches. A custom key bug can create a new entry every call; caching null/errors can amplify cardinality; refresh futures/listeners/stats can retain old values. If it is an external Redis cache, rising JVM memory may instead come from a local client near-cache, deserialized copies, buffers, or pending requests.\n\nCheck cache entry count, estimated weight/bytes, key cardinality, hit/eviction/expiry rate, value size, and heap dominator/retainer paths. Compare heap-after-GC and use an allocation profile. Configure maximum **weight/size** plus TTL/TTI as appropriate, avoid caching huge mutable entities, use compact immutable DTOs, normalize keys, and invalidate/version correctly. A cache is a bounded optimization—not a second unbounded database.',
+            },
+            {
+              question:
+                'The application works in staging but fails only in production. How do you investigate?',
+              answer:
+                'Treat this as an environment/data/load difference until evidence says otherwise. Build a timeline and compare the **effective** artifact digest, JVM/runtime, config and secrets, active profiles/feature flags, CPU/memory/cgroup limits, replicas/topology, proxies/mesh/network policy/TLS/DNS, database schema/statistics/data volume, cache state, dependency versions/SLOs, and traffic shape/concurrency—not source code alone.\n\nUse one failing correlation ID to compare logs, traces, metrics, and downstream calls; reproduce with production-like anonymized data and limits; inspect p95/p99, pools, queues, GC, locks, throttling, and recent infrastructure/config changes. Canary or shadow traffic can isolate instance/version differences. Avoid enabling noisy debug logging globally or copying sensitive production data. Close the gap with immutable images, configuration/version inventory, migration checks, contract/load tests, and staging that mirrors the production constraints that mattered.',
             },
           ],
         },
@@ -1030,9 +1172,10 @@ public class ApiExceptionHandler {
                 'A phantom read happens when you run the same range query twice inside one transaction, and the second time you see **new rows** that another transaction committed in between — rows that "phantom" appeared. You can prevent this with `SERIALIZABLE` isolation, or by using explicit locking like `SELECT ... FOR UPDATE` on the range you care about.',
             },
             {
-              question: 'Why should API calls be avoided inside transactions?',
+              question:
+                'Why does placing blocking I/O inside a transaction drastically reduce throughput under heavy load?',
               answer:
-                'A database transaction holds onto a connection (and possibly row locks) for as long as it\u2019s open. If you make a slow network call — like an HTTP request to another service — **while** the transaction is still open, you\u2019re holding that connection and those locks hostage for the entire round trip. Do this under load, and you\u2019ll exhaust your connection pool and cause cascading slowness elsewhere.\n\n**Better pattern:** finish your local database work and commit the transaction first, *then* make the outbound call. If the outbound call can fail, use a compensating action or an outbox pattern to handle that safely. Keep transactions **short and local** to the database.',
+                'A transaction often owns a database connection and may hold row/table locks, MVCC snapshots, undo/version data, and transaction-manager thread state until completion. If that thread blocks on HTTP, file I/O, a queue, DNS, or a slow SDK, those scarce resources sit idle for the entire external latency. With enough concurrent requests, the connection pool empties, lock wait time grows, transactions retain more database state, Tomcat/executor threads pile up, and one slow dependency creates a cascading queueing failure even when database CPU is low.\n\nKeep the transaction boundary around local database work only. Validate/call remote services before the transaction when safe, or commit state plus a transactional outbox and perform I/O asynchronously afterward. For workflows spanning services use idempotency, retries with limits, saga compensation, and reconciliation—not a long local transaction. Add timeouts and instrument transaction duration, pool pending time, lock waits, and outbound latency. `REQUIRES_NEW` does not solve blocking; it can consume another connection.',
             },
             {
               question: 'What happens during nested transactions?',
@@ -1058,6 +1201,12 @@ public class ApiExceptionHandler {
               question: 'How does Spring use proxies for transaction management?',
               answer:
                 'When a bean has `@Transactional` methods, Spring wraps it with a `TransactionInterceptor` — using a JDK dynamic proxy if the bean implements an interface, or a CGLIB subclass proxy otherwise. That interceptor is what actually talks to `PlatformTransactionManager` to start/commit/roll back.\n\n**The catch:** only calls that come in **through the proxy** get this transactional behavior — calls made directly on the raw object (like self-invocation) skip it. This is exactly why it matters to design clean, external-facing "transactional" methods rather than relying on internal method calls to carry transaction behavior.',
+            },
+            {
+              question:
+                'Why can @TransactionalEventListener(AFTER_COMMIT) silently stop working in asynchronous event processing?',
+              answer:
+                '`@TransactionalEventListener` registers the listener with the **transaction active on the publishing thread**. If an event is published after work has already moved to an `@Async` executor, Reactor pipeline, or message callback without a Spring-managed transaction, there is no transaction synchronization to attach to; by default the listener is skipped (`fallbackExecution=false`). ThreadLocal transaction context is not propagated to another thread.\n\nA second trap is combining `AFTER_COMMIT` with `@Async`: scheduling can occur after commit, but the async listener runs with no original transaction. If it performs JPA writes without starting a new transaction, they may not be committed as expected. In-process events are also not durable—a crash after database commit but before executor execution loses the event.\n\nPublish inside the transactional method before it returns; keep the listener synchronous if it only hands off safe work, or make async persistence use an explicit new transaction such as a separate `@Transactional(REQUIRES_NEW)` bean. For reliable cross-process/critical work, write a transactional outbox in the original commit and publish from it. Test rollback, no-transaction publication, executor rejection, duplicate delivery, and crash recovery; enable transaction/event debug logging rather than setting `fallbackExecution=true` blindly.',
             },
           ],
         },

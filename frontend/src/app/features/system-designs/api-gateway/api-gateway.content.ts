@@ -349,6 +349,12 @@ public class CheckoutAggregationFilter implements GatewayFilter {
               answer:
                 'Terminate or **proxy the upgrade** (HTTP → WS), stick the connection to one gateway instance, and forward frames to the right backend (or a connection service). Keep auth on the handshake; avoid heavy per-frame business logic on the gateway — it should route and enforce policy, not own chat/state fan-out.',
             },
+            {
+              question:
+                'An API Gateway returns 504 Gateway Timeout, but backend logs show successful responses. Where is the bottleneck?',
+              answer:
+                'A 504 means the gateway did not receive a usable upstream response before its deadline; backend “success” only proves the handler eventually completed. Align timestamps and one trace/request ID across client → CDN/LB → gateway → mesh/proxy → service. Compare gateway connect, TLS, response-header, idle/read, and total route timeouts with service duration. A request can finish milliseconds after the gateway has already closed the upstream connection.\n\nCheck queue time before the backend handler (gateway event-loop/thread saturation, upstream connection-pool acquisition, DNS/service discovery, retries, circuit-breaker queue), network/TLS latency, service-mesh sidecar timeout, response streaming/first-byte delay, and large/slow response transfer. Confirm clocks and that the logged success belongs to the same retry/attempt; a gateway retry may time out one attempt while another succeeds and wastes backend work.\n\nUse distributed spans for gateway queue/connect/TTFB/body phases, gateway upstream timing fields, pool metrics, packet/TCP resets when needed, and backend access-log response-write errors. Fix the actual queue/timeout mismatch and propagate one end-to-end deadline/cancellation signal; blindly increasing the gateway timeout can amplify resource exhaustion.',
+            },
           ],
         },
       ],
