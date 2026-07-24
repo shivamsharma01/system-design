@@ -344,7 +344,11 @@ CREATE INDEX active_orders_by_partner ON orders (partner_id)
           rows: [
             ['Restaurant search', 'Elasticsearch', 'Geo + full-text + ranking, read-heavy'],
             ['Menus / catalog', 'Cassandra + cache', 'Read-heavy, rarely changes, cacheable'],
-            ['Orders + payments', 'Sharded SQL (PostgreSQL)', 'Transactions, effectively-once via idempotency, CP'],
+            [
+              'Orders + payments',
+              'Sharded SQL (PostgreSQL)',
+              'Transactions, effectively-once via idempotency, CP',
+            ],
             ['Rider live locations', 'Redis (geo index)', 'Ephemeral, high write rate, AP'],
             ['Order history (cold)', 'Cassandra / warehouse', 'Append-only, analytics'],
             ['Events', 'Kafka', 'Decouple order/dispatch/notify/analytics'],
@@ -454,7 +458,7 @@ CREATE INDEX active_orders_by_partner ON orders (partner_id)
         {
           type: 'markdown',
           value:
-            'Two geospatial problems: **serviceability** (which restaurants deliver to an address) and **rider proximity** (which riders are near a restaurant). Both use a **cell-based index** — divide the map into cells (H3/geohash/S2) and bucket entities into cells so a query reads a cell + its neighbors instead of scanning everything.',
+            'Two geospatial problems: **serviceability** (which restaurants deliver to an address) and **rider proximity** (which riders are near a restaurant). Both use a **cell-based index** — divide the map into cells (H3/geohash/S2) and bucket entities into cells so a query reads a cell + its neighbors instead of scanning everything. Fundamentals walkthrough: [GeoHashing](/designs/geohashing).',
         },
         {
           type: 'code',

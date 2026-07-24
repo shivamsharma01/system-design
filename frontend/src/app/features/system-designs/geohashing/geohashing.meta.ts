@@ -1,0 +1,30 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const GEOHASHING_META: DesignMeta = {
+  slug: 'geohashing',
+  title: 'GeoHashing',
+  tagline:
+    'Encode latitude and longitude into a hierarchical Base32 string so nearby points share prefixes and standard B-tree indexes can power proximity search.',
+  section: 'fundamentals',
+  category: 'Distributed Systems',
+  tags: ['geohash', 'geospatial', 'proximity', 'indexing', 'maps', 'interview'],
+  technologies: ['PostgreSQL', 'MongoDB', 'Elasticsearch', 'Cassandra', 'Redis'],
+  difficulty: 'intermediate',
+  readingTimeMin: 16,
+  status: 'published',
+  keywords: [
+    'GeoHash',
+    'geohashing',
+    'spatial locality',
+    'Morton curve',
+    'Z-order',
+    'Haversine',
+    'neighbor cells',
+    'proximity search',
+  ],
+  dateAdded: '2026-07-25',
+  popularity: 93,
+  icon: 'GH',
+  heroGradient: 'linear-gradient(135deg, #10b981 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

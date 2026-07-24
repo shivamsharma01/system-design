@@ -1,0 +1,29 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const LONG_POLLING_WEBSOCKETS_META: DesignMeta = {
+  slug: 'long-polling-websockets',
+  title: 'Long Polling vs WebSockets',
+  tagline:
+    'How servers push near-real-time updates: HTTP long polling versus persistent full-duplex WebSockets — trade-offs, code, and when to choose each.',
+  section: 'fundamentals',
+  category: 'Networking',
+  tags: ['long-polling', 'websockets', 'real-time', 'sse', 'http', 'interview'],
+  technologies: ['HTTP', 'WebSocket', 'Socket.IO', 'SSE', 'MQTT', 'Nginx'],
+  difficulty: 'intermediate',
+  readingTimeMin: 15,
+  status: 'published',
+  keywords: [
+    'long polling',
+    'WebSockets',
+    'full duplex',
+    'Server-Sent Events',
+    'Socket.IO',
+    'real-time updates',
+    'HTTP upgrade',
+  ],
+  dateAdded: '2026-07-25',
+  popularity: 94,
+  icon: 'RT',
+  heroGradient: 'linear-gradient(135deg, #f59e0b 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

@@ -135,7 +135,7 @@ const content: DesignContent = {
         {
           type: 'markdown',
           value:
-            'Clients open one **persistent WebSocket** to the **gateway** and keep it alive with heartbeats. After connecting, the client receives a `READY` payload (its guilds, channels, initial presence) and then a stream of **events**. The gateway maintains per-connection **session state** and routes events to the right sockets.',
+            'Clients open one **persistent WebSocket** to the **gateway** and keep it alive with heartbeats. After connecting, the client receives a `READY` payload (its guilds, channels, initial presence) and then a stream of **events**. The gateway maintains per-connection **session state** and routes events to the right sockets. Protocol comparison with long polling: [Long Polling vs WebSockets](/designs/long-polling-websockets).',
         },
         {
           type: 'mermaid',

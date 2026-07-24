@@ -28,11 +28,12 @@ const content: DesignContent = {
         {
           type: 'markdown',
           value:
-            "Spend the first 3–5 minutes narrowing scope before drawing anything. A URL shortener sounds trivial, but the answers here decide key length, whether you need a reverse-lookup index, and how hard caching/analytics have to work — interviewers are watching for this instinct, not just the final diagram.",
+            'Spend the first 3–5 minutes narrowing scope before drawing anything. A URL shortener sounds trivial, but the answers here decide key length, whether you need a reverse-lookup index, and how hard caching/analytics have to work — interviewers are watching for this instinct, not just the final diagram.',
         },
         {
           type: 'table',
-          caption: 'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
+          caption:
+            'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
           headers: ['Question', 'Why it matters / sample assumption'],
           rows: [
             [
@@ -388,7 +389,8 @@ def encode(num: int) -> str:
                 'Optionally store a reverse index (hash of long URL → short code) and return the existing code. This is a product decision; many shorteners intentionally create a fresh code per request for analytics.',
             },
             {
-              question: 'Why is this system so much more read-heavy than write-heavy, and how does that shape the design?',
+              question:
+                'Why is this system so much more read-heavy than write-heavy, and how does that shape the design?',
               answer:
                 'Every URL is created once but clicked many times over its life — a 100:1 (or higher) read:write ratio is typical. This pushes every design decision toward optimizing the **redirect path**: an LRU cache absorbs most reads, 301s let CDNs/browsers cache further, and analytics are moved off the hot path entirely. The write path (create) can afford to be comparatively expensive since it happens rarely.',
             },
@@ -398,19 +400,21 @@ def encode(num: int) -> str:
                 'Shard by a hash of `short_code` (consistent hashing) so lookups stay O(1) — a request for `/aZ9kQ` hashes straight to its shard without a directory lookup. If key generation uses per-shard counter ranges, the shard can even be encoded implicitly in the key, avoiding a separate routing table.',
             },
             {
-              question: 'What happens if two requests try to create the same custom alias at the same time?',
+              question:
+                'What happens if two requests try to create the same custom alias at the same time?',
               answer:
                 'Enforce uniqueness with a database constraint (`UNIQUE` on `short_code`) and let the second `INSERT` fail, returning a 409 Conflict to the client. Relying on a "check-then-insert" without the constraint is a race condition — the constraint is the real source of truth, not an application-level check.',
             },
             {
-              question: 'How do you avoid a hot cache-miss storm on a viral link right after creation?',
+              question:
+                'How do you avoid a hot cache-miss storm on a viral link right after creation?',
               answer:
                 'On write, proactively populate the cache (write-through) instead of waiting for the first read to miss. For links expected to spike (e.g. shared by a large account), pre-warm the cache. This trades a slightly slower write for protecting the database from a burst of concurrent misses on the same key.',
             },
             {
               question: 'How would you support link expiration efficiently, at scale?',
               answer:
-                "Store `expires_at` and check it on read (cheap, no background job needed) rather than a cron sweep for most cases. For reclaiming storage/keys at scale, run a low-priority batch job that deletes expired rows and evicts the corresponding cache entries; it does not need to be real-time.",
+                'Store `expires_at` and check it on read (cheap, no background job needed) rather than a cron sweep for most cases. For reclaiming storage/keys at scale, run a low-priority batch job that deletes expired rows and evicts the corresponding cache entries; it does not need to be real-time.',
             },
             {
               question: 'Is strong consistency required anywhere in this system?',
@@ -435,7 +439,7 @@ def encode(num: int) -> str:
             {
               question: 'How would Bloom filters help on the redirect path?',
               answer:
-                'A **Bloom filter** of existing short codes can reject almost all unknown codes in memory with no DB hit — false positives only mean a rare extra lookup. Pair it with negative caching for confirmed misses. Rebuild or update the filter as codes are created/expired; it is a read-path optimization, not a source of truth.',
+                'A **Bloom filter** of existing short codes can reject almost all unknown codes in memory with no DB hit — false positives only mean a rare extra lookup. Pair it with negative caching for confirmed misses. Rebuild or update the filter as codes are created/expired; it is a read-path optimization, not a source of truth. Deep dive: [Bloom Filters](/designs/bloom-filter).',
             },
           ],
         },

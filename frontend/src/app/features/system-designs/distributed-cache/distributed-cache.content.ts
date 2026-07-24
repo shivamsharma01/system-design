@@ -45,7 +45,8 @@ const content: DesignContent = {
         },
         {
           type: 'table',
-          caption: 'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
+          caption:
+            'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
           headers: ['Question', 'Why it matters / sample assumption'],
           rows: [
             [
@@ -788,12 +789,12 @@ autoscaling:
               question:
                 'How do you decide how much memory to allocate per node and how many nodes you need?',
               answer:
-                'Start from the working set size and replication factor: `nodes = ceil(workingSet × RF / ramPerNode)`, then check the per-node throughput implied by dividing total ops/sec across that many nodes against a single node\'s realistic capacity (100k+ ops/sec for a tuned in-memory store). Leave headroom (20-30%) for uneven key distribution and growth, and re-derive the numbers whenever the working set or replication factor changes — this is the same capacity-estimation exercise as sizing any other tier, just bound by RAM instead of disk.',
+                "Start from the working set size and replication factor: `nodes = ceil(workingSet × RF / ramPerNode)`, then check the per-node throughput implied by dividing total ops/sec across that many nodes against a single node's realistic capacity (100k+ ops/sec for a tuned in-memory store). Leave headroom (20-30%) for uneven key distribution and growth, and re-derive the numbers whenever the working set or replication factor changes — this is the same capacity-estimation exercise as sizing any other tier, just bound by RAM instead of disk.",
             },
             {
               question: 'Difference between cache penetration and cache stampede?',
               answer:
-                '**Penetration**: repeated requests for keys that **never exist** — every miss hits the DB (fix with Bloom filters / cached negative entries). **Stampede** (thundering herd): a **hot key expires** and many concurrent misses all recompute it at once — fix with single-flight, early refresh, or stale-while-revalidate.',
+                '**Penetration**: repeated requests for keys that **never exist** — every miss hits the DB (fix with [Bloom filters](/designs/bloom-filter) / cached negative entries). **Stampede** (thundering herd): a **hot key expires** and many concurrent misses all recompute it at once — fix with single-flight, early refresh, or stale-while-revalidate.',
             },
             {
               question: 'What happens during node add/remove — how do clients learn the new ring?',

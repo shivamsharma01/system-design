@@ -45,7 +45,8 @@ const content: DesignContent = {
         },
         {
           type: 'table',
-          caption: 'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
+          caption:
+            'Questions to ask, and reasonable assumptions if the interviewer says "you decide".',
           headers: ['Question', 'Why it matters / sample assumption'],
           rows: [
             [
@@ -267,7 +268,7 @@ const content: DesignContent = {
           type: 'callout',
           variant: 'tip',
           title: 'Why hexagons (H3)',
-          body: 'Uber built **H3** because hexagonal cells have **uniform distance to all 6 neighbors** (unlike squares, where diagonal neighbors are farther). That makes radius queries, smoothing, and surge-area math cleaner. Geohash/S2 are perfectly valid interview answers too — the key idea is "bucket by cell, query cell + neighbors".',
+          body: 'Uber built **H3** because hexagonal cells have **uniform distance to all 6 neighbors** (unlike squares, where diagonal neighbors are farther). That makes radius queries, smoothing, and surge-area math cleaner. Geohash/S2 are perfectly valid interview answers too — the key idea is "bucket by cell, query cell + neighbors". For a full walkthrough of encoding, neighbor queries, and Haversine post-filtering, see [GeoHashing](/designs/geohashing).',
         },
         {
           type: 'code',

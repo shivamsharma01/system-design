@@ -158,6 +158,9 @@ import { CAP_PACELC_META } from '../../features/system-designs/cap-pacelc/cap-pa
 import { DELIVERY_SEMANTICS_META } from '../../features/system-designs/delivery-semantics/delivery-semantics.meta';
 import { BACK_OF_ENVELOPE_META } from '../../features/system-designs/back-of-envelope/back-of-envelope.meta';
 import { ID_GENERATION_META } from '../../features/system-designs/id-generation/id-generation.meta';
+import { BLOOM_FILTER_META } from '../../features/system-designs/bloom-filter/bloom-filter.meta';
+import { GEOHASHING_META } from '../../features/system-designs/geohashing/geohashing.meta';
+import { LONG_POLLING_WEBSOCKETS_META } from '../../features/system-designs/long-polling-websockets/long-polling-websockets.meta';
 import { LOAD_BALANCING_PATTERN_META } from '../../features/system-designs/load-balancing-pattern/load-balancing-pattern.meta';
 import { SERVICE_MESH_META } from '../../features/system-designs/service-mesh/service-mesh.meta';
 import { VENDING_MACHINE_META } from '../../features/system-designs/vending-machine/vending-machine.meta';
@@ -837,6 +840,19 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   {
     meta: ID_GENERATION_META,
     load: () => import('../../features/system-designs/id-generation/id-generation.content'),
+  },
+  {
+    meta: BLOOM_FILTER_META,
+    load: () => import('../../features/system-designs/bloom-filter/bloom-filter.content'),
+  },
+  {
+    meta: GEOHASHING_META,
+    load: () => import('../../features/system-designs/geohashing/geohashing.content'),
+  },
+  {
+    meta: LONG_POLLING_WEBSOCKETS_META,
+    load: () =>
+      import('../../features/system-designs/long-polling-websockets/long-polling-websockets.content'),
   },
   {
     meta: LOAD_BALANCING_PATTERN_META,

@@ -17,7 +17,7 @@ const content: DesignContent = {
           type: 'callout',
           variant: 'info',
           title: 'Pull vs push',
-          body: '**Push**: broker delivers (WebSocket, SNS HTTP). **Poll**: consumer asks "anything for me?" — SQS `ReceiveMessage`, Kafka `poll()`, JDBC `SELECT FOR UPDATE SKIP LOCKED`.',
+          body: '**Push**: broker delivers (WebSocket, SNS HTTP). **Poll**: consumer asks "anything for me?" — SQS `ReceiveMessage`, Kafka `poll()`, JDBC `SELECT FOR UPDATE SKIP LOCKED`. Broker **long poll** (SQS WaitTimeSeconds) is not the same as HTTP client long polling for browser real-time — see [Long Polling vs WebSockets](/designs/long-polling-websockets).',
         },
         {
           type: 'table',
