@@ -19,7 +19,7 @@ export const RATE_LIMITER_META: DesignMeta = {
   ],
   technologies: ['Redis', 'Lua', 'Envoy', 'NGINX', 'Token Bucket', 'Sliding Window'],
   difficulty: 'advanced',
-  readingTimeMin: 22,
+  readingTimeMin: 28,
   status: 'published',
   keywords: [
     'throttling',

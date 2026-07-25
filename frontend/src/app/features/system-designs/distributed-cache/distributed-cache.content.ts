@@ -263,7 +263,7 @@ class LruCache<K, V> {
           type: 'callout',
           variant: 'tip',
           title: 'LRU is the default; LFU resists pollution',
-          body: "**LRU** is the sensible default. But a big sequential scan can **pollute** an LRU cache, evicting genuinely hot keys for one-time reads. **LFU** (or a hybrid like Redis's approximated LFU, or W-TinyLFU) tracks frequency so a one-hit-wonder never displaces a popular key. Mention the scan-pollution failure to show depth.",
+          body: "**LRU** is the sensible default. But a big sequential scan can **pollute** an LRU cache, evicting genuinely hot keys for one-time reads. **LFU** (or a hybrid like Redis's approximated LFU, or W-TinyLFU) tracks frequency so a one-hit-wonder never displaces a popular key. Mention the scan-pollution failure to show depth. Walkthrough of seven policies (incl. MRU, TTL, two-tier): [Cache Eviction Strategies](/designs/cache-eviction).",
         },
       ],
     },

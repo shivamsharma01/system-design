@@ -23,7 +23,7 @@ const content: DesignContent = {
           type: 'callout',
           variant: 'info',
           title: 'The big idea',
-          body: 'Netflix separates a **control plane** (running on AWS: auth, metadata, recommendations, steering) from a **data plane** (Open Connect, its own purpose-built CDN that pushes video bytes as close to viewers as possible). Almost all bandwidth flows through the CDN, never through AWS.',
+          body: 'Netflix separates a **control plane** (running on AWS: auth, metadata, recommendations, steering) from a **data plane** (Open Connect, its own purpose-built CDN that pushes video bytes as close to viewers as possible). Almost all bandwidth flows through the CDN, never through AWS. CDN fundamentals (edge, DNS, miss fill): [Content Delivery Network](/designs/cdn).',
         },
         {
           type: 'image',

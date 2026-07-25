@@ -167,7 +167,14 @@ const content: DesignContent = {
         {
           type: 'markdown',
           value:
-            'Four algorithms dominate. They differ in how they treat **bursts** and how much **memory/precision** they need. This is the heart of the design — interviewers want the trade-offs.',
+            'Five algorithms dominate interviews and production APIs. They differ in how they treat **bursts**, how smoothly they shape traffic, and how much **memory/precision** they need. Pick by traffic shape and scale; always expose limits clearly via response headers so clients can backoff.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/rate-limiter/01-intro.png',
+          alt: 'Illustration introducing rate limiting as protecting a service from too many requests',
+          caption:
+            'Rate limiting protects services from being overwhelmed by a single client. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
         },
         {
           type: 'featureComparison',
@@ -191,7 +198,7 @@ const content: DesignContent = {
           type: 'callout',
           variant: 'tip',
           title: 'The usual answer: token bucket (or sliding window counter)',
-          body: "**Token bucket** is the most popular default — it is O(1), allows controlled bursts, and is intuitive. The **sliding window counter** is the go-to when you want fixed-window's cheapness without its boundary spike. Leaky bucket is for **shaping** a smooth output rate (e.g. protecting a downstream that needs steady flow).",
+          body: '**Token bucket** is the most popular default — O(1), allows controlled bursts, intuitive. **Sliding window counter** is the go-to when you want fixed-window cheapness without the boundary spike. Leaky bucket is for **shaping** a smooth output rate. See also the shorter [Rate Limiter Pattern](/designs/rate-limiter-pattern).',
         },
       ],
     },
@@ -202,7 +209,14 @@ const content: DesignContent = {
         {
           type: 'markdown',
           value:
-            'A bucket holds up to **B** tokens and refills at **r** tokens/second. Each request removes one token; if the bucket is empty, the request is rejected. The bucket capacity **B** sets the maximum burst; the refill rate **r** sets the steady-state throughput. Only two numbers per client need storing — the token count and the last refill timestamp.',
+            'A bucket holds up to **B** tokens and refills at **r** tokens/second. Each request removes one token; if the bucket is empty, the request is rejected. Capacity **B** sets the maximum burst; refill rate **r** sets steady-state throughput. Store only token count and last refill timestamp per client.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/rate-limiter/02-token-bucket.png',
+          alt: 'Token bucket diagram showing tokens filling a bucket and requests consuming tokens',
+          caption:
+            'Tokens refill at a fixed rate; requests consume tokens; empty bucket means reject. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
         },
         {
           type: 'math',
@@ -210,6 +224,53 @@ const content: DesignContent = {
           tex: 'tokens = \\min\\!\\big(B,\\; tokens + r \\cdot (now - last)\\big);\\quad \\text{allow if } tokens \\ge 1 \\Rightarrow tokens \\mathrel{-}= 1',
           caption:
             'Lazily refill based on elapsed time, cap at burst capacity B, then admit only if at least one token remains.',
+        },
+        {
+          type: 'prosCons',
+          title: 'Token Bucket',
+          pros: [
+            'Simple to implement and reason about',
+            'Allows bursts up to bucket capacity for short spikes',
+          ],
+          cons: [
+            'Memory scales with number of identities if per-user',
+            'Does not guarantee a perfectly smooth request rate',
+          ],
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/rate-limiter/03-token-bucket-code.png',
+          alt: 'Code sketch of a token bucket rate limiter implementation',
+          caption:
+            'Reference implementation sketch. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'TokenBucket.java',
+          showLineNumbers: true,
+          code: `public final class TokenBucket {
+  private final long capacity;
+  private final double refillPerSec;
+  private double tokens;
+  private long lastNanos = System.nanoTime();
+
+  public TokenBucket(long capacity, double refillPerSec) {
+    this.capacity = capacity;
+    this.refillPerSec = refillPerSec;
+    this.tokens = capacity;
+  }
+
+  public synchronized boolean tryAcquire() {
+    long now = System.nanoTime();
+    tokens = Math.min(capacity,
+        tokens + (now - lastNanos) / 1_000_000_000.0 * refillPerSec);
+    lastNanos = now;
+    if (tokens < 1) return false;
+    tokens -= 1;
+    return true;
+  }
+}`,
         },
         {
           type: 'code',
@@ -227,7 +288,6 @@ local b = redis.call('HMGET', KEYS[1], 'tokens', 'ts')
 local tokens = tonumber(b[1]) or burst
 local ts     = tonumber(b[2]) or now
 
--- Lazily refill based on elapsed time, capped at burst.
 tokens = math.min(burst, tokens + (now - ts) / 1000 * rate)
 
 local allowed = tokens >= need
@@ -241,7 +301,71 @@ return allowed and 1 or 0`,
           type: 'callout',
           variant: 'warning',
           title: 'Why a Lua script (atomicity)',
-          body: 'A naive GET-then-SET has a **race**: two nodes read the same token count, both think a token is free, both admit. Redis runs a **Lua script atomically** (single-threaded), so the read-refill-decrement-write is one indivisible operation. This is the single most important implementation detail for correctness.',
+          body: 'A naive GET-then-SET has a **race**: two nodes read the same token count, both admit. Redis runs a **Lua script atomically**, so read-refill-decrement-write is one indivisible operation.',
+        },
+      ],
+    },
+    {
+      id: 'leaky-bucket',
+      title: 'Leaky Bucket',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Requests enter a bucket and **leak** (are processed) at a constant rate through a hole. If the bucket is full, new requests are discarded. Focus is on **smoothing** bursty traffic into a steady outflow.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/rate-limiter/04-leaky-bucket.png',
+          alt: 'Leaky bucket diagram with requests entering the top and leaking at a constant rate',
+          caption:
+            'Constant leak rate; overflow when full. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'prosCons',
+          title: 'Leaky Bucket',
+          pros: [
+            'Steady, predictable processing rate',
+            'Protects downstreams that need smooth inflow',
+          ],
+          cons: [
+            'Does not absorb sudden bursts — excess is dropped',
+            'Slightly more complex than token bucket',
+          ],
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/rate-limiter/05-leaky-bucket-code.png',
+          alt: 'Code sketch of a leaky bucket rate limiter',
+          caption:
+            'Reference implementation sketch. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'LeakyBucket.java',
+          showLineNumbers: true,
+          code: `/** Queue-shaped leaky bucket: capacity slots, leakRate requests/sec. */
+public final class LeakyBucket {
+  private final int capacity;
+  private final double leakPerSec;
+  private double water;
+  private long lastNanos = System.nanoTime();
+
+  public LeakyBucket(int capacity, double leakPerSec) {
+    this.capacity = capacity;
+    this.leakPerSec = leakPerSec;
+  }
+
+  public synchronized boolean tryAcquire() {
+    long now = System.nanoTime();
+    water = Math.max(0, water - (now - lastNanos) / 1e9 * leakPerSec);
+    lastNanos = now;
+    if (water + 1 > capacity) return false;
+    water += 1;
+    return true;
+  }
+}`,
         },
       ],
     },
@@ -252,37 +376,210 @@ return allowed and 1 or 0`,
         {
           type: 'markdown',
           value:
-            'Window-based counters are the other major family. They are simple but have a famous flaw — the **boundary spike** — which the sliding variants fix.',
+            'Window-based counters are the other major family. Fixed windows are simple but have a famous **boundary spike**; sliding variants fix it at different cost.',
+        },
+        {
+          type: 'markdown',
+          value:
+            '### Fixed Window Counter\n\nTime is split into fixed windows (e.g. 1 minute). Each window has a counter; requests increment it; over the limit → deny until the next window.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/rate-limiter/06-fixed-window.png',
+          alt: 'Fixed window counter dividing time into intervals with per-window request counts',
+          caption:
+            'Fixed windows with independent counters. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
         },
         {
           type: 'mermaid',
           caption:
-            'Fixed-window boundary spike: 100 allowed near the end of window 1 and 100 at the start of window 2 = 200 in ~1s.',
+            'Fixed-window boundary spike: 100 near the end of window 1 and 100 at the start of window 2 = 200 in ~1s.',
           definition: `flowchart LR
   subgraph W1["Window 1 (00:00-00:59)"]
-    A["59.5s: 100 requests ✅"]
+    A["59.5s: 100 requests"]
   end
   subgraph W2["Window 2 (01:00-01:59)"]
-    B["00.5s: 100 requests ✅"]
+    B["00.5s: 100 requests"]
   end
   A -->|"~1 second apart"| B
-  B --> Spike["⚠️ 200 requests in ~1s\\n(limit was 100/min)"]`,
+  B --> Spike["200 requests in ~1s"]`,
         },
         {
-          type: 'bestPractices',
-          title: 'The window family',
-          practices: [
-            '**Fixed window**: one counter per window (e.g. `key:minute`), `INCR` with TTL. Cheap, O(1) — but allows up to 2× at boundaries.',
-            '**Sliding window log**: store a timestamp per request, count those within the last window. Exact, but O(n) memory per client.',
-            '**Sliding window counter**: blend the current and previous fixed windows by weight — near-exact, O(1). The pragmatic favorite.',
-          ],
+          type: 'callout',
+          variant: 'note',
+          title: 'Boundary nuance',
+          body: 'Windows need not align to calendar minutes — they can start at first request. Still, clock-aligned fixed windows remain common and can admit ~2× at edges. Token bucket bursts are intentional capacity; fixed-window edge spikes are usually unintended.',
+        },
+        {
+          type: 'prosCons',
+          title: 'Fixed Window',
+          pros: ['Easy to implement', 'Clear per-window limits'],
+          cons: ['Boundary bursts can approach 2× the limit'],
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/rate-limiter/07-fixed-window-code.png',
+          alt: 'Code sketch of a fixed window counter',
+          caption:
+            'Reference implementation sketch. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'FixedWindowCounter.java',
+          code: `public final class FixedWindowCounter {
+  private final int limit;
+  private final long windowMs;
+  private long windowStart;
+  private int count;
+
+  public FixedWindowCounter(int limit, Duration window) {
+    this.limit = limit;
+    this.windowMs = window.toMillis();
+    this.windowStart = System.currentTimeMillis();
+  }
+
+  public synchronized boolean tryAcquire() {
+    long now = System.currentTimeMillis();
+    if (now - windowStart >= windowMs) {
+      windowStart = now;
+      count = 0;
+    }
+    if (count >= limit) return false;
+    count++;
+    return true;
+  }
+}`,
+        },
+        {
+          type: 'markdown',
+          value:
+            '### Sliding Window Log\n\nKeep a log of request timestamps. On each request, drop entries older than the window, count the rest; allow and append if under the limit.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/rate-limiter/08-sliding-window-log.png',
+          alt: 'Sliding window log of request timestamps within a rolling time window',
+          caption:
+            'Exact rolling window via timestamp log. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'prosCons',
+          title: 'Sliding Window Log',
+          pros: ['Very accurate — no window-edge artifact', 'Good for low-volume APIs'],
+          cons: ['Memory-intensive at high QPS', 'Must store and scan timestamps'],
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/rate-limiter/09-sliding-window-log-code.png',
+          alt: 'Code sketch of a sliding window log rate limiter',
+          caption:
+            'Reference implementation sketch. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'SlidingWindowLog.java',
+          code: `public final class SlidingWindowLog {
+  private final int limit;
+  private final long windowMs;
+  private final Deque<Long> timestamps = new ArrayDeque<>();
+
+  public SlidingWindowLog(int limit, Duration window) {
+    this.limit = limit;
+    this.windowMs = window.toMillis();
+  }
+
+  public synchronized boolean tryAcquire() {
+    long now = System.currentTimeMillis();
+    while (!timestamps.isEmpty() && now - timestamps.peekFirst() >= windowMs) {
+      timestamps.pollFirst();
+    }
+    if (timestamps.size() >= limit) return false;
+    timestamps.addLast(now);
+    return true;
+  }
+}`,
+        },
+        {
+          type: 'markdown',
+          value:
+            '### Sliding Window Counter\n\nCombines fixed windows with a weighted blend of previous + current counts. If you are 75% into the current window:\n\n`weight = 0.25 × lastWindowRequests + currentWindowRequests`\n\nAdmit if `weight + 1 ≤ limit`. More accurate than fixed window, cheaper than the log.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/rate-limiter/10-sliding-window-counter.png',
+          alt: 'Sliding window counter weighting previous and current fixed windows',
+          caption:
+            'Weighted previous + current windows approximate a sliding window in O(1). Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
         },
         {
           type: 'math',
           display: true,
           tex: 'count \\approx c_{cur} + c_{prev} \\cdot \\frac{(window - elapsed_{cur})}{window}',
+          caption: 'Weight the previous window by the fraction still inside the rolling window.',
+        },
+        {
+          type: 'prosCons',
+          title: 'Sliding Window Counter',
+          pros: [
+            'More accurate than fixed window',
+            'O(1) memory vs sliding log',
+            'Smooths window edges',
+          ],
+          cons: ['Slightly more complex to implement', 'Approximate, not exact'],
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/rate-limiter/11-sliding-window-counter-code.png',
+          alt: 'Code sketch of a sliding window counter',
           caption:
-            'Sliding window counter: weight the previous window by the fraction of it still inside the rolling window — smoothing the boundary spike with O(1) state.',
+            'Reference implementation sketch. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'SlidingWindowCounter.java',
+          code: `public final class SlidingWindowCounter {
+  private final int limit;
+  private final long windowMs;
+  private long windowStart;
+  private int prevCount;
+  private int currCount;
+
+  public SlidingWindowCounter(int limit, Duration window) {
+    this.limit = limit;
+    this.windowMs = window.toMillis();
+    this.windowStart = System.currentTimeMillis();
+  }
+
+  public synchronized boolean tryAcquire() {
+    long now = System.currentTimeMillis();
+    long elapsed = now - windowStart;
+    if (elapsed >= windowMs) {
+      prevCount = (elapsed >= 2 * windowMs) ? 0 : currCount;
+      currCount = 0;
+      windowStart = now;
+      elapsed = 0;
+    }
+    double weight = prevCount * (1.0 - (double) elapsed / windowMs) + currCount;
+    if (weight + 1 > limit) return false;
+    currCount++;
+    return true;
+  }
+}`,
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Production hygiene',
+          body: 'Communicate limits via `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `Retry-After`. For multi-node deployments use Redis/Lua (see Distributed section). Prefer token bucket or sliding window counter for most APIs.',
+        },
+        {
+          type: 'callout',
+          variant: 'note',
+          title: 'Source',
+          body: 'Algorithm diagrams and trade-offs summarized from Ashish Pratap Singh’s AlgoMaster article “Rate Limiting Algorithms Explained with Code,” expanded with Java sketches for this platform.',
         },
       ],
     },

@@ -163,6 +163,10 @@ import { GEOHASHING_META } from '../../features/system-designs/geohashing/geohas
 import { LONG_POLLING_WEBSOCKETS_META } from '../../features/system-designs/long-polling-websockets/long-polling-websockets.meta';
 import { JWT_META } from '../../features/system-designs/jwt/jwt.meta';
 import { WEBHOOKS_META } from '../../features/system-designs/webhooks/webhooks.meta';
+import { MESSAGE_QUEUES_META } from '../../features/system-designs/message-queues/message-queues.meta';
+import { CACHING_STRATEGIES_META } from '../../features/system-designs/caching-strategies/caching-strategies.meta';
+import { CDN_META } from '../../features/system-designs/cdn/cdn.meta';
+import { CACHE_EVICTION_META } from '../../features/system-designs/cache-eviction/cache-eviction.meta';
 import { LOAD_BALANCING_PATTERN_META } from '../../features/system-designs/load-balancing-pattern/load-balancing-pattern.meta';
 import { SERVICE_MESH_META } from '../../features/system-designs/service-mesh/service-mesh.meta';
 import { VENDING_MACHINE_META } from '../../features/system-designs/vending-machine/vending-machine.meta';
@@ -863,6 +867,23 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   {
     meta: WEBHOOKS_META,
     load: () => import('../../features/system-designs/webhooks/webhooks.content'),
+  },
+  {
+    meta: MESSAGE_QUEUES_META,
+    load: () => import('../../features/system-designs/message-queues/message-queues.content'),
+  },
+  {
+    meta: CACHING_STRATEGIES_META,
+    load: () =>
+      import('../../features/system-designs/caching-strategies/caching-strategies.content'),
+  },
+  {
+    meta: CDN_META,
+    load: () => import('../../features/system-designs/cdn/cdn.content'),
+  },
+  {
+    meta: CACHE_EVICTION_META,
+    load: () => import('../../features/system-designs/cache-eviction/cache-eviction.content'),
   },
   {
     meta: LOAD_BALANCING_PATTERN_META,

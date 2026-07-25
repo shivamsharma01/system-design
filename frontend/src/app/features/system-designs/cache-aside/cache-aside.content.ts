@@ -17,7 +17,7 @@ const content: DesignContent = {
           type: 'callout',
           variant: 'info',
           title: 'Compared to other cache patterns',
-          body: '**Read-Through / Write-Through** delegate load and sync write to the cache library — simpler call sites but less control. **Write-Behind** acks writes to cache and flushes async — faster writes, weaker durability. Cache-aside gives **explicit invalidation** and fits most e-commerce catalog and session workloads.',
+          body: '**Read-Through / Write-Through** delegate load and sync write to the cache library — simpler call sites but less control. **Write-Behind** acks writes to cache and flushes async — faster writes, weaker durability. Cache-aside gives **explicit invalidation** and fits most e-commerce catalog and session workloads. Side-by-side of all five strategies (including write-around): [Caching Strategies](/designs/caching-strategies).',
         },
         {
           type: 'table',
@@ -72,12 +72,30 @@ const content: DesignContent = {
           type: 'table',
           headers: ['Domain', 'Example'],
           rows: [
-            ['E-commerce product catalog', 'Redis cache-aside for PDP data; invalidate on price/inventory update'],
-            ['Search facets', 'Cache category counts; TTL + event-driven invalidation on catalog change'],
-            ['CDN origin', 'API layer cache-aside reduces origin DB hits; CDN caches HTTP responses separately'],
-            ['Food delivery menus', 'Restaurant menu in Redis; invalidate when merchant edits items'],
-            ['Session / cart', 'User cart JSON in Redis with lazy load from DB on miss after failover'],
-            ['Public API responses', 'Cache GET /rates/{currency} with 60s TTL; bust on admin rate change'],
+            [
+              'E-commerce product catalog',
+              'Redis cache-aside for PDP data; invalidate on price/inventory update',
+            ],
+            [
+              'Search facets',
+              'Cache category counts; TTL + event-driven invalidation on catalog change',
+            ],
+            [
+              'CDN origin',
+              'API layer cache-aside reduces origin DB hits; CDN caches HTTP responses separately',
+            ],
+            [
+              'Food delivery menus',
+              'Restaurant menu in Redis; invalidate when merchant edits items',
+            ],
+            [
+              'Session / cart',
+              'User cart JSON in Redis with lazy load from DB on miss after failover',
+            ],
+            [
+              'Public API responses',
+              'Cache GET /rates/{currency} with 60s TTL; bust on admin rate change',
+            ],
           ],
         },
       ],

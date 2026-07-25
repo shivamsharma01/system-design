@@ -11,7 +11,7 @@ const content: DesignContent = {
         {
           type: 'markdown',
           value:
-            '**Publish-Subscribe (Pub/Sub)** decouples message **publishers** from **subscribers** through an intermediary **topic** or **event bus**. Publishers emit events without knowing who consumes them; subscribers register interest and receive copies independently. This enables fan-out, scaling, and loose coupling across services.',
+            '**Publish-Subscribe (Pub/Sub)** decouples message **publishers** from **subscribers** through an intermediary **topic** or **event bus**. Publishers emit events without knowing who consumes them; subscribers register interest and receive copies independently. This enables fan-out, scaling, and loose coupling across services.\n\nFor the broader queue landscape (P2P, priority, DLQ, when to use brokers), see [Message Queues](/designs/message-queues).',
         },
         {
           type: 'callout',
@@ -27,7 +27,11 @@ const content: DesignContent = {
             ['Delivery', 'Each subscriber gets a copy', 'One consumer processes each message'],
             ['Coupling', 'Publisher unaware of subscribers', 'Producer often knows the queue name'],
             ['Use case', 'Notifications, event fan-out', 'Work distribution, job queues'],
-            ['Example', 'OrderPlaced → email, inventory, analytics', 'ResizeImage job → one worker'],
+            [
+              'Example',
+              'OrderPlaced → email, inventory, analytics',
+              'ResizeImage job → one worker',
+            ],
           ],
         },
       ],
