@@ -10,7 +10,7 @@ export const API_GATEWAY_META: DesignMeta = {
   tags: ['api-gateway', 'edge', 'routing', 'auth', 'rate-limiting', 'microservices'],
   technologies: ['Kong', 'AWS API Gateway', 'Spring Cloud Gateway', 'Envoy'],
   difficulty: 'intermediate',
-  readingTimeMin: 13,
+  readingTimeMin: 18,
   status: 'published',
   keywords: ['edge routing', 'JWT validation', 'request aggregation', 'throttling'],
   dateAdded: '2026-07-10',

@@ -161,6 +161,8 @@ import { ID_GENERATION_META } from '../../features/system-designs/id-generation/
 import { BLOOM_FILTER_META } from '../../features/system-designs/bloom-filter/bloom-filter.meta';
 import { GEOHASHING_META } from '../../features/system-designs/geohashing/geohashing.meta';
 import { LONG_POLLING_WEBSOCKETS_META } from '../../features/system-designs/long-polling-websockets/long-polling-websockets.meta';
+import { JWT_META } from '../../features/system-designs/jwt/jwt.meta';
+import { WEBHOOKS_META } from '../../features/system-designs/webhooks/webhooks.meta';
 import { LOAD_BALANCING_PATTERN_META } from '../../features/system-designs/load-balancing-pattern/load-balancing-pattern.meta';
 import { SERVICE_MESH_META } from '../../features/system-designs/service-mesh/service-mesh.meta';
 import { VENDING_MACHINE_META } from '../../features/system-designs/vending-machine/vending-machine.meta';
@@ -853,6 +855,14 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
     meta: LONG_POLLING_WEBSOCKETS_META,
     load: () =>
       import('../../features/system-designs/long-polling-websockets/long-polling-websockets.content'),
+  },
+  {
+    meta: JWT_META,
+    load: () => import('../../features/system-designs/jwt/jwt.content'),
+  },
+  {
+    meta: WEBHOOKS_META,
+    load: () => import('../../features/system-designs/webhooks/webhooks.content'),
   },
   {
     meta: LOAD_BALANCING_PATTERN_META,

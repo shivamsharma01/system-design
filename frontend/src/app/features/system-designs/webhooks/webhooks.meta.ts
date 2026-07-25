@@ -1,0 +1,29 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const WEBHOOKS_META: DesignMeta = {
+  slug: 'webhooks',
+  title: 'Webhooks',
+  tagline:
+    'Push-based event notifications over HTTP — registration, signed delivery, idempotent receivers, and a scalable Java processing pipeline.',
+  section: 'fundamentals',
+  category: 'Integration',
+  tags: ['webhooks', 'events', 'http', 'idempotency', 'hmac', 'interview'],
+  technologies: ['HTTP', 'Stripe', 'GitHub', 'Spring Boot', 'Kafka', 'HMAC'],
+  difficulty: 'intermediate',
+  readingTimeMin: 16,
+  status: 'published',
+  keywords: [
+    'webhook',
+    'HMAC signature',
+    'event ID',
+    'dead letter queue',
+    'at-least-once',
+    'Stripe webhook',
+    'GitHub webhook',
+  ],
+  dateAdded: '2026-07-25',
+  popularity: 95,
+  icon: 'WH',
+  heroGradient: 'linear-gradient(135deg, #14b8a6 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

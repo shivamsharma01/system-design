@@ -17,7 +17,7 @@ const content: DesignContent = {
           type: 'callout',
           variant: 'info',
           title: 'Edge vs service mesh',
-          body: 'The gateway faces **north-south** traffic (clients → system). A service mesh handles **east-west** traffic (service → service). Many platforms use both: gateway at the perimeter, mesh inside the cluster.',
+          body: 'The gateway faces **north-south** traffic (clients → system). A service mesh handles **east-west** traffic (service → service). Many platforms use both: gateway at the perimeter, mesh inside the cluster. Edge JWT validation is covered in depth on [JWT](/designs/jwt); coarse edge quotas on [Rate Limiter](/designs/rate-limiter).',
         },
         {
           type: 'table',
@@ -176,6 +176,158 @@ public class CheckoutAggregationFilter implements GatewayFilter {
             'Extra network hop adds latency.',
             'Tempting to overload with business logic.',
           ],
+        },
+      ],
+    },
+    {
+      id: 'why-api-gateway',
+      title: 'Why an API Gateway?',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'As applications grow into microservices—accounts, inventory, payments—clients would otherwise need every service URL and would re-implement auth, rate limits, and TLS on each path. An API Gateway sits between clients and backends as the **single entry point**: it routes, enforces policy, and forwards to the right service.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/api-gateway/01-without-api-gateway.png',
+          alt: 'Client connecting directly to Accounts, Inventory, and Payments services without a gateway',
+          caption:
+            'Without a gateway: the client talks to every microservice and owns cross-cutting concerns. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/api-gateway/02-with-api-gateway.png',
+          alt: 'Client sending all requests through an API Gateway that routes to backend microservices',
+          caption:
+            'With a gateway: one place for routing, authentication, security, and operational policy. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+      ],
+    },
+    {
+      id: 'core-features',
+      title: 'Core features',
+      blocks: [
+        {
+          type: 'image',
+          src: 'assets/article-images/api-gateway/03-core-features.png',
+          alt: 'API Gateway core features: authentication, rate limiting, load balancing, caching, transformation, service discovery, circuit breaking, monitoring',
+          caption:
+            'Typical gateway capabilities centered on one edge hop. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'markdown',
+          value:
+            '1. **Authentication and authorization** — verify JWT/OAuth/API keys/certificates; check permissions before traffic reaches services.\n2. **Rate limiting** — cap requests per user/IP/key (e.g. 100/min); return **429** when exceeded; blunt DoS and abuse.\n3. **Load balancing** — distribute to healthy instances (round-robin, least connections, weighted).\n4. **Caching** — store hot GET responses (catalogs, metadata) to cut latency and backend load.\n5. **Request/response transformation** — reshape payloads (XML→JSON, add headers, address→coordinates).\n6. **Service discovery** — resolve logical service names to current instances as they scale.\n7. **Circuit breaking** — stop calling persistently failing or slow upstreams; fail fast.\n8. **Logging and monitoring** — access logs, latency/error metrics; integrate Prometheus, Grafana, CloudWatch.',
+        },
+      ],
+    },
+    {
+      id: 'request-lifecycle',
+      title: 'Request lifecycle: Place Order',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Walk through a food-delivery “Place Order” call. The app never hits inventory or payment services directly—only the gateway.',
+        },
+        {
+          type: 'markdown',
+          value:
+            '**1. Reception.** Client POSTs order payload (user, restaurant, items, address, payment method, auth token) to `/api/v1/orders`.\n\n**2. Validation.** Reject bad `Content-Type`, missing fields, or schema violations with **400** before any backend work.\n\n**3. Auth.** Extract Bearer JWT; verify signature and claims; ensure `place_orders` permission. Fail with **401**/**403**. See [JWT](/designs/jwt).\n\n**4. Rate limiting.** e.g. Redis counter ≤ 10 order attempts per user per minute; else **429**.\n\n**5. Transformation (optional).** Plain-text address → GPS coordinates for Delivery Service.\n\n**6. Routing.** Discover healthy Order / Inventory / Payment / Delivery instances; load-balance and forward.\n\n**7. Response handling.** Map internal fields to a client DTO; optionally cache.\n\n**8. Logging.** Record path, method, status, latency, userId for ops.',
+        },
+        {
+          type: 'code',
+          language: 'javascript',
+          filename: 'gateway-pipeline-sketch.js',
+          showLineNumbers: true,
+          code: `// Illustrative edge pipeline (language-agnostic ideas)
+app.post('/api/v1/orders', async (req, res) => {
+  if (!req.headers['content-type']?.includes('application/json')) {
+    return res.status(400).send('Invalid content type');
+  }
+  const token = req.headers.authorization?.split(' ')[1];
+  const user = await verifyToken(token);
+  if (!user?.permissions.includes('place_orders')) {
+    return res.status(403).send('Forbidden');
+  }
+  const key = \`rate_limit:order:\${user.id}\`;
+  const current = await redis.incr(key);
+  if (current === 1) await redis.expire(key, 60);
+  if (current > 10) return res.status(429).send('Too Many Requests');
+
+  const body = await transformAddressToGps(req.body);
+  const services = await serviceDiscovery.getServices('order');
+  const target = selectServiceInstance(services);
+  const upstream = await axios.post(\`\${target.url}/api/orders\`, body);
+  return res.json({
+    orderId: upstream.data.order_reference,
+    estimatedDelivery: upstream.data.eta,
+    status: upstream.data.current_status,
+  });
+});`,
+        },
+      ],
+    },
+    {
+      id: 'java-spring-cloud-gateway',
+      title: 'Java: Spring Cloud Gateway setup',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'In a JVM stack, **Spring Cloud Gateway** (WebFlux/Netty) is the usual edge. Keep filters **non-blocking**. Prefer route YAML for path predicates and Redis rate limits; put JWT verification in a global `WebFilter` or gateway filter that validates against JWKS and strips spoofable identity headers before forwarding trusted ones (`X-User-Id`, `X-Roles`).',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'JwtAuthGlobalFilter.java',
+          showLineNumbers: true,
+          code: `@Component
+@Order(-100)
+public class JwtAuthGlobalFilter implements GlobalFilter {
+  private final ReactiveJwtDecoder jwtDecoder;
+
+  @Override
+  public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+    String path = exchange.getRequest().getPath().value();
+    if (path.startsWith("/public/")) {
+      return chain.filter(exchange);
+    }
+    String auth = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+    if (auth == null || !auth.startsWith("Bearer ")) {
+      exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+      return exchange.getResponse().setComplete();
+    }
+    String token = auth.substring(7);
+    return jwtDecoder.decode(token)
+        .flatMap(jwt -> {
+          ServerHttpRequest mutated = exchange.getRequest().mutate()
+              .headers(h -> {
+                h.remove("X-User-Id");
+                h.set("X-User-Id", jwt.getSubject());
+              })
+              .build();
+          return chain.filter(exchange.mutate().request(mutated).build());
+        })
+        .onErrorResume(e -> {
+          exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+          return exchange.getResponse().setComplete();
+        });
+  }
+}`,
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Gateway vs BFF in Java',
+          body: 'Put shared policies (JWT, coarse rate limits, TLS, WAF) on Spring Cloud Gateway. Put **client-specific aggregation** (mobile checkout DTO) in a BFF service. Do not grow `CheckoutAggregationFilter` until the edge owns the domain.',
+        },
+        {
+          type: 'callout',
+          variant: 'note',
+          title: 'Source',
+          body: 'Why/features/lifecycle diagrams and the Place Order walkthrough are summarized from Ashish Pratap Singh’s AlgoMaster article “What is an API Gateway?” and expanded with Spring Cloud Gateway notes for this platform.',
         },
       ],
     },
@@ -367,7 +519,7 @@ public class CheckoutAggregationFilter implements GatewayFilter {
           type: 'callout',
           variant: 'summary',
           title: 'Key takeaways',
-          body: '1. API Gateway is the **edge front door** for routing, auth, and throttling.\n2. Real uses: **checkout aggregation, payment edge, Kong/AWS/Spring Cloud Gateway**.\n3. Keep it **thin** — pair with BFFs for client-specific APIs.\n4. HA, timeouts, and circuit breakers prevent the edge from amplifying outages.',
+          body: '1. API Gateway is the **edge front door** for routing, auth, and throttling.\n2. Core features: authz, rate limits, LB, cache, transform, discovery, circuit breakers, observability.\n3. Real uses: **checkout aggregation, payment edge, Kong/AWS/Spring Cloud Gateway**.\n4. Keep it **thin** — pair with BFFs for client-specific APIs; use reactive JWT filters in Java.\n5. HA, timeouts, and circuit breakers prevent the edge from amplifying outages.',
         },
       ],
     },

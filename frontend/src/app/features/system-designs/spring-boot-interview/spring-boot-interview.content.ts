@@ -1496,7 +1496,7 @@ public class ApiExceptionHandler {
           type: 'sketchnote',
           title: 'OAuth 2.0 vs JWT',
           intro:
-            'One defines delegated authorization; the other defines a portable token format. They solve different problems and are commonly used together.',
+            'One defines delegated authorization; the other defines a portable token format. They solve different problems and are commonly used together. Full primer: [JSON Web Tokens (JWT)](/designs/jwt).',
           items: [
             {
               code: 'OAuth',
@@ -1576,7 +1576,7 @@ public class ApiExceptionHandler {
             {
               question: 'Explain JWT Authentication flow.',
               answer:
-                '1. The user logs in with their credentials.\n2. The identity provider (or your own auth service) verifies them and issues a **JWT** (a signed token containing some claims about the user).\n3. The client stores that token and sends it on every future request in an `Authorization: Bearer <token>` header.\n4. The resource server (your API) checks the token\u2019s signature and claims (like expiry) to confirm it\u2019s valid and untampered.\n5. Spring builds an `Authentication` object from the token\u2019s contents, and your authorization rules then decide what that user is allowed to do.\n\nA **refresh token** is used to get a new access token once the short-lived one expires, without making the user log in again. If you need to be able to instantly revoke access before a token naturally expires, you\u2019ll need extra machinery like a denylist or a token-version check, since a JWT by itself can\u2019t be "recalled" once issued.',
+                '1. The user logs in with their credentials.\n2. The identity provider (or your own auth service) verifies them and issues a **JWT** (a signed token containing some claims about the user).\n3. The client stores that token and sends it on every future request in an `Authorization: Bearer <token>` header.\n4. The resource server (your API) checks the token\u2019s signature and claims (like expiry) to confirm it\u2019s valid and untampered.\n5. Spring builds an `Authentication` object from the token\u2019s contents, and your authorization rules then decide what that user is allowed to do.\n\nA **refresh token** is used to get a new access token once the short-lived one expires, without making the user log in again. If you need to be able to instantly revoke access before a token naturally expires, you\u2019ll need extra machinery like a denylist or a token-version check, since a JWT by itself can\u2019t be "recalled" once issued. Deep dive: [JSON Web Tokens (JWT)](/designs/jwt).',
             },
             {
               question: 'How do you handle exceptions globally?',
