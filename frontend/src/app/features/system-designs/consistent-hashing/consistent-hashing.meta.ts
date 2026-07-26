@@ -10,7 +10,7 @@ export const CONSISTENT_HASHING_META: DesignMeta = {
   tags: ['consistent-hashing', 'hash-ring', 'virtual-nodes', 'partitioning', 'load-balancing'],
   technologies: ['Redis Cluster', 'Cassandra', 'Memcached', 'Amazon Dynamo', 'Akamai CDN'],
   difficulty: 'intermediate',
-  readingTimeMin: 12,
+  readingTimeMin: 16,
   status: 'published',
   keywords: ['hash ring', 'virtual node', 'minimal remapping', 'vnode', 'Redis Cluster'],
   dateAdded: '2026-07-10',

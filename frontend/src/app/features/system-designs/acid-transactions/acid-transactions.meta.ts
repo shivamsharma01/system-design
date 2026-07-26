@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const ACID_TRANSACTIONS_META: DesignMeta = {
+  slug: 'acid-transactions',
+  title: 'ACID Transactions',
+  tagline:
+    'Atomicity, Consistency, Isolation, and Durability — WAL, isolation levels, anomalies, and Spring @Transactional.',
+  section: 'fundamentals',
+  category: 'Databases',
+  tags: ['acid', 'transactions', 'isolation', 'wal', 'fundamentals'],
+  technologies: ['PostgreSQL', 'MySQL', 'Spring Transaction', 'JDBC'],
+  difficulty: 'intermediate',
+  readingTimeMin: 14,
+  status: 'published',
+  keywords: ['ACID', 'atomicity', 'isolation levels', 'dirty read', 'MVCC', 'write-ahead log'],
+  dateAdded: '2026-07-26',
+  popularity: 97,
+  icon: 'AC',
+  heroGradient: 'linear-gradient(135deg, #3b82f6 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

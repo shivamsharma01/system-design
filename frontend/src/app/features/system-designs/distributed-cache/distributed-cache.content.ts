@@ -287,7 +287,7 @@ class LruCache<K, V> {
           type: 'callout',
           variant: 'tip',
           title: 'Virtual nodes fix imbalance',
-          body: 'With few physical nodes, the ring is lumpy — some nodes own much larger arcs than others. **Virtual nodes** (each physical node placed at many points on the ring) smooth the distribution and make rebalancing on failure spread across the whole cluster, not onto a single unlucky neighbor.',
+          body: 'With few physical nodes, the ring is lumpy — some nodes own much larger arcs than others. **Virtual nodes** (each physical node placed at many points on the ring) smooth the distribution and make rebalancing on failure spread across the whole cluster, not onto a single unlucky neighbor. Full walkthrough with diagrams: [Consistent Hashing Pattern](/designs/consistent-hashing).',
         },
         {
           type: 'code',

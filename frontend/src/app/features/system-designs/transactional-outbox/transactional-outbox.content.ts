@@ -11,7 +11,7 @@ const content: DesignContent = {
         {
           type: 'markdown',
           value:
-            'The **Transactional Outbox** pattern solves the **dual-write problem**: you need to update a database **and** publish a message (e.g. to Kafka), but those are two separate systems with no shared transaction. The fix is to insert the outbound message into an **outbox table in the same database transaction** as the domain write, then a separate **relay process** publishes to the message broker.',
+            'The **Transactional Outbox** pattern solves the **dual-write problem**: you need to update a database **and** publish a message (e.g. to Kafka), but those are two separate systems with no shared transaction. The fix is to insert the outbound message into an **outbox table in the same database transaction** as the domain write, then a separate **relay process** publishes to the message broker.\n\nFor WAL/binlog streaming without an outbox table, see [Change Data Capture](/designs/change-data-capture).',
         },
         {
           type: 'callout',
@@ -43,7 +43,8 @@ const content: DesignContent = {
         },
         {
           type: 'mermaid',
-          caption: 'Domain write and outbox insert share one DB transaction; relay publishes to Kafka.',
+          caption:
+            'Domain write and outbox insert share one DB transaction; relay publishes to Kafka.',
           definition: `flowchart LR
   subgraph same TX
     D[Domain table UPDATE]
@@ -64,12 +65,24 @@ const content: DesignContent = {
           type: 'table',
           headers: ['Domain', 'Example'],
           rows: [
-            ['E-commerce orders', 'Order row + `OrderPlaced` event for payment and inventory sagas'],
+            [
+              'E-commerce orders',
+              'Order row + `OrderPlaced` event for payment and inventory sagas',
+            ],
             ['Payment capture', 'Ledger entry + `PaymentCaptured` to trigger fulfillment'],
-            ['Food delivery', 'Restaurant acceptance + event to dispatch and customer notification'],
-            ['Banking transfers', 'Account debit record + `TransferInitiated` for downstream clearing'],
+            [
+              'Food delivery',
+              'Restaurant acceptance + event to dispatch and customer notification',
+            ],
+            [
+              'Banking transfers',
+              'Account debit record + `TransferInitiated` for downstream clearing',
+            ],
             ['User registration', 'User row + `UserCreated` for email and analytics services'],
-            ['Microservice integration', 'Any service that must reliably notify others after a local commit'],
+            [
+              'Microservice integration',
+              'Any service that must reliably notify others after a local commit',
+            ],
           ],
         },
       ],

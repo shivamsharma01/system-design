@@ -274,6 +274,12 @@ ORDER BY user_id, streak_start;`,
       title: '5. Functions in WHERE and SARGability',
       blocks: [
         {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Related reading',
+          body: 'Index types, B-trees, and when to create them: [Database Indexes](/designs/database-indexes).',
+        },
+        {
           type: 'code',
           language: 'sql',
           filename: 'sargable_predicates.sql',

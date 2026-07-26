@@ -167,6 +167,9 @@ import { MESSAGE_QUEUES_META } from '../../features/system-designs/message-queue
 import { CACHING_STRATEGIES_META } from '../../features/system-designs/caching-strategies/caching-strategies.meta';
 import { CDN_META } from '../../features/system-designs/cdn/cdn.meta';
 import { CACHE_EVICTION_META } from '../../features/system-designs/cache-eviction/cache-eviction.meta';
+import { CHANGE_DATA_CAPTURE_META } from '../../features/system-designs/change-data-capture/change-data-capture.meta';
+import { ACID_TRANSACTIONS_META } from '../../features/system-designs/acid-transactions/acid-transactions.meta';
+import { DATABASE_INDEXES_META } from '../../features/system-designs/database-indexes/database-indexes.meta';
 import { LOAD_BALANCING_PATTERN_META } from '../../features/system-designs/load-balancing-pattern/load-balancing-pattern.meta';
 import { SERVICE_MESH_META } from '../../features/system-designs/service-mesh/service-mesh.meta';
 import { VENDING_MACHINE_META } from '../../features/system-designs/vending-machine/vending-machine.meta';
@@ -884,6 +887,19 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   {
     meta: CACHE_EVICTION_META,
     load: () => import('../../features/system-designs/cache-eviction/cache-eviction.content'),
+  },
+  {
+    meta: CHANGE_DATA_CAPTURE_META,
+    load: () =>
+      import('../../features/system-designs/change-data-capture/change-data-capture.content'),
+  },
+  {
+    meta: ACID_TRANSACTIONS_META,
+    load: () => import('../../features/system-designs/acid-transactions/acid-transactions.content'),
+  },
+  {
+    meta: DATABASE_INDEXES_META,
+    load: () => import('../../features/system-designs/database-indexes/database-indexes.content'),
   },
   {
     meta: LOAD_BALANCING_PATTERN_META,

@@ -1,0 +1,21 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const DATABASE_INDEXES_META: DesignMeta = {
+  slug: 'database-indexes',
+  title: 'Database Indexes',
+  tagline:
+    'Lookup structures that turn full table scans into seeks — types, B-trees, hash/bitmap indexes, and JPA/Flyway notes.',
+  section: 'fundamentals',
+  category: 'Databases',
+  tags: ['indexes', 'b-tree', 'query-performance', 'sql', 'fundamentals'],
+  technologies: ['PostgreSQL', 'MySQL', 'JPA', 'Flyway'],
+  difficulty: 'beginner',
+  readingTimeMin: 12,
+  status: 'published',
+  keywords: ['database index', 'B-tree', 'covering index', 'composite index', 'clustered index'],
+  dateAdded: '2026-07-26',
+  popularity: 96,
+  icon: 'IX',
+  heroGradient: 'linear-gradient(135deg, #14b8a6 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};
