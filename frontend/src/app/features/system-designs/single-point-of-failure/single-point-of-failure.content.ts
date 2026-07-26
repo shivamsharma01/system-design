@@ -11,7 +11,7 @@ const content: DesignContent = {
         {
           type: 'markdown',
           value:
-            'A **Single Point of Failure (SPOF)** is any component whose failure can take down the whole system (or a large slice of it). Minimizing SPOFs is core to reliability and high availability.\n\nRelated patterns: [Load Balancing](/designs/load-balancing-pattern), [Health Check](/designs/health-check), [Graceful Degradation](/designs/graceful-degradation), [Bulkhead](/designs/bulkhead), [Quorum](/designs/quorum).',
+            'A **Single Point of Failure (SPOF)** is any component whose failure can take down the whole system (or a large slice of it). Minimizing SPOFs is core to reliability and high availability.\n\nRelated: [Availability (nines & strategies)](/designs/availability), [Load Balancing](/designs/load-balancing-pattern), [Health Check](/designs/health-check), [Graceful Degradation](/designs/graceful-degradation), [Bulkhead](/designs/bulkhead), [Quorum](/designs/quorum).',
         },
         {
           type: 'image',

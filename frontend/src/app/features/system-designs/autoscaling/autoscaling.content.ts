@@ -17,7 +17,7 @@ const content: DesignContent = {
           type: 'callout',
           variant: 'info',
           title: 'Horizontal vs vertical',
-          body: '**Horizontal** (more instances) is the cloud default. **Vertical** (bigger machines) is limited and often requires restarts. Interviews usually mean horizontal pod/VM autoscaling.',
+          body: '**Horizontal** (more instances) is the cloud default. **Vertical** (bigger machines) is limited and often requires restarts. Interviews usually mean horizontal pod/VM autoscaling. Primer: [Scalability](/designs/scalability).',
         },
       ],
     },

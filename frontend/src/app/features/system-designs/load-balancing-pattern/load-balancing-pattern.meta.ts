@@ -18,7 +18,7 @@ export const LOAD_BALANCING_PATTERN_META: DesignMeta = {
   ],
   technologies: ['Nginx', 'Envoy', 'HAProxy', 'AWS ALB', 'AWS NLB'],
   difficulty: 'intermediate',
-  readingTimeMin: 16,
+  readingTimeMin: 22,
   status: 'published',
   keywords: [
     'layer 4 vs layer 7',

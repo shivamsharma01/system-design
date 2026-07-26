@@ -11,7 +11,7 @@ const content: DesignContent = {
         {
           type: 'markdown',
           value:
-            '**Load balancing** spreads incoming traffic across a pool of healthy backends so no single instance becomes a bottleneck. It is the foundation of horizontal scale: add capacity by adding instances, and let the balancer decide *where* each request goes. Broader reliability context: [Avoiding Single Points of Failure](/designs/single-point-of-failure).',
+            '**Load balancing** spreads incoming traffic across a pool of healthy backends so no single instance becomes a bottleneck. It is the foundation of horizontal scale: add capacity by adding instances, and let the balancer decide *where* each request goes. Broader context: [Scalability](/designs/scalability), [Avoiding SPOFs](/designs/single-point-of-failure), [Proxy vs Reverse Proxy](/designs/proxy-vs-reverse-proxy).',
         },
         {
           type: 'callout',
@@ -89,84 +89,116 @@ const content: DesignContent = {
         {
           type: 'markdown',
           value:
-            'Pick the algorithm from **traffic shape** and **session affinity** needs — not from habit. Interview answers should justify the choice.',
+            'Pick the algorithm from **traffic shape** and **session affinity** needs — not from habit. Interview answers should justify the choice. Also see [Consistent Hashing](/designs/consistent-hashing) for ring-based affinity.',
         },
         {
-          type: 'table',
-          caption: 'Common algorithms and when to use them.',
-          headers: ['Algorithm', 'How it works', 'Best for', 'Watch out'],
-          rows: [
-            [
-              'Round-robin',
-              'Next backend in a cycle',
-              'Homogeneous instances, similar request cost',
-              'Ignores load; one slow host still gets equal share',
-            ],
-            [
-              'Weighted RR',
-              'RR with weights (e.g. 3:1 for larger VMs)',
-              'Mixed instance sizes; canary (send 5% to v2)',
-              'Weights must track real capacity',
-            ],
-            [
-              'Least connections',
-              'Pick backend with fewest active connections',
-              'Long-lived or uneven request durations',
-              'Needs accurate connection counts',
-            ],
-            [
-              'Consistent hashing',
-              'Hash key → ring; minimal remapping on churn',
-              'Caches, sticky sharding, session affinity without sticky IP',
-              'Hot keys; use virtual nodes — see Consistent Hashing',
-            ],
-            [
-              'IP hash (sticky)',
-              'Hash client IP → fixed backend',
-              'Simple session stickiness without cookies',
-              'NAT hides many clients behind one IP; uneven load',
-            ],
-          ],
+          type: 'image',
+          src: 'assets/article-images/load-balancing-pattern/01-overview.png',
+          alt: 'Load balancer distributing requests across multiple backend servers',
+          caption:
+            'Balancer sits in front of a server pool. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'markdown',
+          value:
+            '### 1. Round Robin\n\nCycle through servers in order. Simple and even for **homogeneous** backends with similar request cost.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/load-balancing-pattern/02-round-robin.png',
+          alt: 'Round robin assigning requests to servers in cyclic order',
+          caption:
+            'Request 1→S1, 2→S2, 3→S3, 4→S1…. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
         },
         {
           type: 'code',
-          language: 'python',
-          filename: 'round_robin.py',
-          code: `from itertools import cycle
-from typing import List
+          language: 'java',
+          filename: 'RoundRobin.java',
+          code: `public final class RoundRobin {
+  private final List<String> servers;
+  private final AtomicInteger idx = new AtomicInteger();
 
-class RoundRobin:
-    def __init__(self, backends: List[str]):
-        self._cycle = cycle(backends)
-        self._healthy = set(backends)
+  public RoundRobin(List<String> servers) {
+    this.servers = List.copyOf(servers);
+  }
 
-    def mark_unhealthy(self, backend: str) -> None:
-        self._healthy.discard(backend)
+  public String next() {
+    int i = Math.floorMod(idx.getAndIncrement(), servers.size());
+    return servers.get(i);
+  }
+}`,
+        },
+        {
+          type: 'prosCons',
+          title: 'Round Robin',
+          pros: ['Simple', 'Even distribution on identical servers'],
+          cons: ['Ignores live load', 'Slow server still gets equal share'],
+        },
+        {
+          type: 'markdown',
+          value:
+            '### 2. Weighted Round Robin\n\nAssign **weights** by capacity (CPU/RAM). Higher weight → proportionally more requests. Good for mixed VM sizes or canaries.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/load-balancing-pattern/03-weighted-round-robin.png',
+          alt: 'Weighted round robin giving more traffic to higher-capacity servers',
+          caption:
+            'Weights steer share of traffic. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/load-balancing-pattern/04-weighted-rr-code.png',
+          alt: 'Code sketch of weighted round robin implementation',
+          caption: 'Reference sketch. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'WeightedRoundRobin.java',
+          code: `public final class WeightedRoundRobin {
+  private final List<String> expanded = new ArrayList<>();
+  private final AtomicInteger idx = new AtomicInteger();
 
-    def next(self) -> str:
-        # Skip unhealthy; in production use a filtered pool + health watch.
-        for _ in range(len(self._healthy) or 1):
-            b = next(self._cycle)
-            if b in self._healthy:
-                return b
-        raise RuntimeError("no healthy backends")`,
+  public WeightedRoundRobin(Map<String, Integer> weights) {
+    weights.forEach((s, w) -> {
+      for (int i = 0; i < w; i++) expanded.add(s);
+    });
+  }
+
+  public String next() {
+    return expanded.get(Math.floorMod(idx.getAndIncrement(), expanded.size()));
+  }
+}`,
+        },
+        {
+          type: 'markdown',
+          value:
+            '### 3. Least Connections\n\nSend the next request to the server with the **fewest active connections**. Ideal when request durations vary.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/load-balancing-pattern/05-least-connections.png',
+          alt: 'Least connections routing to the server with the fewest open connections',
+          caption:
+            'Pick the least-busy server by connection count. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/load-balancing-pattern/06-least-connections-code.png',
+          alt: 'Code sketch of least connections load balancer',
+          caption: 'Reference sketch. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
         },
         {
           type: 'code',
           language: 'java',
           filename: 'LeastConnections.java',
-          code: `import java.util.Comparator;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+          code: `record Backend(String id, AtomicInteger active) {}
 
-record Backend(String id, AtomicInteger active) {}
-
-public class LeastConnections {
+public final class LeastConnections {
   private final List<Backend> pool;
 
-  public LeastConnections(List<Backend> pool) {
-    this.pool = pool;
-  }
+  public LeastConnections(List<Backend> pool) { this.pool = pool; }
 
   public Backend pick() {
     return pool.stream()
@@ -176,19 +208,115 @@ public class LeastConnections {
 
   public void withConnection(Backend b, Runnable work) {
     b.active().incrementAndGet();
-    try {
-      work.run();
-    } finally {
-      b.active().decrementAndGet();
-    }
+    try { work.run(); } finally { b.active().decrementAndGet(); }
   }
 }`,
+        },
+        {
+          type: 'markdown',
+          value:
+            '### 4. Least Response Time\n\nPrefer the server with the **lowest recent latency** (often combined with connection count). Best when response times differ across the pool.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/load-balancing-pattern/07-least-response-time.png',
+          alt: 'Least response time routing to the fastest responding server',
+          caption:
+            'Optimize for measured latency. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/load-balancing-pattern/08-least-response-time-code.png',
+          alt: 'Code sketch of least response time load balancer',
+          caption: 'Reference sketch. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'LeastResponseTime.java',
+          code: `record TimedBackend(String id, AtomicLong ewmaMs, AtomicInteger active) {}
+
+public final class LeastResponseTime {
+  private final List<TimedBackend> pool;
+
+  public TimedBackend pick() {
+    return pool.stream()
+        .min(Comparator
+            .comparingLong((TimedBackend b) -> b.ewmaMs().get())
+            .thenComparingInt(b -> b.active().get()))
+        .orElseThrow();
+  }
+
+  public void record(TimedBackend b, long latencyMs) {
+    // simple EWMA; production uses richer metrics
+    long prev = b.ewmaMs().get();
+    b.ewmaMs().set((long) (0.8 * prev + 0.2 * latencyMs));
+  }
+}`,
+        },
+        {
+          type: 'markdown',
+          value:
+            '### 5. IP Hash\n\n`hash(clientIp) % N` pins a client to a backend — simple **session persistence** without cookies. Watch NAT (many users, one IP) and remapping when N changes — prefer [consistent hashing](/designs/consistent-hashing) for caches.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/load-balancing-pattern/09-ip-hash.png',
+          alt: 'IP hash mapping client IPs to fixed backend servers',
+          caption:
+            'Same client IP → same server. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/load-balancing-pattern/10-ip-hash-code.png',
+          alt: 'Code sketch of IP hash load balancer',
+          caption: 'Reference sketch. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'IpHash.java',
+          code: `public final class IpHash {
+  private final List<String> servers;
+
+  public IpHash(List<String> servers) { this.servers = List.copyOf(servers); }
+
+  public String pick(String clientIp) {
+    int h = clientIp.hashCode();
+    return servers.get(Math.floorMod(h, servers.size()));
+  }
+}`,
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/load-balancing-pattern/11-algorithm-summary.png',
+          alt: 'Summary comparison of five load balancing algorithms',
+          caption:
+            'When to use each algorithm. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'table',
+          caption: 'Quick pick guide.',
+          headers: ['Algorithm', 'Best for', 'Watch out'],
+          rows: [
+            ['Round Robin', 'Homogeneous servers', 'Ignores load'],
+            ['Weighted RR', 'Mixed capacity / canary', 'Weights must match reality'],
+            ['Least Connections', 'Uneven request duration', 'Needs accurate counts'],
+            ['Least Response Time', 'Latency-sensitive pools', 'Needs good metrics'],
+            ['IP Hash', 'Simple stickiness', 'NAT skew; remaps on N change'],
+          ],
         },
         {
           type: 'callout',
           variant: 'warning',
           title: 'Sticky sessions trade-offs',
-          body: 'Cookie or IP stickiness simplifies in-memory sessions but **hurts scale-out and draining**: one hot user pins load to one pod. Prefer **external session store** (Redis) and **stateless apps** so any instance can serve any request. Use stickiness only when you must (WebSocket affinity, legacy apps).',
+          body: 'Cookie or IP stickiness simplifies in-memory sessions but **hurts scale-out and draining**. Prefer **external session store** (Redis) and **stateless apps**. Use stickiness only when you must (WebSocket affinity, legacy apps).',
+        },
+        {
+          type: 'callout',
+          variant: 'note',
+          title: 'Source',
+          body: 'Algorithm diagrams and walkthroughs summarized from Ashish Pratap Singh’s AlgoMaster article “Load Balancing Algorithms Explained with Code (and Visuals),” with Java sketches for this platform.',
         },
       ],
     },
