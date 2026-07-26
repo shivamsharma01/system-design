@@ -14,6 +14,12 @@ const content: DesignContent = {
             'The **CAP theorem** (Brewer, formalized by Gilbert & Lynch) says that a distributed data store cannot simultaneously provide **Consistency**, **Availability**, and **Partition tolerance** during a network partition. On real networks, **partitions happen**, so systems choose between **CP** (refuse some requests to stay consistent) and **AP** (keep serving, risk stale or divergent reads). **PACELC** extends this: if there is a Partition, choose A or C; **Else** (normal operation) choose **Latency** or **Consistency**.',
         },
         {
+          type: 'image',
+          src: 'assets/article-images/cap-pacelc/01-cap-overview.png',
+          alt: 'CAP theorem triangle of Consistency, Availability, and Partition Tolerance',
+          caption: 'The three CAP pillars. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
           type: 'callout',
           variant: 'warning',
           title: 'Interview myth: “pick 2 of 3”',
@@ -24,10 +30,59 @@ const content: DesignContent = {
           caption: 'CAP letters in one line.',
           headers: ['Letter', 'Meaning', 'Failure mode if sacrificed'],
           rows: [
-            ['C', 'Linearizability / single up-to-date value for a key', 'Clients may see stale or conflicting values'],
-            ['A', 'Every non-failing node answers in finite time', 'Some requests error or block until partition heals'],
-            ['P', 'System continues despite message loss between nodes', 'Not optional on WAN / multi-AZ designs'],
+            [
+              'C',
+              'Linearizability / single up-to-date value for a key',
+              'Clients may see stale or conflicting values',
+            ],
+            [
+              'A',
+              'Every non-failing node answers in finite time',
+              'Some requests error or block until partition heals',
+            ],
+            [
+              'P',
+              'System continues despite message loss between nodes',
+              'Not optional on WAN / multi-AZ designs',
+            ],
           ],
+        },
+      ],
+    },
+    {
+      id: 'pillars',
+      title: 'Three Pillars of CAP',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            '**Consistency (C):** every read returns the most recent write or an error — critical when stale data is unacceptable (payments, inventory).\n\n**Availability (A):** every request gets a non-error response (without guaranteeing it is the latest) — critical when uptime matters more than perfect freshness (feeds, carts).\n\n**Partition Tolerance (P):** the system keeps operating despite network splits. Under a partition you must choose **C or A**.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/cap-pacelc/02-consistency.png',
+          alt: 'Consistency illustrated as every node returning the same latest value',
+          caption:
+            'Consistency: latest write visible (or error). Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/cap-pacelc/03-availability.png',
+          alt: 'Availability illustrated as every request getting a response',
+          caption:
+            'Availability: always answer, even if possibly stale. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/cap-pacelc/04-partition-tradeoff.png',
+          alt: 'Network partition forcing a choice between consistency and availability',
+          caption:
+            'Under partition, pick CP or AP. Diagram adapted from Ashish Pratap Singh / AlgoMaster.',
+        },
+        {
+          type: 'markdown',
+          value:
+            '- **CP** — stay consistent; some requests fail during partition (e.g. relational primary/Raft minority refuses writes).\n- **AP** — stay available; accept temporary inconsistency (Cassandra, DynamoDB-style).\n- **CA** — only realistic without partitions (single-node DB); not a real distributed choice.',
         },
       ],
     },
@@ -56,7 +111,13 @@ const content: DesignContent = {
         {
           type: 'markdown',
           value:
-            '**PACELC labels** you will hear in interviews:\n\n- **AP + EL** — Dynamo, Cassandra, Riak: available under partition; otherwise favor low latency (eventual / tunable consistency).\n- **CP + EC** — classic single-primary Postgres (or Raft leader): refuse writes on minority side; otherwise prioritize strong consistency over latency.\n- **CP with TrueTime** — Spanner: external consistency via synchronized clocks; still CP under partition, but designed so the “Else Consistency” path stays practical at global scale.',
+            '**Beyond CAP — consistency knobs:** eventual, strong, **tunable** (Cassandra ONE/QUORUM/ALL), and **quorum** (R+W>N). Tunable settings change latency and how often you see staleness; under a hard partition they still encode an AP or CP choice.\n\n**PACELC labels** you will hear in interviews:\n\n- **AP + EL** — Dynamo, Cassandra, Riak: available under partition; otherwise favor low latency (eventual / tunable consistency).\n- **CP + EC** — classic single-primary Postgres (or Raft leader): refuse writes on minority side; otherwise prioritize strong consistency over latency.\n- **CP with TrueTime** — Spanner: external consistency via synchronized clocks; still CP under partition, but designed so the “Else Consistency” path stays practical at global scale.',
+        },
+        {
+          type: 'callout',
+          variant: 'note',
+          title: 'Source',
+          body: 'Pillar diagrams and CP/AP examples enriched from Ashish Pratap Singh’s AlgoMaster article “CAP Theorem Explained.”',
         },
       ],
     },
@@ -69,11 +130,31 @@ const content: DesignContent = {
           caption: 'Where popular stores land (simplified).',
           headers: ['System', 'Under partition', 'Else (normal)', 'Notes'],
           rows: [
-            ['Dynamo / Cassandra', 'AP', 'EL (tunable)', 'Quorum R+W can look “CP-ish” but not linearizable by default'],
-            ['PostgreSQL primary', 'CP (minority refuses writes)', 'EC', 'Single writer; replicas may lag for reads'],
+            [
+              'Dynamo / Cassandra',
+              'AP',
+              'EL (tunable)',
+              'Quorum R+W can look “CP-ish” but not linearizable by default',
+            ],
+            [
+              'PostgreSQL primary',
+              'CP (minority refuses writes)',
+              'EC',
+              'Single writer; replicas may lag for reads',
+            ],
             ['etcd / ZooKeeper', 'CP', 'EC', 'Raft/Zab; minority is unavailable for writes'],
-            ['Cloud Spanner', 'CP', 'EC (+ TrueTime)', 'External consistency; partitions still force unavailability'],
-            ['MongoDB (default)', 'CP-leaning', 'EC-leaning', 'Primary election; stale secondary reads are opt-in'],
+            [
+              'Cloud Spanner',
+              'CP',
+              'EC (+ TrueTime)',
+              'External consistency; partitions still force unavailability',
+            ],
+            [
+              'MongoDB (default)',
+              'CP-leaning',
+              'EC-leaning',
+              'Primary election; stale secondary reads are opt-in',
+            ],
           ],
         },
         {
@@ -93,9 +174,21 @@ const content: DesignContent = {
           caption: 'Models interviewers expect you to name.',
           headers: ['Model', 'Guarantee', 'Typical use'],
           rows: [
-            ['Strong / linearizable', 'Ops appear atomic in real-time order', 'Money transfer, inventory decrement'],
-            ['Sequential', 'All see same order of ops (not necessarily real-time)', 'Some consensus / primary systems'],
-            ['Causal', 'If A caused B, everyone sees A before B', 'Social feeds, collaborative edits'],
+            [
+              'Strong / linearizable',
+              'Ops appear atomic in real-time order',
+              'Money transfer, inventory decrement',
+            ],
+            [
+              'Sequential',
+              'All see same order of ops (not necessarily real-time)',
+              'Some consensus / primary systems',
+            ],
+            [
+              'Causal',
+              'If A caused B, everyone sees A before B',
+              'Social feeds, collaborative edits',
+            ],
             ['Read-your-writes', 'You always see your own updates', 'User profile after save'],
             ['Eventual', 'Replicas converge if updates stop', 'Caches, DNS, Dynamo-style stores'],
           ],

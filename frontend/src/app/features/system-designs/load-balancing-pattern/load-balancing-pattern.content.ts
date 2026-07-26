@@ -11,7 +11,7 @@ const content: DesignContent = {
         {
           type: 'markdown',
           value:
-            '**Load balancing** spreads incoming traffic across a pool of healthy backends so no single instance becomes a bottleneck. It is the foundation of horizontal scale: add capacity by adding instances, and let the balancer decide *where* each request goes.',
+            '**Load balancing** spreads incoming traffic across a pool of healthy backends so no single instance becomes a bottleneck. It is the foundation of horizontal scale: add capacity by adding instances, and let the balancer decide *where* each request goes. Broader reliability context: [Avoiding Single Points of Failure](/designs/single-point-of-failure).',
         },
         {
           type: 'callout',
@@ -50,8 +50,16 @@ const content: DesignContent = {
             ['Sees', 'IP, port, TCP/UDP', 'HTTP method, path, headers, cookies'],
             ['Routing', 'Per connection / 5-tuple', 'Per request; content-based'],
             ['TLS', 'Often passthrough (or terminate once)', 'Usually terminate; can re-encrypt'],
-            ['Latency / throughput', 'Very high throughput, low overhead', 'More CPU; richer features'],
-            ['Use when', 'Raw TCP, gaming, Kafka, extreme QPS', 'Microservices HTTP, path routing, WAF'],
+            [
+              'Latency / throughput',
+              'Very high throughput, low overhead',
+              'More CPU; richer features',
+            ],
+            [
+              'Use when',
+              'Raw TCP, gaming, Kafka, extreme QPS',
+              'Microservices HTTP, path routing, WAF',
+            ],
           ],
         },
         {
@@ -276,9 +284,24 @@ public class LeastConnections {
           caption: 'Cross-link: Load balancer vs API Gateway vs Service Mesh.',
           headers: ['Concern', 'Load balancer', 'API Gateway', 'Service mesh'],
           rows: [
-            ['Primary job', 'Distribute load across instances', 'North-south edge: auth, rate limit, aggregate', 'East-west policy: mTLS, retries, telemetry'],
-            ['Traffic', 'Any TCP/HTTP pool', 'External clients → services', 'Service ↔ service inside cluster'],
-            ['Awareness', 'Targets + health', 'APIs, tenants, quotas', 'Service identity, mesh config'],
+            [
+              'Primary job',
+              'Distribute load across instances',
+              'North-south edge: auth, rate limit, aggregate',
+              'East-west policy: mTLS, retries, telemetry',
+            ],
+            [
+              'Traffic',
+              'Any TCP/HTTP pool',
+              'External clients → services',
+              'Service ↔ service inside cluster',
+            ],
+            [
+              'Awareness',
+              'Targets + health',
+              'APIs, tenants, quotas',
+              'Service identity, mesh config',
+            ],
             ['See also', 'This page', 'API Gateway', 'Service Mesh / Sidecar / Ambassador'],
           ],
         },

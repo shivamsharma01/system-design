@@ -11,7 +11,7 @@ const content: DesignContent = {
         {
           type: 'markdown',
           value:
-            'The **Backend for Frontend (BFF)** pattern gives each client type — web, mobile, smart TV — its own **tailored backend** that aggregates and shapes microservice APIs for that UX. Instead of forcing every client to consume a generic API, the BFF optimizes payloads, call patterns, and error handling per surface.',
+            'The **Backend for Frontend (BFF)** pattern gives each client type — web, mobile, smart TV — its own **tailored backend** that aggregates and shapes microservice APIs for that UX. Instead of forcing every client to consume a generic API, the BFF optimizes payloads, call patterns, and error handling per surface.\n\nBFFs are often implemented with GraphQL or REST aggregators — see [REST vs GraphQL](/designs/rest-vs-graphql).',
         },
         {
           type: 'callout',
@@ -66,12 +66,30 @@ const content: DesignContent = {
           type: 'table',
           headers: ['Domain', 'Example'],
           rows: [
-            ['E-commerce checkout', 'Web BFF aggregates cart + shipping options; mobile BFF returns a minimal 3-field summary'],
-            ['Food delivery', 'Rider app BFF batches order, map, and ETA; restaurant tablet BFF exposes kitchen ticket layout'],
-            ['Payments', 'Merchant dashboard BFF joins settlements and disputes; consumer wallet app BFF hides internal ledger IDs'],
-            ['Netflix-style microservices', 'Per-device BFFs (iOS, Android, TV) shaping browse rows and playback metadata'],
-            ['GraphQL BFF', 'Single GraphQL layer per client team with resolvers fanning out to REST microservices'],
-            ['SoundCloud / Spotify-style', 'Team-owned BFF repos aligned to frontend squads (colocated evolution)'],
+            [
+              'E-commerce checkout',
+              'Web BFF aggregates cart + shipping options; mobile BFF returns a minimal 3-field summary',
+            ],
+            [
+              'Food delivery',
+              'Rider app BFF batches order, map, and ETA; restaurant tablet BFF exposes kitchen ticket layout',
+            ],
+            [
+              'Payments',
+              'Merchant dashboard BFF joins settlements and disputes; consumer wallet app BFF hides internal ledger IDs',
+            ],
+            [
+              'Netflix-style microservices',
+              'Per-device BFFs (iOS, Android, TV) shaping browse rows and playback metadata',
+            ],
+            [
+              'GraphQL BFF',
+              'Single GraphQL layer per client team with resolvers fanning out to REST microservices',
+            ],
+            [
+              'SoundCloud / Spotify-style',
+              'Team-owned BFF repos aligned to frontend squads (colocated evolution)',
+            ],
           ],
         },
       ],

@@ -18,7 +18,7 @@ export const CAP_PACELC_META: DesignMeta = {
   ],
   technologies: ['Cassandra', 'DynamoDB', 'PostgreSQL', 'Cloud Spanner', 'MongoDB'],
   difficulty: 'intermediate',
-  readingTimeMin: 14,
+  readingTimeMin: 16,
   status: 'published',
   keywords: [
     'CAP theorem',

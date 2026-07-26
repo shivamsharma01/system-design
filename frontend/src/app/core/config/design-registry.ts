@@ -170,6 +170,9 @@ import { CACHE_EVICTION_META } from '../../features/system-designs/cache-evictio
 import { CHANGE_DATA_CAPTURE_META } from '../../features/system-designs/change-data-capture/change-data-capture.meta';
 import { ACID_TRANSACTIONS_META } from '../../features/system-designs/acid-transactions/acid-transactions.meta';
 import { DATABASE_INDEXES_META } from '../../features/system-designs/database-indexes/database-indexes.meta';
+import { SQL_VS_NOSQL_META } from '../../features/system-designs/sql-vs-nosql/sql-vs-nosql.meta';
+import { SINGLE_POINT_OF_FAILURE_META } from '../../features/system-designs/single-point-of-failure/single-point-of-failure.meta';
+import { REST_VS_GRAPHQL_META } from '../../features/system-designs/rest-vs-graphql/rest-vs-graphql.meta';
 import { LOAD_BALANCING_PATTERN_META } from '../../features/system-designs/load-balancing-pattern/load-balancing-pattern.meta';
 import { SERVICE_MESH_META } from '../../features/system-designs/service-mesh/service-mesh.meta';
 import { VENDING_MACHINE_META } from '../../features/system-designs/vending-machine/vending-machine.meta';
@@ -900,6 +903,19 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   {
     meta: DATABASE_INDEXES_META,
     load: () => import('../../features/system-designs/database-indexes/database-indexes.content'),
+  },
+  {
+    meta: SQL_VS_NOSQL_META,
+    load: () => import('../../features/system-designs/sql-vs-nosql/sql-vs-nosql.content'),
+  },
+  {
+    meta: SINGLE_POINT_OF_FAILURE_META,
+    load: () =>
+      import('../../features/system-designs/single-point-of-failure/single-point-of-failure.content'),
+  },
+  {
+    meta: REST_VS_GRAPHQL_META,
+    load: () => import('../../features/system-designs/rest-vs-graphql/rest-vs-graphql.content'),
   },
   {
     meta: LOAD_BALANCING_PATTERN_META,

@@ -11,7 +11,7 @@ const content: DesignContent = {
         {
           type: 'markdown',
           value:
-            '**ACID** defines the contract for a reliable database transaction: **Atomicity**, **Consistency**, **Isolation**, and **Durability**. Classic example: a bank transfer must debit and credit together or not at all.\n\nAcross services, full ACID is hard — see [Two-Phase Commit](/designs/two-phase-commit) and [Saga](/designs/saga).',
+            '**ACID** defines the contract for a reliable database transaction: **Atomicity**, **Consistency**, **Isolation**, and **Durability**. Classic example: a bank transfer must debit and credit together or not at all.\n\nAcross services, full ACID is hard — see [Two-Phase Commit](/designs/two-phase-commit) and [Saga](/designs/saga). For when relational ACID vs BASE NoSQL fits, see [SQL vs NoSQL](/designs/sql-vs-nosql).',
         },
         {
           type: 'image',
