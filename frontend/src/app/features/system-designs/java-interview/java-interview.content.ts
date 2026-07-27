@@ -19,6 +19,12 @@ const content: DesignContent = {
           title: 'How to practise',
           body: 'For each answer: **say it in plain words first -> explain how it works -> name a way it can go wrong -> give a production/debug angle**. Prefer concrete tools (`jcmd`, JFR, MAT) over vague "check logs."',
         },
+        {
+          type: 'callout',
+          variant: 'info',
+          title: 'Production debugging checklist (where each lives)',
+          body: 'Many classic production questions are already answered below — use this map to avoid duplicates:\n1. **OOM** → JVM Internals “troubleshoot OutOfMemoryError”\n2. **High CPU, low traffic** → Production Debugging Playbooks (new)\n3. **BLOCKED thread** → Production Scenarios “hundreds of WAITING or BLOCKED…”\n4. **Slow after hours** → Production Scenarios “slow after hours…”\n5. **GC pauses** → Production Scenarios “Long GC pauses…”\n6. **HashMap under load** → Production Scenarios “one million entries…”\n7. **Shared data races** → Production Scenarios “Two threads corrupt inventory…”\n8. **Works local, fails prod** → [Spring Boot Interview — Data & Production](/designs/spring-boot-interview#data-production)\n9. **Memory leak** → JVM Internals “identify memory leaks…”\n10. **Unresponsive randomly** → Production Debugging Playbooks (new)\n11. **Deadlock** → JVM Internals “deadlocks using jstack”\n12. **Inconsistent logs** → Production Debugging Playbooks (new)\n13. **Crash, no clear error** → Production Scenarios “server or JVM crash”\n14. **Slow DB call** → [Spring Boot Interview](/designs/spring-boot-interview#data-production)\n15. **Thread pool exhausted** → Production Scenarios “ThreadPoolExecutor queue…”\n16. **High concurrency tools** → Production Debugging Playbooks (new)\n17. **Duplicate requests** → [Spring Boot Interview](/designs/spring-boot-interview#data-production)\n18. **Stale cache** → Production Scenarios “Redis returns stale data…”\n19. **Not scaling with instances** → Production Debugging Playbooks (new)\n20. **Trace across layers** → [Spring Boot Interview](/designs/spring-boot-interview#data-production)',
+        },
       ],
     },
     {
@@ -690,6 +696,49 @@ const content: DesignContent = {
               question: 'How would you migrate an application from Java 8 to Java 17?',
               answer:
                 '1. Inventory JDK, framework, build-plugin, test, agent, and container compatibility; establish tests and performance baselines.\n2. Upgrade build tooling and dependencies—often Spring Boot first—then compile with JDK 17 while initially keeping `--release 8` if a staged transition helps.\n3. Run `jdeps`/`jdeprscan`; replace removed Java EE modules (`javax.xml.bind`, etc.), internal JDK APIs, Nashorn assumptions, obsolete CMS flags, and illegal reflective access.\n4. Move source/target to 17, fix stronger encapsulation and `javax`→`jakarta` only if the chosen framework migration requires it.\n5. Test unit, integration, serialization, TLS, timezone/locale, GC, startup, memory, and latency under production-like load.\n6. Canary the same artifact/container image, monitor business and JVM signals, and retain a rollback path.\n\nAvoid combining the runtime migration with broad syntax rewrites. Adopt records/sealed classes later in small reviewable changes.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'production-debugging-playbooks',
+      title: 'Production Debugging Playbooks',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Additional production playbooks that were **not already covered** elsewhere on this page (or only partially). For OOM, GC, HashMap, deadlock, stale cache, thread pools, and related topics, use the overview checklist — they live in **JVM Internals** and **Concurrency and Production Scenarios**.',
+        },
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Production Debugging Playbooks Q&A',
+          items: [
+            {
+              question: 'You see high CPU usage but low traffic. What could be the reason?',
+              answer:
+                'In simple terms: CPU can burn even when request rate is low if something is **spinning, allocating, or contending** without needing many clients.\n\n**Likely causes:**\n1. **Busy loop / hot path bug** — infinite retry, tight `while(true)`, bad regex, pathological deserialization on a small number of requests.\n2. **GC thrashing** — tiny heap or huge live set; GC threads (and safepoints) consume CPU even with few requests. Check GC CPU % and pause logs.\n3. **Lock spinning / contention** — many threads fighting one monitor; CPU high, throughput low. JFR lock profile + thread dumps.\n4. **Background jobs** — cron, indexing, compaction, Kafka rebalance, log shipping, metrics scrapers.\n5. **JIT / warmup / agent** — unusual but visible after deploys; check compiler CPU and agent overhead.\n6. **Container illusion** — host steal time or neighboring pods; verify `cpu throttling` and whether “100%” is one core or the whole quota.\n7. **Off-request work** — unbounded executor, reconnect storms, health-check storms.\n\n**Debug:** `top -H` → map TIDs to `nid` in several `jcmd Thread.print -l` dumps; capture JFR/async-profiler **CPU flame graph**; correlate GC CPU vs application CPU; check scheduled jobs and thread counts. Fix the hot method, bound background work, right-size heap/collector, and reduce contention — do not “add pods” until you know CPU is request-driven.',
+            },
+            {
+              question: 'A service becomes unresponsive randomly. What could be happening?',
+              answer:
+                'In simple terms: random freezes usually mean an **intermittent saturation or stop-the-world event**, not a deterministic bug path you hit every request.\n\n**Suspects:**\n1. **Long GC / safepoint** spikes — whole JVM pauses; looks like a hang. Check GC logs and JFR safepoint events for the freeze window.\n2. **Thread / connection pool exhaustion** — traffic spike or one slow dependency; dumps show mass `WAITING` on pool queues or `socketRead`.\n3. **Deadlock or livelock** — rare timing; capture dumps during the freeze (see deadlock Q in JVM Internals).\n4. **Stop-the-world ops** — heap dump, deopt storm, class redefinition, aggressive logging to a stuck disk.\n5. **OS / container** — CPU throttle, disk full, DNS blip, network partition, node pressure/OOMKill near miss.\n6. **Downstream brownout** — retries amplify load only sometimes (retry storms).\n7. **Memory pressure** — approaching OOM; allocator/GC stalls before the crash.\n\n**Playbook:** alert on p99 + saturation (pool pending, GC pause, thread count). When it happens, auto-capture 3–5 thread dumps + JFR chunk for that window before restarting. Correlate with deploy, traffic, dependency latency, disk, and GC. Reproduce with soak + fault injection. Restart proves “transient resource” class of bugs but is not the fix.',
+            },
+            {
+              question: 'Your logs show inconsistent behavior across requests. Why?',
+              answer:
+                'In simple terms: “inconsistent” often means **request context is leaking between threads** or clocks/config differ — not that Java is non-deterministic for no reason.\n\n**Common causes:**\n1. **ThreadLocal / MDC bleed** — pool workers reuse threads; previous request’s `userId`/`tenantId`/`traceId` remains if you forget `MDC.clear()` / `ThreadLocal.remove()` in `finally`. Later requests log under the wrong identity.\n2. **Shared mutable singleton state** — static/maps mutated without sync; racey reads look “random.”\n3. **Non-deterministic ordering** — `HashMap` iteration, parallel streams, async callbacks completing in different orders.\n4. **Clock / timezone / DST** — timestamps disagree across hosts; “ordering” looks wrong.\n5. **Stale cache / eventual consistency** — two instances or Redis vs DB disagree briefly.\n6. **Sampling / async logging** — dropped log lines make sequences look incomplete.\n7. **Multiple replicas without correlation IDs** — you are comparing unrelated requests.\n\n**Fix:** always clear MDC/ThreadLocal in filters/`oncePerRequest`; propagate context explicitly into async (`TaskDecorator`, Micrometer context); avoid mutable statics; log `traceId`/`requestId` on every line; pin timezone to UTC; make caches coherent. Confirm with two thread dumps and a heap path from pool threads → `threadLocals` if you suspect retention.',
+            },
+            {
+              question: 'You need to handle high concurrency safely. What will you use?',
+              answer:
+                'In simple terms: pick the **smallest concurrency tool that matches the problem** — do not reach for `synchronized` on everything or Virtual Threads for CPU work.\n\n**Toolbox:**\n1. **Immutability / confinement** — no shared mutable state is the best “lock.”\n2. **`java.util.concurrent` atomics** — `AtomicInteger`, `LongAdder` (high-contention counters), `AtomicReference` + CAS.\n3. **Concurrent collections** — `ConcurrentHashMap` with `computeIfAbsent`/`merge` (not check-then-act); concurrent queues for handoff.\n4. **Locks** — `ReentrantLock`, `ReadWriteLock`/`StampedLock` for read-heavy; always document lock order.\n5. **Executors** — bounded `ThreadPoolExecutor` + rejection/backpressure; never unbounded queues for request paths.\n6. **Virtual Threads (Java 21+)** — scale blocking I/O concurrency; still need timeouts, semaphores, and connection-pool caps.\n7. **Database as coordinator** — optimistic `@Version`, conditional `UPDATE … WHERE`, or `SELECT FOR UPDATE` for inventory/money.\n8. **Message queues** — serialize work per key; compete across consumers for scale.\n\n**Avoid:** sharing one giant lock, `HashMap` across threads, ThreadLocals without cleanup, and assuming CHM makes multi-step business logic atomic. Measure contention with JFR before redesigning.',
+            },
+            {
+              question: 'Your application is not scaling even after adding instances. Why?',
+              answer:
+                'In simple terms: more app pods only help if the **bottleneck is the app tier**. If the bottleneck is shared and serial, replicas just wait harder.\n\n**Why scale-out fails:**\n1. **Stateful affinity** — in-memory sessions / sticky IPs pin load; new instances stay idle.\n2. **Database / connection pool ceiling** — every pod opens Hikari pools; DB max connections or CPU is the wall.\n3. **Single-writer or global lock** — Redis lock, leader-only job, or contended row.\n4. **Hot partition / hot key** — one shard or cache key absorbs traffic.\n5. **Chatty fan-out** — each request hits N dependencies; multiplying pods multiplies downstream load.\n6. **GC / CPU throttle per pod** — each replica is already saturated locally.\n7. **Shared rate limit / license / IP** — external quota not multiplied by pods.\n8. **Cold cache per instance** — more pods → more stampedes unless using shared cache.\n\n**Approach:** identify the bottleneck with golden signals + dependency saturation before HPA. Make apps **stateless**, externalize sessions, bound pools globally, shard hot keys, cache shared, move work async. Then scale the **actual** scarce resource (often DB read replicas, cache, or queue consumers — not blindly the web tier). See also Spring Boot “steps before scaling.”',
             },
           ],
         },
