@@ -5,6 +5,7 @@ import { JAVA_INTERVIEW_META } from '../../features/system-designs/java-intervie
 import { SPRING_BOOT_INTERVIEW_META } from '../../features/system-designs/spring-boot-interview/spring-boot-interview.meta';
 import { SQL_INTERVIEW_META } from '../../features/system-designs/sql-interview/sql-interview.meta';
 import { AI_AGENT_SKILLS_META } from '../../features/system-designs/ai-agent-skills/ai-agent-skills.meta';
+import { AI_ENGINEERING_INTERVIEW_META } from '../../features/system-designs/ai-engineering-interview/ai-engineering-interview.meta';
 import { KAFKA_INTERVIEW_META } from '../../features/system-designs/kafka-interview/kafka-interview.meta';
 import { KUBERNETES_INTERVIEW_META } from '../../features/system-designs/kubernetes-interview/kubernetes-interview.meta';
 import { OWASP_TOP_10_META } from '../../features/system-designs/owasp-top-10/owasp-top-10.meta';
@@ -207,6 +208,11 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   {
     meta: AI_AGENT_SKILLS_META,
     load: () => import('../../features/system-designs/ai-agent-skills/ai-agent-skills.content'),
+  },
+  {
+    meta: AI_ENGINEERING_INTERVIEW_META,
+    load: () =>
+      import('../../features/system-designs/ai-engineering-interview/ai-engineering-interview.content'),
   },
   {
     meta: KAFKA_INTERVIEW_META,

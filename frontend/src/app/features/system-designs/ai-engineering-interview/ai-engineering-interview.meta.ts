@@ -1,0 +1,27 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const AI_ENGINEERING_INTERVIEW_META: DesignMeta = {
+  slug: 'ai-engineering-interview',
+  title: 'AI Engineering Interview Questions',
+  tagline:
+    'RAG, Spring AI, MCP, agents, vector databases, security, observability, and scalable production architecture.',
+  section: 'interview-questions',
+  category: 'AI Engineering',
+  tags: ['rag', 'spring-ai', 'mcp', 'ai-agents', 'llm', 'interview'],
+  technologies: ['Spring AI', 'LLMs', 'Vector Databases', 'MCP'],
+  difficulty: 'intermediate',
+  readingTimeMin: 18,
+  status: 'published',
+  keywords: [
+    'AI engineering interview',
+    'RAG architecture',
+    'Spring AI',
+    'Model Context Protocol',
+    'LLM observability',
+  ],
+  dateAdded: '2026-08-02',
+  popularity: 85,
+  icon: 'AI',
+  heroGradient: 'linear-gradient(135deg, #7c3aed 0%, #172554 100%)',
+  author: 'System Design Platform',
+};
