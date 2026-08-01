@@ -138,6 +138,109 @@ const content: DesignContent = {
             },
           ],
         },
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Collections Production Scenarios Q&A',
+          items: [
+            {
+              question:
+                'You need to remove millions of matching elements from an ArrayList. How would you do it efficiently?',
+              answer:
+                'Use `removeIf(predicate)` or a single compaction pass, not repeated `remove(index)` calls. Removing individual matches from the middle repeatedly shifts the remaining array and can become O(n²). `removeIf` scans once and compacts survivors in bulk, so the work is O(n).\n\nIf the original list need not be retained and memory allows it, filtering into a pre-sized new `ArrayList` can also be fast and simple. Avoid `parallelStream()` unless measurement shows the predicate is expensive enough to offset coordination and allocation costs.',
+            },
+            {
+              question:
+                'Your application has 100 threads reading data and only one occasional writer. Which collection would you consider?',
+              answer:
+                'For a list-sized snapshot where writes are genuinely rare, consider `CopyOnWriteArrayList`: reads and iteration require no locking and each iterator sees a stable snapshot. The trade-off is that every mutation copies the entire backing array, so it is unsuitable for large lists or bursty writes.\n\nFor key-value lookup, use `ConcurrentHashMap`; for an immutable dataset that is replaced as a whole, an immutable collection behind a `volatile` or `AtomicReference` is often even simpler. Choose from the required API and consistency semantics, not only the reader-to-writer ratio.',
+            },
+            {
+              question:
+                'You need to process tasks by priority instead of arrival time. Which collection fits?',
+              answer:
+                'Use `PriorityQueue` in a single-threaded design or `PriorityBlockingQueue` when producers and consumers are concurrent. Supply a `Comparator` or make tasks `Comparable`; `poll()` removes the highest-priority task according to that ordering in O(log n), while `peek()` is O(1).\n\nEqual-priority tasks are not guaranteed FIFO. Add a monotonically increasing sequence number as a comparator tie-breaker if stable arrival order matters. Also consider starvation prevention when high-priority work can arrive continuously.',
+            },
+            {
+              question:
+                'Producers generate messages faster than consumers process them. How can BlockingQueue help?',
+              answer:
+                'A bounded `BlockingQueue` creates backpressure. Producers calling `put()` block when the queue is full, or can use timed `offer()` to shed, retry, or route work elsewhere; consumers calling `take()` wait without busy-spinning when it is empty. This decouples producer and consumer timing while placing a hard limit on buffered memory.\n\nThe queue does not fix insufficient throughput by itself. Size it from the allowed memory and latency budget, monitor queue depth and wait time, and define overload behavior explicitly. An unbounded queue merely postpones failure and can turn overload into high latency or OOM.',
+            },
+            {
+              question:
+                'You must remove duplicates while preserving insertion order. Which collection would you use?',
+              answer:
+                'Use `LinkedHashSet`. It enforces uniqueness using hash-based membership while maintaining a linked insertion-order traversal, giving average O(1) `add`, `contains`, and `remove`.\n\nFor an existing list, `new ArrayList<>(new LinkedHashSet<>(list))` produces an ordered deduplicated list. Correctness still depends on stable, consistent `equals()` and `hashCode()` implementations.',
+            },
+            {
+              question:
+                'You need sorted key-value data with concurrent access. Which collection fits?',
+              answer:
+                'Use `ConcurrentSkipListMap`. It is a thread-safe `NavigableMap` that keeps keys sorted and supports range operations such as `subMap`, `floorEntry`, and `ceilingEntry`. Reads and updates are expected O(log n), and iterators are weakly consistent.\n\nUse `ConcurrentHashMap` instead when ordering and range queries are unnecessary because average lookup is cheaper. As with `TreeMap`, the comparator must be stable and ideally consistent with `equals()`.',
+            },
+            {
+              question:
+                'A ConcurrentModificationException occurs in a single-threaded application. How is that possible?',
+              answer:
+                '`ConcurrentModificationException` means overlapping structural modification and iteration, not necessarily multiple threads. A single thread can trigger it by calling `list.remove(...)`, `map.put(...)`, or another structural operation directly on the collection while a fail-fast iterator or enhanced `for` loop is active.\n\nIt can also happen through an aliased reference, a callback, or a nested method that modifies the same collection. Fail-fast detection is best-effort; diagnose the mutation path rather than treating the exception as proof of a threading bug.',
+            },
+            {
+              question:
+                'You need to safely remove elements while iterating. What approaches can you use?',
+              answer:
+                'With a mutable collection iterator, call `Iterator.remove()` immediately after `next()`; do not call `collection.remove()` behind that iterator. For predicate-based bulk removal, prefer `removeIf`, which lets the collection perform a safe efficient pass. Another option is to collect matching keys/elements first and remove them after iteration, or build a filtered replacement collection.\n\nConcurrent collections have collection-specific semantics: for example, `ConcurrentHashMap` supports conditional `remove(key, value)` during weakly consistent traversal. `CopyOnWriteArrayList` iterators are snapshots and do not support iterator removal.',
+            },
+            {
+              question:
+                'Your CopyOnWriteArrayList is creating high memory usage and GC pressure. Why?',
+              answer:
+                'Every mutating operation creates and publishes a new backing array and copies existing references into it. Large lists or frequent writes therefore allocate arrays proportional to list size, consume memory bandwidth, and leave old arrays for GC. Long-lived iterators retain their snapshot arrays, delaying reclamation further.\n\nUse it only for small or moderate, read-mostly collections. For frequent mutation consider a locked `ArrayList`, a concurrent queue/deque, or immutable snapshots updated in batches, depending on access patterns.',
+            },
+            {
+              question:
+                'You need the Top 10 most frequent items from millions of events. Which collections would you combine?',
+              answer:
+                'First count frequencies in a `HashMap<Item, Long>`; under parallel updates, use `ConcurrentHashMap<Item, LongAdder>` or partition counts per worker and merge them. Then scan the frequency entries while maintaining a min-heap `PriorityQueue` of at most 10 items. Replace the heap root whenever a larger count appears.\n\nThis uses O(u) space for `u` unique items and O(u log 10) selection time instead of sorting all `u` entries. Define deterministic tie-breaking. If even the frequency map is too large, use an approximate streaming algorithm such as Count-Min Sketch plus candidate tracking.',
+            },
+            {
+              question:
+                'A cache should automatically release entries when keys are no longer strongly referenced. What would you use?',
+              answer:
+                'Use `WeakHashMap` when entries should disappear after their keys are no longer strongly reachable. It stores weak references to keys and removes stale entries as the reference queue is processed. Keep in mind that values are strongly referenced and must not strongly reference their own keys, or the entries may remain reachable.\n\n`WeakHashMap` is not thread-safe and GC timing makes eviction nondeterministic. For production concurrent caches, prefer a cache library such as Caffeine with weak keys when that exact reference behavior is required.',
+            },
+            {
+              question:
+                'You need a non-blocking thread-safe queue. Which collection would you choose?',
+              answer:
+                'Use `ConcurrentLinkedQueue` for a multi-producer, multi-consumer FIFO queue. Its `offer()` and `poll()` operations are thread-safe and non-blocking, based on CAS rather than a global lock; iterators are weakly consistent.\n\nIt is unbounded and provides no backpressure, so producers can exhaust memory if consumers fall behind. If consumers should wait or capacity must be bounded, use an appropriate `BlockingQueue` instead. Avoid frequent `size()` calls because they require traversal and are not a stable concurrent snapshot.',
+            },
+            {
+              question:
+                'You need to maintain the latest 100 events per user. How would you structure the collections?',
+              answer:
+                'Use a map from user ID to a bounded deque: `Map<UserId, ArrayDeque<Event>>`. Append each event with `addLast()` and call `removeFirst()` when the deque exceeds 100, making each update O(1) and each user bounded in size.\n\nWith concurrent updates, a plain `ConcurrentHashMap` does not make each mutable deque safe. Use `compute` to update a user atomically, store a per-user lock/thread-safe deque, or route each user to one owning worker. Also expire inactive users or the number of user entries can still grow without bound.',
+            },
+            {
+              question:
+                'A collection holding millions of objects is causing OutOfMemoryError. How would you investigate and optimize it?',
+              answer:
+                'Capture a heap dump near failure and inspect the dominator tree, retained sizes, object counts, and GC roots to determine which collection retains the data and why. Correlate allocation profiling and GC logs, check whether growth is expected or a leak, and look for unbounded caches/queues, forgotten listeners, duplicate data, oversized keys/values, and stale references. Also distinguish heap exhaustion from metaspace, direct-memory, and native-memory failures.\n\nThen bound or evict data, stream/process in batches, remove duplicate representations, use compact domain types or primitive-specialized structures where justified, and move datasets beyond the process memory budget to an external store. Pre-sizing reduces resize churn but does not reduce the memory required by live entries. Raising `-Xmx` alone only delays an unbounded-growth failure.',
+            },
+            {
+              question:
+                'Your API needs fast lookup, insertion order, and predictable iteration. Which collection would you choose?',
+              answer:
+                'Use `LinkedHashMap`. It combines hash-table lookup with a linked order across entries, so `get` and `put` are average O(1) while iteration follows insertion order. Updating an existing value does not normally move that entry.\n\nIf iteration should reflect recent access instead, construct it with `accessOrder = true`; that mode is useful for simple LRU behavior. It is not thread-safe, and predictable insertion order is different from sorted key order.',
+            },
+            {
+              question:
+                'You are reviewing production code using Collections.synchronizedMap(). Would you keep it or replace it? What factors decide?',
+              answer:
+                'Do not replace it automatically. `Collections.synchronizedMap()` uses one mutex for all operations and can be correct for low contention, legacy APIs, or code that deliberately protects compound operations with `synchronized (map)`. Iteration must also hold that same mutex for the whole traversal.\n\nPrefer `ConcurrentHashMap` for high read/write concurrency when weakly consistent iteration and no null keys/values are acceptable. It improves concurrency but does not make multi-key invariants atomic. Keep or choose an explicit lock when operations spanning several entries require one critical section, and choose a sorted concurrent map when ordering is required. Decide from contention measurements, null/order semantics, iteration consistency, compound-operation requirements, and migration risk.',
+            },
+          ],
+        },
       ],
     },
     {
