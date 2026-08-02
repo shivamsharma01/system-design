@@ -1,0 +1,715 @@
+import { DesignContent } from '../../../shared/models';
+import { SPRING_REDIS_CACHE_INTERVIEW_META } from './spring-redis-cache-interview.meta';
+
+const content: DesignContent = {
+  meta: SPRING_REDIS_CACHE_INTERVIEW_META,
+  sections: [
+    {
+      id: 'overview',
+      title: 'The Production Caching Mental Model',
+      blocks: [
+        {
+          type: 'callout',
+          variant: 'info',
+          title: 'The senior-level answer',
+          body: 'A cache is not just a faster map. It is a **temporary, partial, and possibly stale copy** of another data source. Every design must define ownership, miss behavior, invalidation, failure behavior, memory bounds, and observability.',
+        },
+        {
+          type: 'sketchnote',
+          title: 'Redis + Spring Boot Interview Map',
+          intro: 'Start with the request path, then discuss correctness and failure.',
+          items: [
+            {
+              code: '01',
+              glyph: 'A',
+              title: 'Abstraction',
+              subtitle: 'Spring Cache hides the provider',
+              points: [
+                'Annotations express caching intent',
+                'AOP proxy intercepts eligible method calls',
+                'CacheManager resolves a named cache',
+              ],
+              tip: 'The annotation does nothing unless the call crosses the Spring proxy.',
+            },
+            {
+              code: '02',
+              glyph: 'H',
+              title: 'Happy path',
+              subtitle: 'Hit is fast; miss loads',
+              points: [
+                'Hit: return cached value, skip method',
+                'Miss: invoke method, usually query DB',
+                'Store result with a bounded lifetime',
+              ],
+              tip: 'Miss cost includes Redis + database + serialization.',
+            },
+            {
+              code: '03',
+              glyph: 'C',
+              title: 'Correctness',
+              subtitle: 'Staleness is a product decision',
+              points: [
+                'Define source of truth and acceptable staleness',
+                'Invalidate or update after successful writes',
+                'Handle races, retries, and out-of-order events',
+              ],
+              tip: 'A short TTL reduces stale time; it does not guarantee consistency.',
+            },
+            {
+              code: '04',
+              glyph: 'F',
+              title: 'Failure',
+              subtitle: 'Redis is an optional dependency only by design',
+              points: [
+                'Timeout quickly and use a circuit breaker',
+                'Protect the database during fallback',
+                'Degrade intentionally, never accidentally',
+              ],
+              tip: 'Fail-open can save availability and still overload the database.',
+            },
+            {
+              code: '05',
+              glyph: 'O',
+              title: 'Operations',
+              subtitle: 'Bound, observe, and rehearse',
+              points: [
+                'Set TTL and max-memory eviction policy',
+                'Monitor hit ratio, latency, memory, and errors',
+                'Test failover, cold starts, and mass expiry',
+              ],
+              tip: 'A high hit ratio can still hide one expensive hot miss.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'spring-cache-internals',
+      title: 'Spring Cache: What Actually Happens',
+      blocks: [
+        {
+          type: 'mermaid',
+          caption: 'The @Cacheable request path: a hit skips business logic; a miss invokes it.',
+          definition: `flowchart LR
+  Caller[Caller] --> Proxy[Spring AOP proxy]
+  Proxy --> Interceptor[CacheInterceptor]
+  Interceptor --> Key[Evaluate cache name + SpEL key]
+  Key --> Manager[CacheManager]
+  Manager --> Redis[(Redis)]
+  Redis -->|HIT| Return[Deserialize + return]
+  Redis -->|MISS| Method[Invoke target method]
+  Method --> DB[(Database)]
+  DB --> Method
+  Method --> Put[Serialize + cache with TTL]
+  Put --> Redis
+  Put --> Return`,
+        },
+        {
+          type: 'sketchnote',
+          title: 'Five Spring Cache Annotations',
+          intro: 'Know the behavior—not just the spelling.',
+          items: [
+            {
+              code: 'Read',
+              glyph: '@',
+              title: '@Cacheable',
+              subtitle: 'Read through the cache abstraction',
+              points: [
+                'Hit returns value without running the method',
+                'Miss runs method and stores eligible result',
+                'key, condition, unless, and sync refine behavior',
+              ],
+              tip: '`unless` is evaluated after the method and can inspect `#result`.',
+            },
+            {
+              code: 'Write',
+              glyph: '@',
+              title: '@CachePut',
+              subtitle: 'Always run, then update cache',
+              points: [
+                'Method is never skipped',
+                'Useful after a successful create or update',
+                'Key must match readers exactly',
+              ],
+              tip: 'Do not combine casually with @Cacheable on the same method.',
+            },
+            {
+              code: 'Drop',
+              glyph: '@',
+              title: '@CacheEvict',
+              subtitle: 'Remove stale entries',
+              points: [
+                'Evict one key or all entries',
+                'Default eviction occurs after success',
+                'beforeInvocation=true also evicts on failure',
+              ],
+              tip: 'Evict after the database commit, not before an update that may roll back.',
+            },
+            {
+              code: 'Group',
+              glyph: '@',
+              title: '@Caching',
+              subtitle: 'Compose several cache operations',
+              points: [
+                'Multiple puts and evictions on one method',
+                'Useful for object and list cache invalidation',
+                'Can become hard to reason about',
+              ],
+              tip: 'If invalidation grows complex, publish a domain event instead.',
+            },
+            {
+              code: 'Class',
+              glyph: '@',
+              title: '@CacheConfig',
+              subtitle: 'Share class-level defaults',
+              points: [
+                'Common cacheNames, keyGenerator, manager',
+                'Reduces repeated annotation attributes',
+                'Method settings can override defaults',
+              ],
+              tip: 'Defaults improve consistency but do not replace explicit key design.',
+            },
+          ],
+        },
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Spring Cache Internals Q&A',
+          items: [
+            {
+              question: 'What happens on a cache hit and a cache miss?',
+              answer:
+                'On a **hit**, `CacheInterceptor` resolves the cache and key, reads Redis, deserializes the value, and returns it without invoking the target method. On a **miss**, the interceptor invokes the method; the method usually reads the database, and the returned value is serialized into Redis with the configured TTL before being returned.\n\nA miss is therefore more expensive than no cache in that request because it performs both a cache lookup and the source read. The cache pays off when later hits avoid enough source work. Decide whether null/empty results are cached, because repeatedly missing nonexistent data causes cache penetration.',
+            },
+            {
+              question: 'What Spring AOP traps commonly break @Cacheable?',
+              answer:
+                '`@Cacheable` normally works through a Spring AOP proxy. **Self-invocation** such as `this.loadProduct(id)` does not cross that proxy, so caching is skipped. The object must be Spring-managed, and proxy method visibility/finality constraints depend on proxy type. Calls during construction are also too early.\n\nThe key expression must be stable, and `equals`/serialization must match between writers and readers. By default, exceptions are not cached. Also verify transaction ordering: caching an uncommitted result or evicting before a transaction rolls back can expose incorrect state.',
+            },
+            {
+              question: 'Does @Cacheable(sync = true) solve cache stampede?',
+              answer:
+                'It can collapse concurrent loads for the same key **within the behavior supported by the selected Spring cache provider**, but it should not be assumed to provide a distributed lock across every application instance. With multiple pods backed by Redis, each instance may still load the same missing key.\n\nFor a distributed stampede use one or more of: Redis lock with a short lease and ownership-safe release, stale-while-revalidate, refresh-ahead, request coalescing, TTL jitter, or a bounded fallback. Always recheck the cache after acquiring a lock and make the loader idempotent.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'strategies-expiry',
+      title: 'Caching Strategies and Expiry',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Pick a Strategy by Write Semantics',
+          intro: 'The correct strategy follows consistency and durability requirements.',
+          items: [
+            {
+              code: 'Aside',
+              glyph: 'A',
+              title: 'Cache-Aside',
+              subtitle: 'Application owns misses',
+              points: [
+                'Read cache → miss → DB → populate cache',
+                'Write DB, then evict or update cache',
+                'Simple and only caches requested data',
+              ],
+              tip: 'Best general-purpose default, but stale-write races need attention.',
+            },
+            {
+              code: 'Thru',
+              glyph: 'T',
+              title: 'Write-Through',
+              subtitle: 'Cache writes source synchronously',
+              points: [
+                'One logical write updates cache and database',
+                'Read cache stays warm and consistent',
+                'Write latency includes both systems',
+              ],
+              tip: 'Spring Cache does not automatically turn Redis into a database write-through layer.',
+            },
+            {
+              code: 'Back',
+              glyph: 'B',
+              title: 'Write-Back',
+              subtitle: 'Persist asynchronously',
+              points: [
+                'Acknowledge cache write first',
+                'Batch and flush to durable storage later',
+                'Fast writes but data-loss and ordering risk',
+              ],
+              tip: 'Requires a durable queue/log; Redis alone should not be the safety story.',
+            },
+            {
+              code: 'Around',
+              glyph: 'W',
+              title: 'Write-Around',
+              subtitle: 'Writes bypass cache',
+              points: [
+                'Write directly to source of truth',
+                'Cache only when data is later read',
+                'Avoids pollution from write-once data',
+              ],
+              tip: 'The first read after every write is a miss.',
+            },
+            {
+              code: 'Ahead',
+              glyph: 'R',
+              title: 'Refresh-Ahead',
+              subtitle: 'Refresh before expiry',
+              points: [
+                'Popular entries refresh in background',
+                'Users avoid expensive cold misses',
+                'Needs popularity and refresh controls',
+              ],
+              tip: 'Refresh only active keys or background work becomes cache pollution.',
+            },
+          ],
+        },
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Strategy and Expiry Q&A',
+          items: [
+            {
+              question: 'Why choose Cache-Aside over Write-Through?',
+              answer:
+                'Choose **Cache-Aside** when the database is the clear source of truth, only some data is read repeatedly, and the application can tolerate bounded staleness. It is simple, provider-independent, and Redis failure does not have to block writes. Its costs are cold misses and application-owned invalidation.\n\nChoose **Write-Through** when every write should immediately update the cache through one controlled write path and read-after-write consistency is important. It adds write latency and coupling, can cache data that is never read, and still requires a plan for bypass writes, failures, and transactions.',
+            },
+            {
+              question: 'What are the trade-offs of TTL and TTI?',
+              answer:
+                '**TTL / expire-after-write** removes an entry a fixed time after creation or update. It bounds staleness and memory predictably, but frequently used entries still expire and may create cold misses. Add random jitter so many keys do not expire together.\n\n**TTI / expire-after-access** extends life when an entry is read, keeping hot data warm while idle data disappears. Reads become writes, replication traffic increases, and truly hot keys may never expire. Redis natively supports TTL. Spring Data Redis time-to-idle support uses `GETEX` and requires Redis 6.2+ plus consistent access through commands that reset expiry; ordinary `GET` calls can break the expected semantics.\n\nFor correctness-critical data, neither TTL nor TTI replaces explicit invalidation.',
+            },
+          ],
+        },
+        {
+          type: 'markdown',
+          value:
+            'For deeper pattern diagrams, compare [Caching Strategies](/designs/caching-strategies), [Cache-Aside](/designs/cache-aside), [Read-Through and Write-Through](/designs/read-write-through-cache), and [Write-Behind](/designs/write-behind-cache).',
+        },
+      ],
+    },
+    {
+      id: 'redis-toolbox',
+      title: 'Redis Data Structures and Safe Commands',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Redis Structure → Interview Use Case',
+          intro: 'Choose the smallest structure matching the access pattern.',
+          items: [
+            {
+              code: 'STR',
+              glyph: 'S',
+              title: 'String',
+              subtitle: 'Blob, counter, or simple value',
+              points: [
+                'GET / SET / MGET / INCR / SET NX EX',
+                'JSON object cache and distributed counters',
+                'Atomic operations on one key',
+              ],
+              tip: 'One huge JSON value is simple until every update rewrites the whole value.',
+            },
+            {
+              code: 'HASH',
+              glyph: 'H',
+              title: 'Hash',
+              subtitle: 'Fields inside one logical object',
+              points: [
+                'HGET / HSET / HMGET / HSCAN',
+                'Partial field reads and updates',
+                'Compact for many small fields',
+              ],
+              tip: 'The whole hash is still one Redis key and can become a big key.',
+            },
+            {
+              code: 'LIST',
+              glyph: 'L',
+              title: 'List',
+              subtitle: 'Ordered sequence or bounded history',
+              points: [
+                'LPUSH / RPUSH / LPOP / LRANGE / LTRIM',
+                'Recent activity and simple queues',
+                'Efficient operations at both ends',
+              ],
+              tip: 'Use Streams or a broker when delivery guarantees and consumer groups matter.',
+            },
+            {
+              code: 'SET',
+              glyph: 'U',
+              title: 'Set',
+              subtitle: 'Unique unordered membership',
+              points: [
+                'SADD / SISMEMBER / SREM / SSCAN',
+                'Tags, permissions, deduplication',
+                'Union and intersection operations',
+              ],
+              tip: 'Large set algebra can block the Redis event loop; precompute or limit it.',
+            },
+            {
+              code: 'ZSET',
+              glyph: 'Z',
+              title: 'Sorted Set',
+              subtitle: 'Score-ordered members',
+              points: [
+                'ZADD / ZRANGE / ZRANK / ZREM',
+                'Leaderboards, ranking, delayed work',
+                'Range queries in score order',
+              ],
+              tip: 'Scores are doubles; define tie-breaking and precision expectations.',
+            },
+            {
+              code: 'STREAM',
+              glyph: 'X',
+              title: 'Stream',
+              subtitle: 'Append-only event log',
+              points: [
+                'XADD / XREADGROUP / XACK',
+                'Consumer groups and pending entries',
+                'Useful for event-driven invalidation',
+              ],
+              tip: 'Set retention explicitly or the stream grows without bound.',
+            },
+          ],
+        },
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Redis Command Q&A',
+          items: [
+            {
+              question: 'Why is SCAN preferred over KEYS in production?',
+              answer:
+                '`KEYS pattern` walks the entire keyspace in one blocking command. Redis executes commands mainly on its event loop, so a large scan can pause unrelated traffic and create a latency spike.\n\n`SCAN` is cursor-based and returns small batches, allowing other commands between calls. It is still O(n) over a complete iteration, may return duplicates, and does not provide an atomic snapshot while keys change. Use it for controlled maintenance—not request-time business logic. Prefer a known key registry, versioned namespace, or asynchronous deletion when possible.',
+            },
+            {
+              question: 'How should Redis cache keys be designed?',
+              answer:
+                'Use a predictable namespace such as `prod:catalog:v3:product:{tenantId}:{productId}`. Include environment, domain, schema version, tenant, and stable identifiers where needed. Keep keys readable but bounded in length, and never place secrets or raw PII in them because keys appear in logs and diagnostics.\n\nIn Redis Cluster, use hash tags like `{user:42}` only when keys must share a slot for a multi-key operation; excessive tagging can create an imbalanced hot slot. Version prefixes make schema migration and bulk invalidation safer than wildcard deletion.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'failure-modes',
+      title: 'Production Failure Modes',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Six Redis Cache Failure Patterns',
+          intro: 'Name the failure, explain the blast radius, then give layered mitigations.',
+          items: [
+            {
+              code: 'STAMP',
+              glyph: 'S',
+              title: 'Stampede',
+              subtitle: 'One hot key expires',
+              points: [
+                'Many requests miss the same key',
+                'All rebuild it from the database',
+                'Use single-flight, lock, stale data, or refresh-ahead',
+              ],
+              tip: 'Lock by key, keep the lease short, and recheck after acquiring it.',
+            },
+            {
+              code: 'PEN',
+              glyph: 'P',
+              title: 'Penetration',
+              subtitle: 'Requests target absent data',
+              points: [
+                'Neither cache nor database has the key',
+                'Every request reaches the database',
+                'Cache null briefly, validate, or use a Bloom filter',
+              ],
+              tip: 'Use a short negative TTL so newly created data becomes visible soon.',
+            },
+            {
+              code: 'AVA',
+              glyph: 'A',
+              title: 'Avalanche',
+              subtitle: 'Many keys disappear together',
+              points: [
+                'Mass expiry, flush, restart, or node loss',
+                'Database receives a sudden broad surge',
+                'Use TTL jitter, warming, HA, and admission control',
+              ],
+              tip: 'Stampede is usually one key; avalanche is a large part of the cache.',
+            },
+            {
+              code: 'HOT',
+              glyph: 'H',
+              title: 'Hot Key',
+              subtitle: 'One key dominates traffic',
+              points: [
+                'One shard or Redis thread saturates',
+                'Replicate reads or add near-cache copies',
+                'Split safe counters/data by sub-key',
+              ],
+              tip: 'A cluster does not help if all traffic hashes to one slot.',
+            },
+            {
+              code: 'BIG',
+              glyph: 'B',
+              title: 'Big Key',
+              subtitle: 'One value has huge memory/work',
+              points: [
+                'Slow network, serialization, deletion, and failover',
+                'Detect with MEMORY USAGE and redis-cli --bigkeys',
+                'Split, compress carefully, or store only needed fields',
+              ],
+              tip: 'Prefer UNLINK over DEL for asynchronously freeing very large values.',
+            },
+            {
+              code: 'STALE',
+              glyph: 'C',
+              title: 'Inconsistency',
+              subtitle: 'Cache and source disagree',
+              points: [
+                'Writes, retries, or events arrive out of order',
+                'Use DB-first update plus reliable invalidation',
+                'Version events and make consumers idempotent',
+              ],
+              tip: 'Delete-after-write is common, but a concurrent stale reader can repopulate old data.',
+            },
+          ],
+        },
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Failure Scenario Q&A',
+          items: [
+            {
+              question: 'How do you prevent a cache stampede?',
+              answer:
+                'Use layered protection. Randomize TTLs to avoid synchronized expiry. For one missing hot key, allow one loader and make others wait briefly, serve stale data, or fail fast. In a distributed system, a Redis `SET key token NX PX lease` lock can coordinate loaders, but release it only if the token still matches—usually with Lua—and keep the lease bounded.\n\nRefresh predictable hot keys before expiry, limit concurrent database fallbacks, and cache valid empty results briefly. The loader must be idempotent, and the system needs a timeout path if the lock owner dies.',
+            },
+            {
+              question: 'How do you handle hot keys and big keys?',
+              answer:
+                'For a **hot key**, confirm command frequency and shard CPU first. Add a short-lived in-process near cache, replicate safe reads, request-coalesce, precompute, or partition splittable values/counters. Add per-key rate limits for abusive traffic.\n\nFor a **big key**, measure memory, element count, serialized bytes, network time, and deletion latency. Split it by bounded pages or domain units, retrieve only required fields, cap collection size, and prefer `UNLINK` or incremental scans for removal. Compression saves memory but adds CPU and can worsen event-loop or application latency. Fix the data model rather than only enlarging Redis.',
+            },
+          ],
+        },
+        {
+          type: 'markdown',
+          value:
+            'See [Distributed Cache](/designs/distributed-cache#failure-modes) for the wider system design and [Bloom Filter](/designs/bloom-filter) for rejecting definitely absent keys.',
+        },
+      ],
+    },
+    {
+      id: 'spring-redis-configuration',
+      title: 'Spring Boot Redis Configuration',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Two Spring Redis APIs',
+          intro:
+            'Use the cache abstraction for method caching and RedisTemplate for explicit Redis behavior.',
+          items: [
+            {
+              code: 'CM',
+              glyph: 'C',
+              title: 'RedisCacheManager',
+              subtitle: 'Provider behind Spring Cache',
+              points: [
+                'Maps cache names to Redis keyspaces',
+                'Configures TTL and serializers per cache',
+                'Powers @Cacheable, @CachePut, and @CacheEvict',
+              ],
+              tip: 'Different data domains usually need different TTLs.',
+            },
+            {
+              code: 'RT',
+              glyph: 'R',
+              title: 'RedisTemplate',
+              subtitle: 'Explicit commands and structures',
+              points: [
+                'Fine control over keys, hashes, sets, and transactions',
+                'Useful for locks, counters, and custom cache-aside',
+                'Requires explicit miss and failure logic',
+              ],
+              tip: 'StringRedisTemplate is convenient when both keys and values are strings.',
+            },
+            {
+              code: 'SER',
+              glyph: 'J',
+              title: 'JSON Serialization',
+              subtitle: 'Readable and language-neutral',
+              points: [
+                'Avoid default Java native serialization',
+                'Version payloads and tolerate schema evolution',
+                'Restrict polymorphic type handling',
+              ],
+              tip: 'Never deserialize untrusted type metadata into arbitrary classes.',
+            },
+            {
+              code: 'CONN',
+              glyph: 'L',
+              title: 'Lettuce Connections',
+              subtitle: 'Thread-safe and multiplexed',
+              points: [
+                'One connection can handle normal concurrent commands',
+                'Pool blocking or stateful workloads when needed',
+                'Set connect, command, and shutdown timeouts',
+              ],
+              tip: 'A large pool is not automatically faster and can overwhelm Redis.',
+            },
+          ],
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'RedisCacheConfiguration.java',
+          showLineNumbers: true,
+          code: `@Bean
+RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+    RedisCacheConfiguration defaults =
+        RedisCacheConfiguration.defaultCacheConfig()
+            .entryTtl(Duration.ofMinutes(10))
+            .disableCachingNullValues()
+            .serializeKeysWith(
+                RedisSerializationContext.SerializationPair
+                    .fromSerializer(new StringRedisSerializer()))
+            .serializeValuesWith(
+                RedisSerializationContext.SerializationPair
+                    .fromSerializer(
+                        GenericJackson2JsonRedisSerializer.builder().build()));
+
+    Map<String, RedisCacheConfiguration> perCache = Map.of(
+        "products", defaults.entryTtl(Duration.ofMinutes(30)),
+        "prices", defaults.entryTtl(Duration.ofSeconds(30))
+    );
+
+    return RedisCacheManager.builder(connectionFactory)
+        .cacheDefaults(defaults)
+        .withInitialCacheConfigurations(perCache)
+        .transactionAware()
+        .build();
+}`,
+        },
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Configuration Q&A',
+          items: [
+            {
+              question: 'How would you configure serialization safely?',
+              answer:
+                'Use `StringRedisSerializer` for keys and a deliberate JSON serializer for values. JSON is inspectable and interoperable, but the stored contract must be versioned. Add fields compatibly, ignore unknown fields where appropriate, and use a key namespace or payload version for breaking changes.\n\nAvoid Java native serialization because it couples entries to class internals and has a poor security/operability profile. Be careful with generic polymorphic type metadata: allow only expected application types. Do not log full cached values if they can contain sensitive data.',
+            },
+            {
+              question: 'Should every Spring Boot Redis application use connection pooling?',
+              answer:
+                'No. Lettuce connections are thread-safe and multiplex normal asynchronous commands, so a small number of shared connections is often enough. Pooling is useful for blocking commands, transactions or stateful operations that require dedicated connections, and isolation of workloads.\n\nSet command/connect timeouts and measure pending commands, pool wait time, Redis CPU, and network saturation. Oversized pools create more sockets and can turn an application spike into a Redis connection storm.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'consistency-resilience',
+      title: 'Consistency, High Availability, and Fallback',
+      blocks: [
+        {
+          type: 'sketchnote',
+          title: 'Production Safety Checklist',
+          intro: 'Availability is a chain: application, Redis, database, and invalidation path.',
+          items: [
+            {
+              code: 'INV',
+              glyph: 'I',
+              title: 'Invalidation',
+              subtitle: 'Make freshness intentional',
+              points: [
+                'Update database in its transaction',
+                'Publish invalidation reliably after commit',
+                'Use versions to reject old events',
+              ],
+              tip: 'Transactional outbox + idempotent consumers closes the DB/event gap.',
+            },
+            {
+              code: 'HA',
+              glyph: 'H',
+              title: 'Sentinel or Cluster',
+              subtitle: 'Different availability models',
+              points: [
+                'Sentinel: primary-replica failover',
+                'Cluster: sharding plus failover',
+                'Clients must support topology changes',
+              ],
+              tip: 'Replication is asynchronous; failover can lose the newest cache writes.',
+            },
+            {
+              code: 'DOWN',
+              glyph: 'D',
+              title: 'Graceful fallback',
+              subtitle: 'Protect the source of truth',
+              points: [
+                'Use tight timeouts and circuit breaker',
+                'Bound database fallback concurrency',
+                'Serve stale/default data where acceptable',
+              ],
+              tip: 'Fallback is a capacity plan, not a catch block.',
+            },
+            {
+              code: 'OBS',
+              glyph: 'M',
+              title: 'Monitoring',
+              subtitle: 'Watch value and saturation',
+              points: [
+                'Hit/miss ratio and load success/failure',
+                'p50/p95/p99 Redis and loader latency',
+                'Memory, evictions, CPU, connections, replication lag',
+              ],
+              tip: 'Break metrics down by cache name and outcome.',
+            },
+          ],
+        },
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Operations Q&A',
+          items: [
+            {
+              question: 'What happens if Redis goes down during peak traffic?',
+              answer:
+                'Without controls, requests wait for Redis timeouts and then all fall through to the database, producing a retry storm and database overload. The cache failure becomes a full-system outage.\n\nUse short timeouts, a circuit breaker, bounded retries with jitter, and bulkheads. Limit concurrent fallbacks to what the database can sustain. Depending on the endpoint, serve a local stale value, return a reduced response, queue work, or fail fast. Recover gradually: warm critical keys and rate-limit traffic so a cold cache does not create an avalanche. Test this failure under realistic peak load.',
+            },
+            {
+              question: 'How do you maintain cache consistency across microservices?',
+              answer:
+                'Give one service ownership of each data domain. After committing a database change, publish a versioned domain event through a transactional outbox or CDC. Consumers evict or update their cache entries idempotently and ignore events older than the version already seen. Use schema-versioned keys and TTL as a final safety bound.\n\nAvoid broad Redis Pub/Sub as the only correctness mechanism because disconnected consumers miss messages. Kafka or another durable log supports replay. For strict read-after-write behavior, bypass/update the cache on the write path or carry a version token; do not claim a distributed cache is strongly consistent unless the complete protocol guarantees it.',
+            },
+            {
+              question: 'What should be monitored in production?',
+              answer:
+                'At the application layer monitor hit, miss, put, eviction, and loader error counts by cache; end-to-end and Redis p95/p99 latency; fallback volume; serialization failures; lock waits; and database load caused by misses. A falling hit ratio is useful only when correlated with request mix and source cost.\n\nAt Redis monitor used memory, fragmentation, evictions, expired keys, command rate/latency, slow log, blocked clients, connected clients, network bandwidth, CPU, hot/big keys, replication lag, failovers, and cluster slot health. Alert on user impact and saturation trends, not one isolated metric.',
+            },
+            {
+              question: 'What production best practices would you state in an interview?',
+              answer:
+                'Use bounded TTLs with jitter, domain-specific cache names, stable versioned keys, JSON payloads with controlled schema evolution, and explicit null handling. Invalidate after successful writes through a reliable event path. Keep values small, batch safe reads with `MGET` or pipelining, avoid `KEYS`, and never run unbounded collection commands on the request path.\n\nConfigure max memory and an eviction policy, HA topology, timeouts, circuit breakers, and a database-safe fallback. Protect sensitive data, test cache-down and cold-cache scenarios, and monitor hit quality, tail latency, memory, evictions, replication, and source load.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'interview-summary',
+      title: 'One-Minute Interview Summary',
+      blocks: [
+        {
+          type: 'callout',
+          variant: 'summary',
+          title: 'Answer in this order',
+          body: '1. **Flow:** proxy → interceptor → cache manager → Redis → database on miss. 2. **Strategy:** choose cache-aside/write-through from write and consistency needs. 3. **Correctness:** key design, TTL, invalidation, and cross-service events. 4. **Failure:** stampede, penetration, avalanche, hot/big keys, and Redis-down fallback. 5. **Operations:** serialization, HA, memory bounds, and metrics. This structure shows production judgment instead of annotation memorization.',
+        },
+      ],
+    },
+  ],
+};
+
+export default content;

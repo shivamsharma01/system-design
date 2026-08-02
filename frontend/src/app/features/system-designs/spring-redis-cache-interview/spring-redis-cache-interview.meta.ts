@@ -1,0 +1,27 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const SPRING_REDIS_CACHE_INTERVIEW_META: DesignMeta = {
+  slug: 'spring-redis-cache-interview',
+  title: 'Redis & Spring Boot Caching Interview',
+  tagline:
+    'A production-focused sketchnote covering Spring Cache internals, Redis strategies, failure modes, consistency, and operations.',
+  section: 'interview-questions',
+  category: 'Backend Technologies',
+  tags: ['spring-boot', 'redis', 'caching', 'spring-cache', 'interview'],
+  technologies: ['Spring Boot', 'Spring Cache', 'Redis', 'Lettuce'],
+  difficulty: 'intermediate',
+  readingTimeMin: 35,
+  status: 'published',
+  keywords: [
+    'Spring Boot Redis interview',
+    'Spring Cache internals',
+    'cache stampede',
+    'Redis hot keys',
+    'TTL vs TTI',
+  ],
+  dateAdded: '2026-08-02',
+  popularity: 90,
+  icon: 'RC',
+  heroGradient: 'linear-gradient(135deg, #dc2626 0%, #450a0a 100%)',
+  author: 'System Design Platform',
+};
