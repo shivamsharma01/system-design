@@ -1549,6 +1549,174 @@ public class ApiExceptionHandler {
           ],
         },
         {
+          type: 'heading',
+          level: 3,
+          text: 'SSO vs OAuth 2.0',
+        },
+        {
+          type: 'callout',
+          variant: 'info',
+          title: 'The interview answer in one sentence',
+          body: '**SSO is the user experience and architecture goal**—authenticate once and access multiple applications. **OAuth 2.0 is a delegated authorization framework**. Modern login and SSO commonly use **OpenID Connect (OIDC)** on top of OAuth 2.0, while many enterprise systems use **SAML 2.0**.',
+        },
+        {
+          type: 'image',
+          src: 'assets/article-images/spring-boot-interview/01-sso-login-flow.png',
+          alt: 'Sequence diagram showing initial Salesforce login and subsequent Slack SSO login through the same identity provider',
+          caption:
+            'Initial login creates an IdP session and an application session. The second application reuses the IdP session to avoid another credential prompt, but still creates its own local session.',
+        },
+        {
+          type: 'sketchnote',
+          title: 'SSO, OAuth 2.0, OIDC, and SAML',
+          intro:
+            'These terms are related but not interchangeable. Separate the goal, protocol, token, and session.',
+          items: [
+            {
+              code: 'SSO',
+              glyph: '1×',
+              title: 'One login, many applications',
+              subtitle: 'Authentication experience and architecture',
+              points: [
+                'Applications trust a central Identity Provider (IdP)',
+                'The IdP authenticates once and remembers its browser session',
+                'Each application still creates its own local session',
+              ],
+              tip: 'SSO is the outcome—not one specific wire protocol.',
+            },
+            {
+              code: 'OAuth',
+              glyph: '↗',
+              title: 'Delegated authorization',
+              subtitle: 'A client receives limited API access',
+              points: [
+                'Defines clients, authorization server, resource server, and scopes',
+                'Issues access tokens for APIs, not proof of login by itself',
+                'Authorization Code + PKCE is the normal user-facing flow',
+              ],
+              tip: 'OAuth answers “what may this client access?”',
+            },
+            {
+              code: 'OIDC',
+              glyph: 'ID',
+              title: 'Authentication on OAuth 2.0',
+              subtitle: 'The modern web/mobile SSO choice',
+              points: [
+                'Adds an ID Token, UserInfo endpoint, nonce, and identity claims',
+                'ID token tells the client who authenticated',
+                'Access token authorizes calls to a resource server',
+              ],
+              tip: 'OIDC answers “who logged in?” while OAuth grants API access.',
+            },
+            {
+              code: 'SAML',
+              glyph: 'XML',
+              title: 'Enterprise federation',
+              subtitle: 'XML assertions through the browser',
+              points: [
+                'IdP sends a signed SAML assertion to the Service Provider',
+                'Common with corporate IdPs and older enterprise SaaS',
+                'Browser redirect/POST flow; less API-oriented than OAuth/OIDC',
+              ],
+              tip: 'SAML assertion and OIDC ID token play similar login roles in different ecosystems.',
+            },
+            {
+              code: 'Sessions',
+              glyph: '🍪',
+              title: 'Two session layers',
+              subtitle: 'IdP session is not the application session',
+              points: [
+                'IdP cookie prevents another credential prompt',
+                'Salesforce and Slack create separate local cookies',
+                'Logging out of one app may not end the IdP or other app sessions',
+              ],
+              tip: 'Single login is easier than reliable single logout.',
+            },
+          ],
+        },
+        {
+          type: 'mermaid',
+          caption:
+            'Editable sequence: the IdP authenticates the first request, then silently reuses its session for the second application.',
+          definition: `sequenceDiagram
+  autonumber
+  actor User
+  participant Browser
+  participant AppA as Salesforce (OIDC Client / SAML SP)
+  participant IdP as Okta/Auth0 (IdP)
+  participant AppB as Slack (OIDC Client / SAML SP)
+
+  rect rgb(226, 242, 255)
+    Note over User,IdP: First application login
+    User->>Browser: Open Salesforce
+    Browser->>AppA: GET protected page
+    AppA-->>Browser: 302 redirect to IdP + state/nonce
+    Browser->>IdP: OIDC authorization request or SAML AuthnRequest
+    IdP-->>Browser: Display login + MFA
+    User->>IdP: Submit credentials/MFA
+    IdP->>IdP: Verify user and create IdP session
+    IdP-->>Browser: Authorization response or SAML assertion
+    Browser->>AppA: Callback / assertion consumer request
+    AppA->>AppA: Validate issuer, signature, audience, state/nonce, time
+    AppA-->>Browser: Create Salesforce session cookie
+  end
+
+  rect rgb(230, 255, 235)
+    Note over User,IdP: Second application uses SSO
+    User->>Browser: Open Slack
+    Browser->>AppB: GET protected page
+    AppB-->>Browser: 302 redirect to same IdP
+    Browser->>IdP: New OIDC/SAML authentication request
+    IdP->>IdP: Existing IdP session found; skip login
+    IdP-->>Browser: New response intended for Slack
+    Browser->>AppB: Callback / assertion consumer request
+    AppB->>AppB: Validate response and map user
+    AppB-->>Browser: Create Slack session cookie
+  end`,
+        },
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'SSO vs OAuth 2.0 Interview Q&A',
+          items: [
+            {
+              question: 'Is SSO the same as OAuth 2.0?',
+              answer:
+                'No. **SSO** describes the login experience: one authentication lets a user enter multiple trusted applications. **OAuth 2.0** describes delegated authorization: a client receives limited access to a protected API on behalf of a user or itself.\n\nOAuth 2.0 alone does not standardize user authentication. **OIDC** adds identity and login semantics on top of OAuth 2.0, so OIDC can implement SSO. **SAML 2.0** is another common SSO protocol, especially in enterprise environments. The clean interview phrase is: “SSO is the goal; OIDC or SAML is the login protocol; OAuth 2.0 handles delegated authorization.”',
+            },
+            {
+              question: 'How does the first SSO login work?',
+              answer:
+                '1. The user requests a protected page in an application.\n2. The application redirects the browser to its trusted IdP, normally with HTTP 302.\n3. The browser carries an OIDC authorization request or SAML authentication request to the IdP.\n4. The IdP authenticates the user with password, passkey, MFA, or another policy and creates an IdP session cookie.\n5. The IdP returns a response through the browser: an OIDC authorization response that leads to tokens, or a signed SAML assertion.\n6. The application validates the response, maps the external identity to a local user, creates its own session cookie, and grants access.\n\nThe password is entered only at the IdP; the application should not receive it.',
+            },
+            {
+              question: 'Why does the second application not ask for credentials?',
+              answer:
+                'The second application redirects the browser to the same IdP. The browser automatically sends the IdP session cookie, so the IdP recognizes the active authenticated session and can skip the login page. It still evaluates policy—MFA age, device, risk, requested assurance, and consent may force reauthentication.\n\nThe IdP issues a **new response specifically for the second application**. Tokens/assertions are audience-bound and should not be copied from Salesforce to Slack. Slack validates its response and creates a separate Slack session.',
+            },
+            {
+              question: 'When would you choose OIDC instead of SAML?',
+              answer:
+                'Choose **OIDC** for modern web applications, SPAs with a backend-for-frontend, mobile apps, and systems that also call APIs. It uses JSON/HTTP conventions, supports discovery, and cleanly separates ID tokens from API access tokens.\n\nChoose **SAML** when integrating with an enterprise IdP or SaaS product that already standardizes on SAML, particularly older browser-based corporate systems. SAML is mature but XML-heavy and primarily browser-login focused. Protocol choice often follows partner support and migration cost rather than technical preference alone.',
+            },
+            {
+              question: 'What must an application validate before trusting an SSO response?',
+              answer:
+                'For OIDC, validate the authorization response `state`, ID-token signature, issuer, audience/client ID, expiry, nonce, and authorized algorithm using the IdP metadata and rotating keys. Use Authorization Code + PKCE; never treat an access token as an ID token.\n\nFor SAML, validate the XML signature using pinned IdP metadata, issuer, audience restriction, destination/recipient, time conditions, request correlation, and replay protection. Prevent XML signature-wrapping and parser attacks by using a maintained SAML library.\n\nFor both, use HTTPS, strict redirect URI registration, secure `HttpOnly`/`SameSite` cookies, short sessions appropriate to risk, MFA, and safe account linking. Do not identify users by an unverified email alone.',
+            },
+            {
+              question: 'How would you implement SSO in Spring Security?',
+              answer:
+                'For OIDC login, configure the application as an OAuth 2.0 client and use `oauth2Login()`. Spring Security handles the authorization redirect, callback, code exchange, ID-token validation, and construction of the authenticated principal. Provider details normally come from `issuer-uri`; customize user mapping through an `OidcUserService` only when needed.\n\nFor SAML, use Spring Security SAML 2.0 service-provider support with `saml2Login()` and trusted IdP metadata. Keep login-client behavior separate from `oauth2ResourceServer()`, which validates bearer access tokens on APIs. In production, configure multiple IdPs by registration, map external groups to least-privilege authorities, persist only necessary identity data, and test key/certificate rotation and IdP outage behavior.',
+            },
+            {
+              question: 'Does SSO also mean single logout?',
+              answer:
+                'Not automatically. The user can have an IdP session plus independent sessions in every application. Logging out of Salesforce may remove only the Salesforce cookie; the IdP session can still silently log the user back in, and Slack may remain active.\n\nOIDC RP-Initiated Logout and SAML Single Logout can coordinate sign-out, but browser restrictions, offline clients, partial failures, and multiple devices make it harder than login. Define whether logout means local application logout, IdP logout, global session revocation, or token revocation, then implement and test that exact policy.',
+            },
+          ],
+        },
+        {
           type: 'interviewQa',
           variant: 'sketch',
           title: 'DI, Security & Errors Q&A',
