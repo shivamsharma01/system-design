@@ -162,6 +162,260 @@ const content: DesignContent = {
       title: 'Servlet Filter Internals',
       blocks: [
         {
+          type: 'callout',
+          variant: 'info',
+          title: 'Golden rule: choose by execution boundary',
+          body: '**Filter = servlet/HTTP boundary**, before Spring MVC. **Interceptor = Spring MVC handler boundary**, around controller execution. **AOP = Spring bean method boundary**, around eligible proxied method calls. None is a universal replacement for the others.',
+        },
+        {
+          type: 'mermaid',
+          caption:
+            'Simplified request and response path. AOP is not one fixed pipeline stage: it runs whenever execution crosses an advised Spring proxy.',
+          definition: `flowchart LR
+  Client[Client] --> Container[Tomcat / Servlet container]
+  Container --> F1[Filter chain: before]
+  F1 --> DS[DispatcherServlet]
+  DS --> HM[HandlerMapping selects controller]
+  HM --> I1[Interceptor preHandle]
+  I1 --> CP[Controller proxy if advised]
+  CP --> C[Controller method]
+  C --> SP[Service proxy / AOP advice]
+  SP --> S[Service method]
+  S --> RP[Repository proxy / advice]
+  RP --> DB[(Database)]
+  DB --> RP
+  RP --> S
+  S --> SP
+  SP --> C
+  C --> CP
+  CP --> I2[Interceptor postHandle]
+  I2 --> R[Render view or write response body]
+  R --> I3[Interceptor afterCompletion]
+  I3 --> F2[Filter chain: after]
+  F2 --> Client`,
+        },
+        {
+          type: 'sketchnote',
+          title: 'Filter vs Interceptor vs Spring AOP',
+          intro:
+            'Ask what must be intercepted: raw HTTP traffic, a mapped controller, or a Spring-managed method.',
+          items: [
+            {
+              code: 'Filter',
+              glyph: 'HTTP',
+              title: 'Servlet boundary',
+              subtitle: 'Wraps requests before Spring MVC',
+              points: [
+                'Runs around DispatcherServlet for matching dispatcher types',
+                'Works with HttpServletRequest and HttpServletResponse',
+                'Can wrap body/headers or stop the chain completely',
+              ],
+              tip: 'Use for CORS, security-filter integration, compression, request wrapping, and edge logging.',
+            },
+            {
+              code: 'MVC',
+              glyph: 'I',
+              title: 'HandlerInterceptor',
+              subtitle: 'Knows the selected MVC handler',
+              points: [
+                'preHandle runs before the controller',
+                'postHandle runs after a normal handler return',
+                'afterCompletion runs after request completion',
+              ],
+              tip: 'Use when logic depends on controller methods, annotations, locale, or MVC timing.',
+            },
+            {
+              code: 'AOP',
+              glyph: '@',
+              title: 'Spring proxy boundary',
+              subtitle: 'Wraps eligible bean method calls',
+              points: [
+                'Pointcuts select methods across application layers',
+                'Advice can run before, after, or around the invocation',
+                'Not tied to HTTP; also works in jobs and message consumers',
+              ],
+              tip: 'Use for transactions, caching, method security, retry, and business-operation metrics.',
+            },
+            {
+              code: 'Pick',
+              glyph: '?',
+              title: 'Fast decision',
+              subtitle: 'Choose the earliest useful layer',
+              points: [
+                'Need raw request/response? Filter',
+                'Need HandlerMethod/controller metadata? Interceptor',
+                'Need reusable method-level behavior? AOP',
+              ],
+              tip: 'Authentication usually belongs in Spring Security’s filter chain; authorization may continue at method level.',
+            },
+          ],
+        },
+        {
+          type: 'featureComparison',
+          columns: ['Servlet Filter', 'MVC Interceptor', 'Spring AOP'],
+          rows: [
+            {
+              feature: 'Execution layer',
+              values: [
+                'Servlet container',
+                'Inside DispatcherServlet / Spring MVC',
+                'Spring bean proxy',
+              ],
+            },
+            {
+              feature: 'Main target',
+              values: [
+                'HTTP request and response',
+                'Mapped controller handler',
+                'Method execution',
+              ],
+            },
+            {
+              feature: 'Runs without a controller match',
+              values: ['Yes', 'Usually no', 'Yes, if an advised bean method is called'],
+            },
+            {
+              feature: 'Knows HandlerMethod annotations',
+              values: ['No', 'Yes', 'Through method pointcut/reflection'],
+            },
+            {
+              feature: 'Can replace/wrap request body',
+              values: [
+                'Yes, with a reusable wrapper',
+                'Too late for general body wrapping',
+                'No raw servlet-body role',
+              ],
+            },
+            {
+              feature: 'Can short-circuit HTTP request',
+              values: [
+                'Yes; do not continue the chain',
+                'Yes; preHandle returns false',
+                'Can block a method, but is not the outer HTTP chain',
+              ],
+            },
+            {
+              feature: 'Works for scheduled/message/background work',
+              values: ['No', 'No', 'Yes'],
+            },
+            {
+              feature: 'Typical ordering',
+              values: [
+                '@Order / FilterRegistrationBean / Security chain position',
+                'Registry order',
+                '@Order / Ordered; lower value has higher precedence',
+              ],
+            },
+            {
+              feature: 'Main limitation',
+              values: [
+                'No controller metadata; servlet-specific',
+                'MVC-only; not every servlet or method call',
+                'Proxy rules, self-invocation, Spring beans only',
+              ],
+            },
+          ],
+          caption:
+            'The correct choice follows the boundary and information required—not which extension point feels most powerful.',
+        },
+        {
+          type: 'code',
+          language: 'java',
+          filename: 'ThreeExtensionPoints.java',
+          showLineNumbers: true,
+          code: `// 1) Raw HTTP boundary
+@Component
+class CorrelationFilter extends OncePerRequestFilter {
+  @Override
+  protected void doFilterInternal(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      FilterChain chain) throws ServletException, IOException {
+    response.setHeader("X-Correlation-Id", correlationId(request));
+    chain.doFilter(request, response); // before | controller | after
+  }
+}
+
+// 2) Spring MVC controller boundary
+class TimingInterceptor implements HandlerInterceptor {
+  public boolean preHandle(
+      HttpServletRequest request, HttpServletResponse response, Object handler) {
+    request.setAttribute("startedAt", System.nanoTime());
+    return true;
+  }
+
+  public void afterCompletion(
+      HttpServletRequest request, HttpServletResponse response,
+      Object handler, Exception error) {
+    recordDuration(request, handler, error);
+  }
+}
+
+@Configuration
+class WebConfig implements WebMvcConfigurer {
+  public void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(new TimingInterceptor()).addPathPatterns("/api/**");
+  }
+}
+
+// 3) Spring-managed method boundary
+@Aspect
+@Component
+class BusinessTimingAspect {
+  @Around("@annotation(Monitored)")
+  Object measure(ProceedingJoinPoint call) throws Throwable {
+    long start = System.nanoTime();
+    try {
+      return call.proceed();
+    } finally {
+      recordMethod(call.getSignature(), System.nanoTime() - start);
+    }
+  }
+}`,
+        },
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Filter, Interceptor, and AOP Interview Q&A',
+          items: [
+            {
+              question: 'Why do Filter, Interceptor, and AOP all exist?',
+              answer:
+                'They observe different boundaries and therefore have different information and guarantees.\n\n- A **Filter** is part of the Servlet specification. It sees raw HTTP traffic before `DispatcherServlet`, including requests that never map to a controller.\n- A **HandlerInterceptor** belongs to Spring MVC. By the time it runs, Spring can identify the selected controller and `HandlerMethod`.\n- **Spring AOP** wraps calls to Spring-managed bean methods. It is independent of HTTP and can apply equally to a controller, service, repository, scheduler, or message consumer.\n\nUsing the narrowest correct boundary keeps code easier to reason about. A filter should not contain business rules, and an aspect should not pretend it owns the complete HTTP lifecycle.',
+            },
+            {
+              question: 'What is the exact request lifecycle?',
+              answer:
+                'The simplified forward path is: servlet container → filters → `DispatcherServlet` → `HandlerMapping` → interceptor `preHandle` → controller → any advised service/repository proxies → response conversion or view rendering. The return path unwinds through interceptor callbacks and then the filters.\n\n`postHandle` runs after a successful handler call but before view rendering. For `@ResponseBody`, the body may already be selected/written through message converters, so use `ResponseBodyAdvice` when the response body itself must be changed. `afterCompletion` runs after MVC processing and receives an exception when one escaped the handler. Filter code after `chain.doFilter()` runs when the downstream chain returns.\n\nAOP is not always “between controller and service.” Advice runs at every eligible proxy crossing, including an advised controller or repository.',
+            },
+            {
+              question: 'Can Spring AOP replace Filters or Interceptors?',
+              answer:
+                'No. AOP only sees eligible Spring bean method calls. It does not naturally own the raw servlet request, response wrapping, dispatcher types, static resources, CORS preflight, or failures occurring before a controller method is selected.\n\nA filter cannot replace method AOP either: it sees one HTTP exchange, not internal service calls, scheduled jobs, Kafka listeners, transaction boundaries, or method annotations across layers. An interceptor adds handler knowledge but remains limited to Spring MVC. They can cooperate—for example, a filter establishes identity, an interceptor records the selected endpoint, and AOP enforces a method-level business permission.',
+            },
+            {
+              question: 'When should authentication and authorization use each layer?',
+              answer:
+                'Authentication for browser/API requests normally belongs in **Spring Security’s filter chain**, which loads credentials/tokens, builds the `SecurityContext`, handles anonymous access, and returns consistent 401/403 responses. Do not create a separate ad hoc authentication interceptor.\n\nURL-level authorization can also happen in the security filter chain. Use method security such as `@PreAuthorize`—implemented with AOP—for business permissions that must hold regardless of whether the method was called from HTTP, messaging, or another bean. An MVC interceptor can enforce handler-specific policy, but Spring Security is usually the safer standard mechanism.',
+            },
+            {
+              question: 'What are the main lifecycle and exception limitations?',
+              answer:
+                'Filters may run for `REQUEST`, `ASYNC`, `ERROR`, or forwarded dispatches depending on registration. `OncePerRequestFilter` means once per configured dispatch behavior, not automatically once across every dispatch and duplicate registration.\n\nAn interceptor’s `postHandle` is skipped when the handler throws; `afterCompletion` is the reliable cleanup callback after MVC handling. If `preHandle` returns false, the interceptor must complete the response itself. Async MVC has additional callbacks through `AsyncHandlerInterceptor`.\n\nAOP advice follows proxy rules: self-invocation bypasses advice, manually created objects are not advised, private/final methods may be ineligible depending on proxy type, and only calls through the proxy are intercepted. `try/finally` in `@Around` advice is essential for timing/cleanup on exceptions.',
+            },
+            {
+              question: 'Which one should be used for common production requirements?',
+              answer:
+                '- **CORS, compression, request/response wrappers, correlation IDs:** Filter. Prefer built-in server/Spring Security support where available.\n- **JWT/session authentication:** Spring Security filter chain.\n- **Controller annotation checks, locale, endpoint-specific auditing/timing:** Interceptor.\n- **Transactions, caching, retry, method security, service-operation metrics:** AOP.\n- **Changing JSON response bodies:** `ResponseBodyAdvice`, not an interceptor.\n- **Global controller exception responses:** `@ControllerAdvice`/`HandlerExceptionResolver`.\n\nLogging can exist at all three layers, but each log should answer a different question: HTTP exchange, selected endpoint, or business operation. Avoid logging the same payload three times or exposing credentials and personal data.',
+            },
+            {
+              question: 'What memory trick keeps them separate?',
+              answer:
+                '**F-I-A = Front door, Inside MVC, Around methods.**\n\n- **Filter = Front door:** raw HTTP enters and leaves the servlet application.\n- **Interceptor = Inside MVC:** Spring has selected a controller handler.\n- **AOP = Around methods:** a call crosses a Spring bean proxy.\n\nThen ask one question: “Do I need the request, the handler, or the method?” The answer normally identifies the correct extension point.',
+            },
+          ],
+        },
+        {
           type: 'interviewQa',
           variant: 'sketch',
           title: 'OncePerRequestFilter Production Traps',

@@ -3,6 +3,7 @@ import { DesignRegistryEntry } from './design-registry.model';
 // --- Design metadata (statically imported; tiny, used for cards + search) ---
 import { JAVA_INTERVIEW_META } from '../../features/system-designs/java-interview/java-interview.meta';
 import { SPRING_BOOT_INTERVIEW_META } from '../../features/system-designs/spring-boot-interview/spring-boot-interview.meta';
+import { SPRING_BOOT_PRODUCTION_INTERVIEW_META } from '../../features/system-designs/spring-boot-production-interview/spring-boot-production-interview.meta';
 import { SPRING_REDIS_CACHE_INTERVIEW_META } from '../../features/system-designs/spring-redis-cache-interview/spring-redis-cache-interview.meta';
 import { SQL_INTERVIEW_META } from '../../features/system-designs/sql-interview/sql-interview.meta';
 import { AI_AGENT_SKILLS_META } from '../../features/system-designs/ai-agent-skills/ai-agent-skills.meta';
@@ -201,6 +202,11 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
     meta: SPRING_BOOT_INTERVIEW_META,
     load: () =>
       import('../../features/system-designs/spring-boot-interview/spring-boot-interview.content'),
+  },
+  {
+    meta: SPRING_BOOT_PRODUCTION_INTERVIEW_META,
+    load: () =>
+      import('../../features/system-designs/spring-boot-production-interview/spring-boot-production-interview.content'),
   },
   {
     meta: SPRING_REDIS_CACHE_INTERVIEW_META,
