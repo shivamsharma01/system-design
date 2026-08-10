@@ -1,0 +1,46 @@
+import { DesignMeta } from '../../../shared/models';
+
+export const STAFF_INTERVIEW_ROADMAP_META: DesignMeta = {
+  slug: 'staff-interview-roadmap',
+  title: 'Staff Engineer Interview Roadmap',
+  tagline:
+    'A 24-week plan to clear Staff/Lead/Principal Java interviews: eligibility map, skill gaps, weekly drills, story bank, and a localStorage checklist.',
+  section: 'interview-questions',
+  category: 'Interview Prep',
+  tags: [
+    'interview',
+    'staff-engineer',
+    'roadmap',
+    'java',
+    'system-design',
+    'career',
+    'kafka',
+    'redis',
+  ],
+  technologies: [
+    'Java',
+    'Spring Boot',
+    'Kafka',
+    'Redis',
+    'Kubernetes',
+    'AWS',
+    'System Design',
+    'DSA',
+  ],
+  difficulty: 'advanced',
+  readingTimeMin: 55,
+  status: 'published',
+  keywords: [
+    'staff engineer interview roadmap',
+    'principal engineer interview prep',
+    'java staff interview',
+    'system design staff bar',
+    'kafka redis kubernetes interview',
+    'interview checklist progress',
+  ],
+  dateAdded: '2026-08-10',
+  popularity: 150,
+  icon: 'SR',
+  heroGradient: 'linear-gradient(135deg, #0ea5e9 0%, #0f172a 100%)',
+  author: 'System Design Platform',
+};

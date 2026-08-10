@@ -78,7 +78,8 @@ export type ContentBlock =
   | MathBlock
   | ExpandableBlock
   | ReferencesBlock
-  | SketchnoteBlock;
+  | SketchnoteBlock
+  | RoadmapChecklistBlock;
 
 export interface MarkdownBlock {
   type: 'markdown';
@@ -236,4 +237,28 @@ export interface SketchnoteBlock {
   title?: string;
   intro?: string;
   items: SketchnoteItem[];
+}
+
+export interface RoadmapChecklistItem {
+  /** Stable id used as the localStorage completion key. */
+  id: string;
+  label: string;
+  /** Optional link to an internal design page or external resource. */
+  href?: string;
+  estimateHours?: number;
+}
+
+export interface RoadmapChecklistGroup {
+  id: string;
+  title: string;
+  items: RoadmapChecklistItem[];
+}
+
+/** Interactive checklist with localStorage-backed completion progress. */
+export interface RoadmapChecklistBlock {
+  type: 'roadmapChecklist';
+  /** Namespace key; stored as `sd-roadmap:<storageKey>`. */
+  storageKey: string;
+  title?: string;
+  groups: RoadmapChecklistGroup[];
 }

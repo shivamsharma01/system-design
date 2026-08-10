@@ -183,6 +183,7 @@ import { LOAD_BALANCING_PATTERN_META } from '../../features/system-designs/load-
 import { SERVICE_MESH_META } from '../../features/system-designs/service-mesh/service-mesh.meta';
 import { VENDING_MACHINE_META } from '../../features/system-designs/vending-machine/vending-machine.meta';
 import { HOTEL_RESERVATION_META } from '../../features/system-designs/hotel-reservation/hotel-reservation.meta';
+import { STAFF_INTERVIEW_ROADMAP_META } from '../../features/system-designs/staff-interview-roadmap/staff-interview-roadmap.meta';
 
 /**
  * The single source of truth for the catalog.
@@ -967,5 +968,10 @@ export const DESIGN_REGISTRY: DesignRegistryEntry[] = [
   {
     meta: HOTEL_RESERVATION_META,
     load: () => import('../../features/system-designs/hotel-reservation/hotel-reservation.content'),
+  },
+  {
+    meta: STAFF_INTERVIEW_ROADMAP_META,
+    load: () =>
+      import('../../features/system-designs/staff-interview-roadmap/staff-interview-roadmap.content'),
   },
 ];

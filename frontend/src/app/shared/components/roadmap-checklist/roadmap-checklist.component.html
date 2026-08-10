@@ -1,0 +1,92 @@
+<section class="rc" aria-label="Roadmap checklist">
+  <header class="rc__header">
+    <div class="rc__heading">
+      <h3 class="rc__title">{{ title() || 'Progress checklist' }}</h3>
+      <p class="rc__meta">{{ doneCount() }} / {{ totalCount() }} complete · {{ percent() }}%</p>
+    </div>
+    <div class="rc__actions">
+      <div class="rc__filters" role="group" aria-label="Filter checklist">
+        <button
+          type="button"
+          class="rc__chip"
+          [class.rc__chip--active]="activeFilter() === 'all'"
+          (click)="setFilter('all')"
+        >
+          All
+        </button>
+        <button
+          type="button"
+          class="rc__chip"
+          [class.rc__chip--active]="activeFilter() === 'open'"
+          (click)="setFilter('open')"
+        >
+          Open
+        </button>
+        <button
+          type="button"
+          class="rc__chip"
+          [class.rc__chip--active]="activeFilter() === 'done'"
+          (click)="setFilter('done')"
+        >
+          Done
+        </button>
+      </div>
+      <button type="button" class="rc__reset" (click)="onReset()">Reset</button>
+    </div>
+  </header>
+
+  <div
+    class="rc__bar"
+    role="progressbar"
+    [attr.aria-valuenow]="percent()"
+    aria-valuemin="0"
+    aria-valuemax="100"
+  >
+    <div class="rc__bar-fill" [style.width.%]="percent()"></div>
+  </div>
+
+  <p class="rc__hint">
+    Progress is saved in this browser (localStorage). Refreshing keeps your checks.
+  </p>
+
+  @for (group of groups(); track group.id) {
+    <section class="rc__group">
+      <header class="rc__group-head">
+        <h4 class="rc__group-title">{{ group.title }}</h4>
+        <span class="rc__group-meta">{{ groupDoneCount(group) }} / {{ group.items.length }}</span>
+      </header>
+
+      <ul class="rc__list">
+        @for (item of visibleItems(group); track item.id) {
+          <li class="rc__item" [class.rc__item--done]="isDone(item.id)">
+            <label class="rc__label">
+              <input
+                type="checkbox"
+                class="rc__check"
+                [checked]="isDone(item.id)"
+                (change)="onToggle(item.id)"
+              />
+              <span class="rc__text">
+                <span class="rc__item-label">{{ item.label }}</span>
+                @if (item.estimateHours) {
+                  <span class="rc__hours">~{{ item.estimateHours }}h</span>
+                }
+              </span>
+            </label>
+            @if (item.href) {
+              @if (isInternalHref(item.href)) {
+                <a class="rc__link" [routerLink]="item.href">Open</a>
+              } @else {
+                <a class="rc__link" [href]="item.href" target="_blank" rel="noopener noreferrer"
+                  >Open</a
+                >
+              }
+            }
+          </li>
+        } @empty {
+          <li class="rc__empty">No items in this filter.</li>
+        }
+      </ul>
+    </section>
+  }
+</section>

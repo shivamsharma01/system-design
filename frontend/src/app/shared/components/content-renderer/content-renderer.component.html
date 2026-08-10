@@ -175,5 +175,13 @@
         [items]="asSketchnote(block).items"
       />
     }
+
+    @case ('roadmapChecklist') {
+      <app-roadmap-checklist
+        [storageKey]="asRoadmapChecklist(block).storageKey"
+        [title]="asRoadmapChecklist(block).title"
+        [groups]="asRoadmapChecklist(block).groups"
+      />
+    }
   }
 }

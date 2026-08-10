@@ -18,6 +18,7 @@ import {
   MetricsBlock,
   ProsConsBlock,
   ReferencesBlock,
+  RoadmapChecklistBlock,
   SketchnoteBlock,
   TableBlock,
   TimelineBlock,
@@ -45,6 +46,7 @@ import { MathBlockComponent } from '../math-block/math-block.component';
 import { ExpandablePanelComponent } from '../expandable-panel/expandable-panel.component';
 import { ReferenceListComponent } from '../reference-list/reference-list.component';
 import { SketchnoteBoardComponent } from '../sketchnote-board/sketchnote-board.component';
+import { RoadmapChecklistComponent } from '../roadmap-checklist/roadmap-checklist.component';
 
 /**
  * The data-driven rendering engine: maps each `ContentBlock` to its reusable
@@ -76,6 +78,7 @@ import { SketchnoteBoardComponent } from '../sketchnote-board/sketchnote-board.c
     ExpandablePanelComponent,
     ReferenceListComponent,
     SketchnoteBoardComponent,
+    RoadmapChecklistComponent,
     // Self-reference: lets expandable blocks render nested content blocks.
     ContentRendererComponent,
   ],
@@ -126,4 +129,6 @@ export class ContentRendererComponent {
   protected asExpandable = (b: ContentBlock): ExpandableBlock => b as ExpandableBlock;
   protected asReferences = (b: ContentBlock): ReferencesBlock => b as ReferencesBlock;
   protected asSketchnote = (b: ContentBlock): SketchnoteBlock => b as SketchnoteBlock;
+  protected asRoadmapChecklist = (b: ContentBlock): RoadmapChecklistBlock =>
+    b as RoadmapChecklistBlock;
 }
