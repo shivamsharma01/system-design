@@ -28,7 +28,10 @@ const content: DesignContent = {
           caption: 'Scope for this LLD.',
           headers: ['In scope', 'Out of scope'],
           rows: [
-            ['Seat map, show scheduling, seat hold/lock, booking, payment', 'Search/recommendation ranking, CDN/poster delivery'],
+            [
+              'Seat map, show scheduling, seat hold/lock, booking, payment',
+              'Search/recommendation ranking, CDN/poster delivery',
+            ],
             ['Pricing strategy per seat type', 'Dynamic/surge pricing algorithms'],
             ['Concurrency-safe seat reservation', 'Full payment gateway integration internals'],
           ],
@@ -112,15 +115,43 @@ const content: DesignContent = {
           rows: [
             ['City', 'id, name', 'Top of the browse hierarchy.'],
             ['Cinema', 'id, name, city, address', 'A physical multiplex with one or more screens.'],
-            ['Screen', 'id, cinema, name, layout (rows x cols)', 'A single auditorium; owns the physical seat layout.'],
-            ['Seat', 'id, screen, row, col, seatType', 'A physical, reusable seat — its type/position never changes across shows.'],
-            ['SeatType', 'enum: REGULAR, PREMIUM, RECLINER', 'Drives pricing via the pricing strategy.'],
+            [
+              'Screen',
+              'id, cinema, name, layout (rows x cols)',
+              'A single auditorium; owns the physical seat layout.',
+            ],
+            [
+              'Seat',
+              'id, screen, row, col, seatType',
+              'A physical, reusable seat — its type/position never changes across shows.',
+            ],
+            [
+              'SeatType',
+              'enum: REGULAR, PREMIUM, RECLINER',
+              'Drives pricing via the pricing strategy.',
+            ],
             ['Movie', 'id, title, durationMin, language, genre', 'The film being screened.'],
-            ['Show', 'id, movie, screen, startTime, endTime', 'One scheduled screening; the unit shows/seats are booked against.'],
-            ['ShowSeat', 'show, seat, status, price, lockedBy, lockExpiresAt', 'Per-show state of a physical seat — AVAILABLE / LOCKED / BOOKED. This is what concurrency control operates on.'],
+            [
+              'Show',
+              'id, movie, screen, startTime, endTime',
+              'One scheduled screening; the unit shows/seats are booked against.',
+            ],
+            [
+              'ShowSeat',
+              'show, seat, status, price, lockedBy, lockExpiresAt',
+              'Per-show state of a physical seat — AVAILABLE / LOCKED / BOOKED. This is what concurrency control operates on.',
+            ],
             ['User', 'id, name, email', 'The booking customer.'],
-            ['Booking', 'id, user, show, seats, amount, status, createdAt', 'A confirmed (or in-progress) reservation of one or more `ShowSeat`s.'],
-            ['Payment', 'id, booking, amount, status, method', 'Payment attempt tied 1:1 (or 1:many for retries) to a booking.'],
+            [
+              'Booking',
+              'id, user, show, seats, amount, status, createdAt',
+              'A confirmed (or in-progress) reservation of one or more `ShowSeat`s.',
+            ],
+            [
+              'Payment',
+              'id, booking, amount, status, method',
+              'Payment attempt tied 1:1 (or 1:many for retries) to a booking.',
+            ],
           ],
         },
         {
@@ -137,7 +168,8 @@ const content: DesignContent = {
       blocks: [
         {
           type: 'mermaid',
-          caption: 'City → Cinema → Screen → Show hierarchy, with ShowSeat as the concurrency-sensitive join entity.',
+          caption:
+            'City → Cinema → Screen → Show hierarchy, with ShowSeat as the concurrency-sensitive join entity.',
           definition: `classDiagram
   class City {
     +String id
@@ -311,7 +343,8 @@ const content: DesignContent = {
         },
         {
           type: 'markdown',
-          value: '**Hold expiry** — if the user abandons checkout, the lock TTL expires and the seat becomes AVAILABLE again without any explicit action.',
+          value:
+            '**Hold expiry** — if the user abandons checkout, the lock TTL expires and the seat becomes AVAILABLE again without any explicit action.',
         },
         {
           type: 'mermaid',
@@ -461,7 +494,7 @@ public class ShowSeat {
         {
           type: 'markdown',
           value:
-            '**Seat locking — the core concurrency-safe primitive.** Two implementations: an in-memory version for a single JVM, and a Redis-based version for a multi-instance deployment.',
+            '**Seat locking — the coordination primitive.** Two implementations are shown for progression: an in-memory version for a single JVM, and a Redis lease for a multi-instance deployment. The Redis version improves coordination but is not, by itself, the final correctness boundary; the production sections below add atomic database transitions, constraints, and fencing.',
         },
         {
           type: 'code',
@@ -595,7 +628,8 @@ public class DefaultPricingStrategy implements PricingStrategy {
         },
         {
           type: 'markdown',
-          value: '**BookingService** — the orchestrator tying seat locking, pricing, and payment together.',
+          value:
+            '**BookingService** — the orchestrator tying seat locking, pricing, and payment together.',
         },
         {
           type: 'code',
@@ -704,6 +738,542 @@ public class DefaultPricingStrategy implements PricingStrategy {
       ],
     },
     {
+      id: 'last-ticket-race',
+      title: 'The Last-Ticket Race',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'Assume exactly one seat remains for a sold-out concert or movie. Alice and Bob click **Buy** at the same millisecond, and a load balancer sends them to different application servers. The dangerous implementation performs a read followed by a write: both requests read `AVAILABLE`, both make an irreversible payment call, and both later write `BOOKED`. Each individual request looks valid; the interleaving is invalid.',
+        },
+        {
+          type: 'mermaid',
+          caption:
+            'A check-then-act race: two locally correct requests produce one globally incorrect result.',
+          definition: `sequenceDiagram
+  autonumber
+  actor A as Alice
+  actor B as Bob
+  participant SA as Server A
+  participant SB as Server B
+  participant DB as Inventory DB
+  participant PG as Payment Gateway
+
+  par Alice checks
+    A->>SA: Buy seat 45
+    SA->>DB: SELECT status
+    DB-->>SA: AVAILABLE
+  and Bob checks
+    B->>SB: Buy seat 45
+    SB->>DB: SELECT status
+    DB-->>SB: AVAILABLE
+  end
+  par
+    SA->>PG: Charge Alice
+    PG-->>SA: Success
+  and
+    SB->>PG: Charge Bob
+    PG-->>SB: Success
+  end
+  SA->>DB: UPDATE status = BOOKED
+  SB->>DB: UPDATE status = BOOKED
+  Note over A,B: Two successful customers, one physical seat`,
+        },
+        {
+          type: 'callout',
+          variant: 'danger',
+          title: 'The bug is check-then-act',
+          body: 'A transaction around only the final `UPDATE` does not fix this. The decision and state transition must be **one atomic operation**, or the relevant row must remain locked while that decision is made. Never charge merely because a stale read said inventory was available.',
+        },
+        {
+          type: 'heading',
+          level: 3,
+          text: 'Define the invariant before choosing a lock',
+        },
+        {
+          type: 'markdown',
+          value:
+            'The hard business invariant is: **at most one confirmed booking may own a `(show_id, seat_id)` pair**. Availability is a projection of durable booking state, not a promise made by a cache. A robust design defends this invariant at the database boundary, even if Redis, the network, application processes, retries, and payment callbacks behave badly.',
+        },
+        {
+          type: 'table',
+          caption: 'Concurrency mechanisms solve different parts of the problem.',
+          headers: ['Mechanism', 'What it protects', 'What it cannot guarantee alone'],
+          rows: [
+            [
+              'JVM mutex / `synchronized`',
+              'Threads inside one process',
+              'Requests handled by another process or region',
+            ],
+            [
+              'Redis lease (`SET NX PX`)',
+              'Coordinates cooperating servers for a bounded time',
+              'Safety after lease expiry, Redis failover edge cases, or a stale owner',
+            ],
+            [
+              'Fencing token',
+              'Lets storage reject an older lock holder',
+              'A business invariant unless every protected write validates the token',
+            ],
+            [
+              'Atomic DB transition',
+              'Serializes the actual ownership change',
+              'A friendly multi-minute checkout experience by itself',
+            ],
+            [
+              'Unique/check constraints',
+              'Last-line defense against invalid durable state',
+              'Temporary holds, expiry, and payment orchestration',
+            ],
+          ],
+        },
+      ],
+    },
+    {
+      id: 'database-concurrency',
+      title: 'Database-First Correctness',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'For a single seat, the simplest production-safe primitive is often a **compare-and-set in SQL**. Do not first read the row and then decide. Ask the database to change the row only if its current state still permits the transition, then inspect the affected-row count.',
+        },
+        {
+          type: 'code',
+          language: 'sql',
+          filename: 'atomic-seat-hold.sql',
+          showLineNumbers: true,
+          highlightLines: [2, 7, 8],
+          code: `UPDATE show_seat
+SET status          = 'HELD',
+    hold_id         = :hold_id,
+    held_by_user_id = :user_id,
+    hold_expires_at = :expires_at,
+    version         = version + 1
+WHERE show_id = :show_id
+  AND seat_id = :seat_id
+  AND (
+    status = 'AVAILABLE'
+    OR (status = 'HELD' AND hold_expires_at < CURRENT_TIMESTAMP)
+  );
+
+-- affected rows = 1: this request won
+-- affected rows = 0: another request already owns or booked the seat`,
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Why this closes the race',
+          body: 'The database evaluates the predicate and performs the update atomically under its concurrency-control rules. Alice and Bob can both send the statement, but only one can change the row from `AVAILABLE` to `HELD`; the other sees zero affected rows and must stop before payment.',
+        },
+        {
+          type: 'heading',
+          level: 3,
+          text: 'Three valid database strategies',
+        },
+        {
+          type: 'table',
+          headers: ['Strategy', 'How it works', 'Best fit', 'Trade-off'],
+          rows: [
+            [
+              'Conditional update (recommended default)',
+              '`UPDATE ... WHERE status = AVAILABLE`; success iff row count is 1',
+              'Hot inventory and short transactions',
+              'Caller handles conflicts and retries explicitly',
+            ],
+            [
+              'Pessimistic row lock',
+              '`SELECT ... FOR UPDATE`, validate, then update and commit',
+              'Several related rows must change together',
+              'Never hold the transaction open while the user pays; it causes blocking and deadlocks',
+            ],
+            [
+              'Optimistic version',
+              'Read `version`, then `UPDATE ... WHERE version = :old_version`',
+              'Low/moderate contention and ORM-based systems',
+              'High contention produces retries; still needs a durable constraint',
+            ],
+          ],
+        },
+        {
+          type: 'code',
+          language: 'sql',
+          filename: 'booking-invariants.sql',
+          showLineNumbers: true,
+          code: `-- One state row for every physical seat in every show.
+ALTER TABLE show_seat
+  ADD CONSTRAINT show_seat_pk PRIMARY KEY (show_id, seat_id),
+  ADD CONSTRAINT valid_hold_state CHECK (
+    (status = 'HELD' AND hold_id IS NOT NULL AND hold_expires_at IS NOT NULL)
+    OR (status <> 'HELD' AND hold_id IS NULL AND hold_expires_at IS NULL)
+  );
+
+-- A seat can appear in at most one non-cancelled booking.
+-- PostgreSQL partial unique index; model the equivalent explicitly in other databases.
+CREATE UNIQUE INDEX one_active_booking_per_show_seat
+  ON booking_seat(show_id, seat_id)
+  WHERE booking_status IN ('PENDING_PAYMENT', 'CONFIRMED');`,
+        },
+        {
+          type: 'heading',
+          level: 3,
+          text: 'Multiple seats: reserve all or none',
+        },
+        {
+          type: 'markdown',
+          value:
+            'For a group booking, sort seat IDs to acquire rows in a deterministic order, execute all conditional updates in one short database transaction, and verify that the number of updated rows equals the number requested. If any seat loses the race, roll back the transaction. This avoids exposing a partial hold and reduces deadlock risk. The transaction ends **before** calling the payment provider.',
+        },
+      ],
+    },
+    {
+      id: 'distributed-locks-production',
+      title: 'Distributed Locks, Leases, and Fencing Tokens',
+      blocks: [
+        {
+          type: 'heading',
+          level: 3,
+          text: 'The basic Redis lease',
+        },
+        {
+          type: 'code',
+          language: 'text',
+          filename: 'redis-command.txt',
+          code: `SET seatlock:show_91:seat_45 "request_7f3a" NX PX 5000
+
+NX      -> create only when the key does not exist
+PX 5000 -> automatically expire after 5,000 milliseconds
+OK      -> this request acquired the lease
+(nil)   -> another request currently holds it`,
+        },
+        {
+          type: 'markdown',
+          value:
+            "Use an unguessable **lock-owner value** such as a request UUID, not merely `server_A`. Release and renewal must be atomic compare-and-delete / compare-and-expire operations, usually implemented with a Lua script. Otherwise an old request can delete a newer request's lock after its own lease expires.",
+        },
+        {
+          type: 'code',
+          language: 'lua',
+          filename: 'release-if-owner.lua',
+          code: `if redis.call("GET", KEYS[1]) == ARGV[1] then
+  return redis.call("DEL", KEYS[1])
+end
+return 0`,
+        },
+        {
+          type: 'heading',
+          level: 3,
+          text: 'The zombie process',
+        },
+        {
+          type: 'mermaid',
+          caption: 'A lease can expire while its original holder is paused.',
+          definition: `sequenceDiagram
+  autonumber
+  participant A as Server A
+  participant L as Lock Service
+  participant B as Server B
+  participant DB as Database
+
+  A->>L: acquire seat 45
+  L-->>A: lease, token 33, expires in 5s
+  Note over A: GC pause / CPU stall / network delay for 6s
+  Note over L: lease 33 expires
+  B->>L: acquire seat 45
+  L-->>B: lease, token 34
+  B->>DB: write with token 34
+  DB-->>B: accepted
+  Note over A: process resumes
+  A->>DB: write with token 33
+  DB-->>A: rejected as stale`,
+        },
+        {
+          type: 'callout',
+          variant: 'warning',
+          title: 'A timeout is not revocation',
+          body: 'Redis expiring a key does not stop the old process. It may still be running, holding a database connection, or finishing an external call. This is the **zombie/stale-owner problem**: mutual exclusion in the lock service no longer implies mutual exclusion at the protected resource.',
+        },
+        {
+          type: 'heading',
+          level: 3,
+          text: 'Add monotonic fencing tokens',
+        },
+        {
+          type: 'markdown',
+          value:
+            'Every successful lock acquisition receives a strictly increasing number: 33, 34, 35, and so on. The protected database stores the highest token it has accepted for that seat. Every state-changing request includes its token; a request carrying a lower token is rejected. Generate the token and acquire the lease as one lock-service operation—typically one Redis Lua script using `INCR` plus `SET ... NX PX`, or a dedicated consensus-backed lock service.',
+        },
+        {
+          type: 'code',
+          language: 'sql',
+          filename: 'fenced-booking-write.sql',
+          showLineNumbers: true,
+          highlightLines: [7, 8, 9],
+          code: `UPDATE show_seat
+SET status             = 'BOOKED',
+    booking_id         = :booking_id,
+    last_fencing_token = :token,
+    hold_id            = NULL,
+    hold_expires_at    = NULL
+WHERE show_id = :show_id
+  AND seat_id = :seat_id
+  AND status = 'HELD'
+  AND hold_id = :hold_id
+  AND last_fencing_token < :token;
+
+-- Zero rows means: stale token, wrong owner, expired/replaced hold, or already booked.
+-- Treat it as a lost race, never as success.`,
+        },
+        {
+          type: 'callout',
+          variant: 'info',
+          title: 'Fencing is defense in depth, not magic',
+          body: 'Fencing works only when **every protected write** reaches a resource that validates the token. A payment provider will not understand your Redis token, and the database cannot reject a newer token it has not observed yet. Therefore the durable conditional transition and unique constraint remain the final authority. If a stale holder reaches the DB first, it may win the DB compare-and-set; the newer holder must then lose cleanly rather than overwrite it.',
+        },
+        {
+          type: 'prosCons',
+          title: 'When to use Redis in this design',
+          pros: [
+            'Fast rejection during flash-sale contention, reducing pressure on the primary database.',
+            'Natural TTL for temporary checkout holds and a responsive seat-map experience.',
+            'Can serialize expensive work before it reaches downstream services.',
+          ],
+          cons: [
+            'Adds another failure domain and consistency boundary.',
+            'Lease expiry, failover, clock/latency assumptions, and stale owners require careful handling.',
+            'Cannot replace database constraints or an idempotent payment workflow.',
+          ],
+        },
+      ],
+    },
+    {
+      id: 'payment-workflow',
+      title: 'Payment-Safe Booking Workflow',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'The system must coordinate two independent truths: the database owns the seat, while the payment provider owns the money. They cannot participate in one ACID transaction. Treat checkout as a state machine (or saga), make every step retryable, and prefer **authorize then capture** so a lost seat does not become a completed charge.',
+        },
+        {
+          type: 'mermaid',
+          caption:
+            'Production flow: durable hold first, payment authorization second, atomic confirmation third.',
+          definition: `sequenceDiagram
+  autonumber
+  actor U as User
+  participant API as Booking API
+  participant DB as Primary DB
+  participant PG as Payment Gateway
+  participant O as Outbox Relay
+
+  U->>API: POST /holds (seat 45, idempotency key)
+  API->>DB: atomic AVAILABLE -> HELD
+  DB-->>API: hold_id, price snapshot, expires_at
+  API-->>U: hold created
+  U->>API: POST /payments/authorize
+  API->>PG: authorize(amount, booking idempotency key)
+  PG-->>API: authorization_id
+  API->>DB: transaction: HELD -> CONFIRMED + outbox event
+  alt confirmation committed
+    DB-->>API: confirmed
+    API->>PG: capture(authorization_id, idempotency key)
+    API-->>U: ticket confirmed
+    O->>O: publish BookingConfirmed
+  else hold expired or ownership lost
+    DB-->>API: conditional update affected 0 rows
+    API->>PG: void authorization
+    API-->>U: seat unavailable; no capture
+  end`,
+        },
+        {
+          type: 'table',
+          caption: 'Suggested booking state machine.',
+          headers: ['State', 'Meaning', 'Allowed next states'],
+          rows: [
+            [
+              'HOLD_CREATED',
+              'Seats are durably held until `expires_at`',
+              'PAYMENT_AUTHORIZED, EXPIRED, CANCELLED',
+            ],
+            [
+              'PAYMENT_AUTHORIZED',
+              'Funds are reserved but not captured',
+              'CONFIRMED, PAYMENT_FAILED, EXPIRED',
+            ],
+            [
+              'CONFIRMED',
+              'Seat ownership is final; capture can be retried',
+              'CANCELLED / REFUND_PENDING',
+            ],
+            ['EXPIRED', 'Hold deadline passed; seats may be reclaimed', 'Terminal'],
+            [
+              'PAYMENT_FAILED',
+              'Authorization failed or was voided',
+              'Terminal or a new payment attempt',
+            ],
+          ],
+        },
+        {
+          type: 'heading',
+          level: 3,
+          text: 'Idempotency is mandatory',
+        },
+        {
+          type: 'markdown',
+          value:
+            "- Require an **idempotency key** on hold creation and payment commands. Persist `(operation, user_id, idempotency_key)` with the response so retries return the original result.\n- Store the provider's payment/authorization ID behind a unique constraint. Duplicate webhooks then update the same payment attempt instead of confirming twice.\n- Make state transitions conditional: `UPDATE booking SET status = CONFIRMED WHERE id = ? AND status = PAYMENT_AUTHORIZED`. A repeated callback affects zero rows and reads the already-final result.\n- Record the **price snapshot** on the hold. Never recalculate price after payment from a mutable pricing rule.",
+        },
+        {
+          type: 'heading',
+          level: 3,
+          text: 'Crash windows and recovery',
+        },
+        {
+          type: 'table',
+          headers: ['Failure window', 'Safe recovery'],
+          rows: [
+            [
+              'Crash after hold commit, before response',
+              'Client retries with the same idempotency key and receives the existing hold.',
+            ],
+            [
+              'Payment authorized, confirmation loses seat',
+              'Void the authorization; if a capture already happened, enqueue a refund and alert on reconciliation lag.',
+            ],
+            [
+              'DB confirms booking, process crashes before capture',
+              'Retry capture with the same provider idempotency key from a recovery worker.',
+            ],
+            [
+              'Capture succeeds, response is lost',
+              'Retry returns the same provider result; webhook/reconciliation completes local state.',
+            ],
+            [
+              'Booking commits, event publish fails',
+              'Transactional outbox stores `BookingConfirmed` in the same DB transaction; relay retries publishing.',
+            ],
+            [
+              'Hold expires while payment is in flight',
+              'Use the DB deadline and conditional transition as authority; void/refund if confirmation no longer wins.',
+            ],
+          ],
+        },
+      ],
+    },
+    {
+      id: 'production-design',
+      title: 'Production Architecture and Operations',
+      blocks: [
+        {
+          type: 'mermaid',
+          caption:
+            'Keep correctness on the primary write path; scale browsing and notifications independently.',
+          definition: `flowchart LR
+  C[Web / Mobile Client] --> G[API Gateway]
+  G --> B[Booking Service]
+  G --> R[Seat Map Read Service]
+  B --> L[(Redis hold cache / lock)]
+  B --> P[(Primary relational DB)]
+  B --> PG[Payment Provider]
+  P --> O[(Transactional Outbox)]
+  O --> K[Event Bus]
+  K --> N[Email / SMS / Ticket Service]
+  K --> R
+  P -. replication .-> RR[(Read Replica)]
+  RR --> R
+
+  classDef authority fill:#fee2e2,stroke:#dc2626,color:#111;
+  class P authority`,
+        },
+        {
+          type: 'callout',
+          variant: 'summary',
+          title: 'Source-of-truth rule',
+          body: 'Redis may answer “someone appears to hold this seat,” but only the primary database may answer “this booking owns this seat.” Seat-map caches and read replicas are allowed to be briefly stale; the checkout write path is not.',
+        },
+        {
+          type: 'heading',
+          level: 3,
+          text: 'Capacity and hot-key strategy',
+        },
+        {
+          type: 'markdown',
+          value:
+            '- Partition data by `show_id` (or venue/region) so unrelated shows do not contend.\n- Keep the lock key at `(show_id, seat_id)` granularity; one global “concert lock” destroys throughput.\n- Add randomized client backoff and return `409 Conflict` quickly. Do not spin/retry aggressively for a seat another user owns.\n- Queueing or a virtual waiting room is useful before blockbuster on-sales. It limits admission rate; it does **not** replace the booking invariant.\n- Cache seat maps for reads, then push invalidations/events after HELD, RELEASED, and BOOKED transitions. Always revalidate on checkout.',
+        },
+        {
+          type: 'heading',
+          level: 3,
+          text: 'Expiry and cleanup',
+        },
+        {
+          type: 'markdown',
+          value:
+            'TTL is both a user-experience deadline and a resource-recovery tool. Persist `hold_expires_at` in the database; do not rely only on Redis expiry notifications, which may be delayed or lost. A periodic, idempotent sweeper should reclaim rows with `status = HELD AND hold_expires_at < now()`, using bounded batches and conditional updates so it cannot release a newly renewed or confirmed hold.',
+        },
+        {
+          type: 'table',
+          caption: 'Signals that reveal correctness trouble before customers do.',
+          headers: ['Metric / alert', 'Why it matters'],
+          rows: [
+            [
+              'Conditional-hold conflict rate by show',
+              'Measures contention and identifies hot inventory.',
+            ],
+            [
+              'Unique-constraint violation count',
+              'Should be near zero; spikes indicate a bypassed state transition or retry bug.',
+            ],
+            [
+              'Stale fencing-token rejection count',
+              'Shows zombie workers or lease/latency problems.',
+            ],
+            [
+              'Hold age and expired-hold cleanup lag',
+              'Detects stuck inventory and a failing sweeper.',
+            ],
+            [
+              'Authorized-but-not-confirmed payments',
+              'Money is at risk; reconcile and void quickly.',
+            ],
+            [
+              'Confirmed-but-not-captured payments',
+              'Revenue is at risk; retry capture idempotently.',
+            ],
+            [
+              'Captured-but-no-ticket reconciliation count',
+              'Highest-severity customer-impact invariant.',
+            ],
+            ['Outbox oldest-unpublished age', 'Detects delayed ticket/email/cache events.'],
+          ],
+        },
+        {
+          type: 'heading',
+          level: 3,
+          text: 'Test the interleavings, not just the endpoints',
+        },
+        {
+          type: 'bestPractices',
+          title: 'Concurrency and failure test plan',
+          practices: [
+            'Launch hundreds of simultaneous hold attempts for one seat; assert exactly one succeeds and exactly one active booking row exists.',
+            'Pause the winning worker beyond its lease, let another worker acquire a newer fencing token, then verify stale writes are rejected.',
+            'Kill the service after each durable step: hold commit, payment authorization, confirmation commit, capture, and outbox insert.',
+            'Replay the same API command and payment webhook many times; the final state and total captured amount must remain unchanged.',
+            'Inject Redis loss/failover. The system may reject bookings temporarily, but it must never double-sell.',
+            'Run reconciliation against provider settlements and assert every captured payment maps to exactly one confirmed ticket or refund.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'info',
+          title: 'How to answer this in an interview',
+          body: 'Start with the invariant and the two-server race. Propose an atomic DB transition as the correctness boundary. Add a short-lived Redis lease for fast holds and reduced contention. Explain the zombie problem, owner-checked release, and fencing tokens. Finish with idempotent authorize/capture, durable expiry, unique constraints, outbox/reconciliation, and concurrency tests. That progression demonstrates both fundamentals and production judgment.',
+        },
+      ],
+    },
+    {
       id: 'extensions',
       title: 'Extensions & Follow-ups',
       blocks: [
@@ -722,8 +1292,8 @@ public class DefaultPricingStrategy implements PricingStrategy {
         {
           type: 'callout',
           variant: 'warning',
-          title: 'Do not rely on application-level locks alone in a multi-instance deployment',
-          body: 'An `InMemorySeatLockManager` (plain `ConcurrentHashMap`) only guarantees correctness **within one JVM**. The moment you run more than one app server behind a load balancer, you need a shared lock store — Redis `SET NX EX`, or a DB row with a unique constraint/optimistic version check.',
+          title: 'Do not rely on application-level or distributed locks alone',
+          body: 'An `InMemorySeatLockManager` protects only one JVM. A Redis lease coordinates multiple servers but can expire while its owner is still running. Put the durable invariant in the database with a conditional transition and unique constraint; use owner-checked release and fencing tokens when a distributed lease also protects writes.',
         },
       ],
     },
@@ -742,12 +1312,17 @@ public class DefaultPricingStrategy implements PricingStrategy {
             {
               question: 'How do you prevent two users from booking the same seat at the same time?',
               answer:
-                'Seat reservation must be a single **atomic** operation with an all-or-nothing outcome — e.g. Redis `SET key value NX EX ttl`, or a DB `UPDATE ... WHERE status = AVAILABLE` and checking the affected row count. Whichever thread\'s atomic operation wins gets the lock; the loser is told the seat just became unavailable.',
+                "Seat reservation must be a single **atomic** operation with an all-or-nothing outcome — e.g. Redis `SET key value NX EX ttl`, or a DB `UPDATE ... WHERE status = AVAILABLE` and checking the affected row count. Whichever thread's atomic operation wins gets the lock; the loser is told the seat just became unavailable.",
             },
             {
               question: 'Why can a seat hold not be released with a plain DEL in Redis?',
               answer:
-                'A plain `DEL` would release the lock even if it is no longer owned by the caller (e.g. after TTL expiry, someone else may have acquired it). Release should be a **check-and-delete** — typically a Lua script that verifies the stored value equals the caller\'s user/session id before deleting.',
+                "A plain `DEL` would release the lock even if it is no longer owned by the caller (e.g. after TTL expiry, someone else may have acquired it). Release should be a **check-and-delete** — typically a Lua script that verifies the stored value equals the caller's user/session id before deleting.",
+            },
+            {
+              question: 'What is the zombie process problem, and how do fencing tokens help?',
+              answer:
+                'A process can pause longer than its lease, resume after another process acquires the lock, and still attempt a write. Give each acquisition a strictly increasing fencing token and require the database to accept only a token newer than the last accepted token. This rejects a stale holder that arrives after a newer write. Fencing is defense in depth: every protected write must validate it, and the database must still enforce ownership with conditional updates and constraints.',
             },
             {
               question: 'What happens if a user holds seats and then closes the browser tab?',
@@ -755,22 +1330,26 @@ public class DefaultPricingStrategy implements PricingStrategy {
                 'The hold has a TTL (e.g. 8 minutes). Redis expires the key automatically; a scheduled sweeper also marks the corresponding `Booking` as `EXPIRED` and flips `ShowSeat` back to `AVAILABLE` so it is not permanently stuck.',
             },
             {
-              question: 'How would you support booking multiple seats atomically — what if seat 2 of 3 is unavailable?',
+              question:
+                'How would you support booking multiple seats atomically — what if seat 2 of 3 is unavailable?',
               answer:
                 'Attempt to lock seats one by one, tracking which locks were acquired. If any `tryLock` fails, release every lock acquired so far (compensating rollback) and surface a "seat unavailable" error — an all-or-nothing hold, matching the `holdSeats` implementation shown.',
             },
             {
-              question: 'Why not just use a database transaction with SELECT ... FOR UPDATE instead of Redis?',
+              question:
+                'Why not just use a database transaction with SELECT ... FOR UPDATE instead of Redis?',
               answer:
                 'That works and is simpler operationally (no extra infra) but holds a DB row lock for the *entire* checkout duration if used naively, and does not give you a clean TTL-based auto-expiry — you would need a separate expiry job. Redis-based locks are lighter-weight and TTL-native, which is why they are common for short-lived holds; DB `UPDATE ... WHERE status = AVAILABLE` (optimistic, no held lock) is the more common production compromise.',
             },
             {
-              question: 'How do you price seats differently by type and time slot without an if/else explosion?',
+              question:
+                'How do you price seats differently by type and time slot without an if/else explosion?',
               answer:
                 'A `PricingStrategy` interface takes `(show, seat)` and returns a price; swapping `DefaultPricingStrategy` for a `SurgePricingStrategy` or `WeekendPricingStrategy` requires no change to `BookingService` — a direct application of the Strategy pattern for Open/Closed extensibility.',
             },
             {
-              question: 'Where would Singleton fit in this design, and where would it be a mistake?',
+              question:
+                'Where would Singleton fit in this design, and where would it be a mistake?',
               answer:
                 'A single shared `BookingService`/`SeatLockManager` instance per application (DI singleton bean) is fine and typical. It would be a mistake to make `Booking` or `ShowSeat` singletons — those are per-request/per-seat domain objects, not shared coordinators.',
             },
@@ -780,7 +1359,8 @@ public class DefaultPricingStrategy implements PricingStrategy {
                 'Serve seat-map reads from a read replica or cache (invalidated on lock/booking events) so high read traffic (many users browsing) does not contend with the low-latency atomic lock operations needed at checkout. Only the lock acquisition path needs strict consistency.',
             },
             {
-              question: 'What is the failure mode if the payment succeeds but confirmBooking() crashes before releasing the lock?',
+              question:
+                'What is the failure mode if the payment succeeds but confirmBooking() crashes before releasing the lock?',
               answer:
                 'The seat stays LOCKED until the hold TTL expires, then the sweeper marks the booking EXPIRED and frees the seat — but the user paid and got nothing. This is why real systems make `confirmBooking` idempotent and retryable (driven by a payment webhook with an idempotency key) rather than a single unrecoverable call.',
             },
@@ -796,7 +1376,7 @@ public class DefaultPricingStrategy implements PricingStrategy {
           type: 'callout',
           variant: 'summary',
           title: 'Key takeaways',
-          body: '1. Split **Seat** (physical, static) from **ShowSeat** (per-show, mutable, concurrency-sensitive).\n2. Seat holds need an **atomic, TTL-based lock** (Redis `SET NX EX` or DB optimistic update) — not an in-process lock once you scale beyond one server.\n3. Multi-seat holds must be **all-or-nothing** with compensating rollback on partial failure.\n4. **Strategy** cleanly isolates pricing rules; **State** models `SeatStatus`/`BookingStatus` transitions.\n5. Always narrate the **two-users-one-seat** race explicitly — it is the crux of the question.',
+          body: '1. Split **Seat** (physical, static) from **ShowSeat** (per-show, mutable, concurrency-sensitive).\n2. Define the invariant first: at most one active booking owns `(show_id, seat_id)`, enforced by an atomic DB transition and constraint.\n3. A Redis `SET NX PX` lease improves coordination and TTL-based holds, but expiry can create a **zombie owner**; owner-checked release and fencing tokens add protection.\n4. Multi-seat holds are all-or-nothing, and database transactions must end before waiting on payment.\n5. Payment is a retryable state machine: authorize, conditionally confirm, capture, and recover with idempotency, outbox, and reconciliation.\n6. Load tests must force the **two-users-one-seat** interleaving and assert exactly one winner.',
         },
       ],
     },
