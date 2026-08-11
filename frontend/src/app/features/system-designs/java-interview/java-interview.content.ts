@@ -1,5 +1,6 @@
 import { DesignContent } from '../../../shared/models';
 import { JAVA_INTERVIEW_META } from './java-interview.meta';
+import { SENIOR_LEAD_CONCURRENCY_QA } from './java-interview.senior-concurrency';
 
 const content: DesignContent = {
   meta: JAVA_INTERVIEW_META,
@@ -23,7 +24,7 @@ const content: DesignContent = {
           type: 'callout',
           variant: 'info',
           title: 'Production debugging checklist (where each lives)',
-          body: 'Many classic production questions are already answered below — use this map to avoid duplicates:\n1. **OOM** → JVM Internals “troubleshoot OutOfMemoryError”\n2. **High CPU, low traffic** → Production Debugging Playbooks (new)\n3. **BLOCKED thread** → Production Scenarios “hundreds of WAITING or BLOCKED…”\n4. **Slow after hours** → Production Scenarios “slow after hours…”\n5. **GC pauses** → Production Scenarios “Long GC pauses…”\n6. **HashMap under load** → Production Scenarios “one million entries…”\n7. **Shared data races** → Production Scenarios “Two threads corrupt inventory…”\n8. **Works local, fails prod** → [Spring Boot Interview — Data & Production](/designs/spring-boot-interview#data-production)\n9. **Memory leak** → JVM Internals “identify memory leaks…”\n10. **Unresponsive randomly** → Production Debugging Playbooks (new)\n11. **Deadlock** → JVM Internals “deadlocks using jstack”\n12. **Inconsistent logs** → Production Debugging Playbooks (new)\n13. **Crash, no clear error** → Production Scenarios “server or JVM crash”\n14. **Slow DB call** → [Spring Boot Interview](/designs/spring-boot-interview#data-production)\n15. **Thread pool exhausted** → Production Scenarios “ThreadPoolExecutor queue…”\n16. **High concurrency tools** → Production Debugging Playbooks (new)\n17. **Duplicate requests** → [Spring Boot Interview](/designs/spring-boot-interview#data-production)\n18. **Stale cache** → Production Scenarios “Redis returns stale data…”\n19. **Not scaling with instances** → Production Debugging Playbooks (new)\n20. **Trace across layers** → [Spring Boot Interview](/designs/spring-boot-interview#data-production)',
+          body: 'Many classic production questions are already answered below — use this map to avoid duplicates:\n1. **OOM** → JVM Internals “troubleshoot OutOfMemoryError”\n2. **High CPU, low traffic** → Production Debugging Playbooks (new)\n3. **BLOCKED thread** → Production Scenarios “hundreds of WAITING or BLOCKED…”\n4. **Slow after hours** → Production Scenarios “slow after hours…”\n5. **GC pauses** → Production Scenarios “Long GC pauses…”\n6. **HashMap under load** → Production Scenarios “one million entries…”\n7. **Shared data races** → Production Scenarios “Two threads corrupt inventory…”\n8. **Works local, fails prod** → [Spring Boot Interview — Data & Production](/designs/spring-boot-interview#data-production)\n9. **Memory leak** → JVM Internals “identify memory leaks…”\n10. **Unresponsive randomly** → Production Debugging Playbooks (new)\n11. **Deadlock** → JVM Internals “deadlocks using jstack”\n12. **Inconsistent logs** → Production Debugging Playbooks (new)\n13. **Crash, no clear error** → Production Scenarios “server or JVM crash”\n14. **Slow DB call** → [Spring Boot Interview](/designs/spring-boot-interview#data-production)\n15. **Thread pool exhausted** → Production Scenarios “ThreadPoolExecutor queue…”\n16. **High concurrency tools** → Production Debugging Playbooks (new)\n17. **Duplicate requests** → [Spring Boot Interview](/designs/spring-boot-interview#data-production)\n18. **Stale cache** → Production Scenarios “Redis returns stale data…”\n19. **Not scaling with instances** → Production Debugging Playbooks (new)\n20. **Trace across layers** → [Spring Boot Interview](/designs/spring-boot-interview#data-production)\n\n**Senior / Lead concurrency set (volatile, CAS, CHM, locks, pools, CompletableFuture, virtual threads, cache design):** see [Senior / Lead Concurrency Deep Dive](/designs/java-interview#senior-lead-concurrency).',
         },
       ],
     },
@@ -576,6 +577,29 @@ const content: DesignContent = {
                 'Reads are mostly lock-free using volatile visibility. Empty-bin insertion uses CAS. When a bin is occupied, writers synchronize on that bin’s first node rather than locking the whole map; tree bins use their own coordination. Resizing is cooperative—multiple threads can help transfer buckets to the new table.\n\nIt does not allow null keys/values because null would make concurrent “absent versus mapped-to-null” ambiguous. Iterators are weakly consistent. Atomic methods such as `compute`, `merge`, and `putIfAbsent` protect one key operation, but invariants spanning several keys/maps still need external coordination.',
             },
           ],
+        },
+      ],
+    },
+    {
+      id: 'senior-lead-concurrency',
+      title: 'Senior / Lead Concurrency Deep Dive',
+      blocks: [
+        {
+          type: 'markdown',
+          value:
+            'A focused **Senior / Lead Java** set covering the concurrency questions that actually show up in interviews: `volatile` vs atomicity, CAS, `ConcurrentHashMap`, `ThreadLocal`, the JMM, locks, thread pools, `CompletableFuture`, coordination utilities, virtual threads, cache design, and production concurrency control.\n\nWork these cold: say the one-line answer first, then mechanisms, then a production failure mode.',
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'How to use this section',
+          body: 'These 30 answers are written for spoken interview delivery. Cross-link deeper production playbooks in later sections when you need dump/JFR steps; treat this section as the **concurrency theory + design** spine.',
+        },
+        {
+          type: 'interviewQa',
+          variant: 'sketch',
+          title: 'Senior / Lead concurrency Q&A (30)',
+          items: SENIOR_LEAD_CONCURRENCY_QA,
         },
       ],
     },

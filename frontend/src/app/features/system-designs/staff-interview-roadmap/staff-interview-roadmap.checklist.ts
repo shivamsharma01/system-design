@@ -16,7 +16,7 @@ export const STAFF_ROADMAP_CHECKLIST_GROUPS: RoadmapChecklistGroup[] = [
         id: 'p1-concurrency-juc',
         label:
           'Drill Java concurrency: threads, locks, ConcurrentHashMap, CompletableFuture, virtual threads overview',
-        href: '/designs/java-interview',
+        href: '/designs/java-interview#senior-lead-concurrency',
         estimateHours: 10,
       },
       {
