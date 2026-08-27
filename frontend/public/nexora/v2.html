@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nexora — Software Engineering &amp; Cloud Solutions</title>
+  <meta name="description" content="Nexora designs and builds secure, scalable, cloud-native software. Custom development, modernization, APIs, data platforms, and DevOps — senior engineers on every engagement." />
+  <meta name="theme-color" content="#283583" />
+  <meta property="og:title" content="Nexora — Build. Modernize. Scale." />
+  <meta property="og:description" content="Software engineering and cloud solutions partner. We help businesses design, build, and modernize reliable software systems." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23283583'/%3E%3Ccircle cx='9' cy='9' r='2.4' fill='%2361a83f'/%3E%3Ccircle cx='23' cy='9' r='2.4' fill='%231b2db5'/%3E%3Ccircle cx='9' cy='23' r='2.4' fill='%23cfd600'/%3E%3Ccircle cx='23' cy='23' r='2.4' fill='%2361a83f'/%3E%3Cpath d='M9 9 L23 9 L23 23 L9 23 Z' fill='none' stroke='%23cfd600' stroke-opacity='.45' stroke-width='1'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --bg: #f0f0ed;
+      --bg-2: #ffffff;
+      --elev: #ffffff;
+      --card: #ffffff;
+      --line: rgba(37, 45, 79, 0.12);
+      --line-strong: rgba(27, 45, 181, 0.28);
+      --text: #252d4f;
+      --muted: #575756;
+      --faint: #70706f;
+      --signal: #1b2db5;
+      --signal-dim: rgba(27, 45, 181, 0.1);
+      --violet: #283583;
+      --gold: #cfd600;
+      --green: #61a83f;
+      --navy: #252d4f;
+      --danger: #c62828;
+      --radius: 4px;
+      --radius-sm: 4px;
+      --shadow: 0 18px 50px rgba(37, 45, 79, 0.12);
+      --display: "Outfit", system-ui, sans-serif;
+      --body: "Plus Jakarta Sans", system-ui, sans-serif;
+      --mono: "Space Grotesk", system-ui, sans-serif;
+      --wrap: 1200px;
+      --nav-h: 80px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: var(--body);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    img, svg { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    ::selection { background: var(--gold); color: var(--navy); }
+
+    .skip {
+      position: absolute; left: 12px; top: -40px; z-index: 100;
+      background: var(--signal); color: #fff; padding: 8px 12px; border-radius: 4px;
+    }
+    .skip:focus { top: 12px; }
+    .grain { display: none; }
+
+    .wrap { width: min(var(--wrap), calc(100% - 40px)); margin-inline: auto; }
+    .eyebrow {
+      font-family: var(--mono); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--signal); font-weight: 700; margin: 0 0 14px;
+    }
+    .h2 {
+      font-family: var(--display); font-weight: 800; font-size: clamp(2.15rem, 4.2vw, 3.4rem);
+      letter-spacing: -0.03em; line-height: 1.12; margin: 0 0 16px; color: var(--navy);
+    }
+    .lead { color: var(--muted); font-size: 1.12rem; max-width: 58ch; margin: 0; line-height: 1.7; }
+    .section { padding: clamp(4.5rem, 8vw, 6.5rem) 0; position: relative; background: var(--bg-2); }
+    .section-head { margin-bottom: 2.6rem; max-width: 720px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      height: 50px; padding: 0 22px; border-radius: 2px; border: 2px solid transparent;
+      font-weight: 700; font-size: 0.95rem; letter-spacing: 0; cursor: pointer;
+      transition: transform .2s ease, background .2s ease, border-color .2s ease, color .2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--signal); color: #fff; }
+    .btn-primary:hover { background: #1626a0; }
+    .btn-ghost { background: transparent; border-color: #fff; color: #fff; }
+    .btn-ghost:hover { background: #fff; color: var(--navy); }
+    .btn-text { background: transparent; color: #fff; padding-inline: 8px; height: auto; text-decoration: underline; text-underline-offset: 4px; }
+    .btn-text:hover { color: var(--gold); }
+    .btn:focus-visible, a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 2px solid var(--gold); outline-offset: 3px;
+    }
+
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      height: var(--nav-h);
+      display: flex; align-items: center;
+      background: #fff;
+      border-bottom: 1px solid transparent;
+      transition: box-shadow .25s ease, border-color .25s ease;
+    }
+    .nav.scrolled {
+      box-shadow: 0 8px 24px rgba(37, 45, 79, 0.08);
+      border-bottom-color: var(--line);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; width: min(var(--wrap), calc(100% - 40px)); margin-inline: auto; }
+    .brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; letter-spacing: 0.04em; font-size: 1.05rem; color: var(--navy); }
+    .brand-mark { width: 28px; height: 28px; }
+    .nav-links { display: flex; align-items: center; gap: 2px; }
+    .nav-links a {
+      font-size: 0.95rem; color: var(--navy); padding: 10px 12px; font-weight: 600;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--signal); }
+    .nav-cta { margin-left: 10px; height: 44px; padding-inline: 18px; font-size: 0.88rem; background: transparent !important; color: var(--navy) !important; border: 2px solid var(--navy) !important; }
+    .nav-cta:hover { background: var(--signal) !important; border-color: var(--signal) !important; color: #fff !important; }
+    .nav-toggle {
+      display: none; width: 42px; height: 42px; border-radius: 4px; border: 1px solid var(--line);
+      background: transparent; cursor: pointer; padding: 0;
+    }
+    .nav-toggle span {
+      display: block; width: 18px; height: 2px; margin: 0 auto; background: var(--navy);
+      box-shadow: 0 -6px 0 var(--navy), 0 6px 0 var(--navy);
+    }
+    .progress {
+      position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: var(--gold);
+    }
+
+    .hero {
+      position: relative; min-height: min(calc(100svh - var(--nav-h)), 820px);
+      display: grid; align-items: end; padding: 3rem 0 3.5rem; overflow: hidden;
+      background: #0b1230;
+    }
+    .hero-bg { position: absolute; inset: 0; pointer-events: none; }
+    .hero-bg canvas { width: 100%; height: 100%; display: block; opacity: 0.55; }
+    .aurora {
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(180deg, rgba(11,18,48,0.25) 0%, rgba(27,45,181,0.35) 48%, rgba(11,18,48,0.72) 100%),
+        radial-gradient(ellipse at 20% 80%, rgba(207,214,0,0.22), transparent 42%),
+        radial-gradient(ellipse at 80% 30%, rgba(97,168,63,0.18), transparent 40%),
+        url("https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=2000&q=70") center/cover no-repeat;
+    }
+    .aurora.b { display: none; }
+    .hero-grid {
+      position: relative; z-index: 1;
+      display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 28px; align-items: stretch;
+    }
+    .hero-copy-card {
+      background: #283583;
+      padding: clamp(1.6rem, 3vw, 2.4rem);
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+    .hero .eyebrow { color: var(--gold); }
+    .hero h1 {
+      font-family: var(--display); font-weight: 800; letter-spacing: -0.035em;
+      font-size: clamp(2.6rem, 5.4vw, 4.4rem); line-height: 1.02; margin: 0 0 18px; color: #fff;
+    }
+    .hero h1 .w2 { color: #fff; }
+    .hero h1 .w3 { color: var(--gold); }
+    .hero-copy { font-size: 1.12rem; color: rgba(255,255,255,0.88); max-width: 46ch; margin: 0 0 26px; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+    .hero .btn-primary { background: var(--gold); color: var(--navy); }
+    .hero .btn-primary:hover { background: #e4ec2a; }
+    .caps { display: flex; flex-wrap: wrap; gap: 8px; }
+    .cap {
+      font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.02em; color: #fff;
+      border: 1px solid rgba(255,255,255,0.28); padding: 7px 10px; background: rgba(255,255,255,0.08);
+    }
+
+    .stage {
+      position: relative; border: 0; border-radius: 0;
+      background: #fff;
+      box-shadow: var(--shadow); overflow: hidden; min-height: 560px;
+      display: flex; flex-direction: column;
+    }
+    .stage-bar {
+      display: flex; align-items: center; justify-content: space-between; padding: 14px 16px;
+      border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--muted); font-weight: 600;
+    }
+    .dots { display: flex; gap: 6px; }
+    .dots i { width: 8px; height: 8px; border-radius: 50%; background: #d9d9d9; display: block; }
+    .dots i:nth-child(1) { background: #e85d5d; }
+    .dots i:nth-child(2) { background: #cfd600; }
+    .dots i:nth-child(3) { background: #61a83f; }
+    .live { display: flex; align-items: center; gap: 8px; color: var(--green); }
+    .live::before {
+      content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+      box-shadow: 0 0 10px var(--green); animation: pulse 1.8s ease infinite;
+    }
+    .orbit-wrap { position: relative; flex: 1; min-height: 460px; padding-bottom: 12px; background: #edf3ff; }
+    .orbit-lines {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: min(460px, 86%); height: auto; pointer-events: none; z-index: 1;
+    }
+    .orbit-core {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: 124px; height: 124px; border-radius: 8px;
+      background: var(--signal); color: #fff;
+      display: grid; place-items: center;
+      box-shadow: 0 12px 40px rgba(27,45,181,0.28);
+      z-index: 2;
+    }
+    .orbit-core span { font-family: var(--display); font-weight: 800; letter-spacing: 0.14em; font-size: 0.88rem; }
+    .ring {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      border: 2px dashed rgba(27,45,181,0.22); border-radius: 50%;
+    }
+    .ring.r1 { width: 260px; height: 260px; }
+    .ring.r2 { width: 400px; height: 400px; animation: spinRing 48s linear infinite; }
+    @keyframes spinRing {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    .ol {
+      position: absolute; z-index: 3;
+      font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; font-weight: 700;
+      padding: 9px 14px; border: 0; background: #fff; color: var(--navy);
+      box-shadow: 0 8px 20px rgba(37,45,79,0.12);
+    }
+    .ol.n { top: 18px; left: 50%; transform: translateX(-50%); color: var(--signal); }
+    .ol.e { right: 22px; top: 50%; transform: translateY(-50%); color: #1b2db5; }
+    .ol.s { bottom: 48px; left: 50%; transform: translateX(-50%); color: #004631; background: var(--gold); }
+    .ol.w { left: 22px; top: 50%; transform: translateY(-50%); color: var(--green); }
+    @keyframes pulse { 50% { opacity: 0.35; } }
+    .orbit-note {
+      margin: 0; padding: 16px 18px 18px;
+      border-top: 1px solid var(--line);
+      font-family: var(--mono); font-size: 13px; color: var(--muted); text-align: center; font-weight: 600;
+      flex-shrink: 0; background: #fff;
+    }
+
+    .pillars-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .pillar {
+      position: relative; padding: 26px 22px 24px;
+      border: 0; background: #edf3ff; overflow: hidden;
+      min-height: 260px; display: flex; flex-direction: column;
+      border-top: 6px solid var(--signal);
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+    .pillar:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+    .pillar.c2 { border-top-color: #283583; background: #fff; box-shadow: 0 0 0 1px var(--line); }
+    .pillar.c3 { border-top-color: var(--green); }
+    .pillar.c4 { border-top-color: var(--gold); }
+    .pillar-no { font-family: var(--mono); font-size: 12px; color: var(--signal); letter-spacing: 0.08em; font-weight: 700; }
+    .pillar h3 {
+      font-family: var(--display); font-size: 1.55rem; letter-spacing: -0.03em; margin: 16px 0 10px;
+    }
+    .pillar p { color: var(--muted); margin: 0; flex: 1; font-size: 0.98rem; }
+    .pillar .out { margin-top: 18px; font-family: var(--mono); font-size: 13px; color: var(--signal); font-weight: 700; }
+    .pillar::after { display: none; }
+
+    .svc-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .svc {
+      grid-column: span 4; border: 1px solid var(--line); background: #fff; padding: 26px 24px;
+      display: flex; flex-direction: column; gap: 12px;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .svc:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+    .svc.featured { grid-column: span 8; background: #283583; color: #fff; border: 0; }
+    .svc.featured .one, .svc.featured li { color: rgba(255,255,255,0.86); }
+    .svc.featured .tag { border-color: rgba(255,255,255,0.25); color: #fff; }
+    .svc.featured .mark { color: var(--navy); background: var(--gold); border: 0; }
+    .svc h3 { font-family: var(--display); font-size: 1.32rem; letter-spacing: -0.03em; margin: 0; }
+    .svc .one { color: var(--muted); margin: 0; }
+    .svc ul { margin: 4px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+    .svc li { color: var(--text); font-size: 0.95rem; padding-left: 14px; position: relative; }
+    .svc li::before { content: ""; width: 6px; height: 6px; background: var(--green); position: absolute; left: 0; top: 0.55em; }
+    .svc.featured li::before { background: var(--gold); }
+    .tech-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 8px; }
+    .tag {
+      font-family: var(--mono); font-size: 11px; color: var(--navy); font-weight: 600;
+      border: 1px solid var(--line); padding: 4px 8px; background: #f0f0ed;
+    }
+    .ico {
+      width: 40px; height: 40px; display: grid; place-items: center;
+      background: var(--signal-dim); color: var(--signal);
+    }
+    .svc.featured .ico { background: rgba(255,255,255,0.12); color: var(--gold); }
+    .svc .mark {
+      font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--navy); background: var(--gold); padding: 4px 8px; width: fit-content; font-weight: 700;
+    }
+
+    .tech-panel { border: 1px solid var(--line); background: #fff; overflow: hidden; }
+    .tech-tabs { display: flex; flex-wrap: nowrap; gap: 0; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: thin; }
+    .tech-tabs button {
+      background: transparent; border: 0; border-bottom: 3px solid transparent; color: var(--muted);
+      padding: 16px 16px; cursor: pointer; font-weight: 700; font-size: 0.88rem; white-space: nowrap;
+    }
+    .tech-tabs button[aria-selected="true"] { color: var(--signal); border-bottom-color: var(--gold); }
+    .tech-body { padding: 22px; display: none; }
+    .tech-body.active { display: block; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      border: 0; background: #edf3ff; color: var(--navy); font-weight: 700;
+      padding: 9px 14px; font-size: 0.92rem;
+    }
+
+    .sol-layout { display: grid; grid-template-columns: 280px 1fr; gap: 18px; align-items: start; }
+    .sol-nav { display: flex; flex-direction: column; gap: 8px; }
+    .sol-nav button {
+      text-align: left; background: #fff; border: 1px solid var(--line);
+      padding: 14px; cursor: pointer; color: var(--muted);
+    }
+    .sol-nav button[aria-selected="true"] {
+      border-color: var(--signal); color: var(--navy); background: #edf3ff; border-left: 4px solid var(--signal);
+    }
+    .sol-nav small { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; color: var(--signal); font-weight: 700; }
+    .sol-nav strong { display: block; font-size: 0.95rem; font-weight: 700; color: var(--navy); }
+    .sol-board { border: 1px solid var(--line); background: #fff; min-height: 0; overflow: hidden; }
+    .ribbon {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--navy); background: var(--gold); padding: 5px 10px; font-weight: 700;
+    }
+    .sol-meta { padding: 18px 22px 6px; }
+    .sol-meta h3 { font-family: var(--display); font-size: 1.5rem; letter-spacing: -0.03em; margin: 8px 0 0; }
+    .sol-copy { padding: 0 22px 8px; }
+    .sol-copy p { color: var(--muted); margin: 0 0 10px; font-size: 0.95rem; }
+    .approach { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .arch {
+      margin: 10px 16px 12px; padding: 16px 10px 14px; border: 1px solid var(--line);
+      background:
+        linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 22px 22px,
+        linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 22px 22px,
+        #edf3ff;
+    }
+    .arch-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; position: relative; }
+    .arch-row:has(.arch-node:nth-child(2))::before {
+      content: ""; position: absolute; left: 12%; right: 12%; top: 50%; height: 2px;
+      background: rgba(27,45,181,0.2); z-index: 0;
+    }
+    .arch-node {
+      min-width: 118px; max-width: 170px; padding: 9px 11px 8px;
+      border: 0; border-top: 4px solid var(--signal);
+      background: #fff;
+      box-shadow: 0 8px 20px rgba(37,45,79,0.1);
+      position: relative; z-index: 1;
+      animation: nodeIn .45s ease both;
+    }
+    @keyframes nodeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .arch-row:nth-child(3) .arch-node { animation-delay: .08s; }
+    .arch-row:nth-child(5) .arch-node { animation-delay: .12s; }
+    .arch-row:nth-child(7) .arch-node { animation-delay: .16s; }
+    .arch-node b { display: block; font-size: 0.82rem; }
+    .arch-node span { display: block; font-family: var(--mono); font-size: 11px; color: var(--faint); margin-top: 2px; }
+    .arch-flow {
+      width: 2px; height: 18px; margin: 2px auto; position: relative;
+      background: var(--signal);
+    }
+    .arch-flow::after {
+      content: ""; position: absolute; left: 50%; width: 7px; height: 7px;
+      background: var(--gold); transform: translateX(-50%);
+      animation: drop 1.8s ease-in-out infinite;
+    }
+    @keyframes drop { from { top: 0; opacity: 0; } 20% { opacity: 1; } to { top: 14px; opacity: 0; } }
+    .outcome {
+      margin: 0 22px 18px; padding: 12px 14px;
+      background: #edf3ff; border-left: 4px solid var(--signal);
+      color: var(--text); font-size: 0.95rem;
+    }
+
+    .cards-5, .cards-3, .why-grid, .team-grid { display: grid; gap: 16px; }
+    .cards-5 { grid-template-columns: repeat(5, 1fr); }
+    .cards-3 { grid-template-columns: repeat(3, 1fr); }
+    .why-grid { grid-template-columns: repeat(3, 1fr); }
+    .team-grid { grid-template-columns: repeat(4, 1fr); }
+    .card {
+      border: 1px solid var(--line); background: #fff; padding: 22px;
+      transition: border-color .2s ease, transform .2s ease;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+    .card h3 { margin: 0 0 8px; font-size: 1.08rem; font-family: var(--display); }
+    .card p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+    .ind { min-height: 150px; display: flex; flex-direction: column; justify-content: space-between; border-top: 6px solid var(--signal); }
+    .ind .k { font-family: var(--mono); font-size: 12px; color: var(--signal); letter-spacing: 0.08em; font-weight: 700; }
+
+    .avatar {
+      width: 64px; height: 64px; margin-bottom: 16px;
+      display: grid; place-items: center; background: #edf3ff;
+    }
+    .team-card h3 { font-family: var(--display); font-size: 1.12rem; }
+    .team-card .role { color: var(--signal); font-family: var(--mono); font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+
+    .contact-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 28px; align-items: start; }
+    form {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      border: 0; padding: 24px; background: #fff; box-shadow: var(--shadow);
+    }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-size: 0.8rem; font-weight: 700; color: var(--navy); }
+    input, select, textarea {
+      background: #f0f0ed; border: 1px solid var(--line); padding: 12px;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--signal); outline: none; background: #fff; }
+    textarea { min-height: 120px; resize: vertical; }
+    .form-msg { grid-column: 1 / -1; font-size: 0.9rem; color: var(--green); display: none; }
+    .form-msg.err { color: var(--danger); }
+    .fine { color: var(--faint); font-size: 0.88rem; margin-top: 16px; }
+
+    footer {
+      background: var(--navy); color: rgba(255,255,255,0.72); padding: 32px 0 40px; font-size: 0.9rem;
+      border: 0;
+    }
+    .foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .foot a:hover { color: #fff; }
+
+    @media (max-width: 1080px) {
+      .hero-grid, .sol-layout, .contact-grid { grid-template-columns: 1fr; }
+      .pillars-grid, .cards-5, .team-grid { grid-template-columns: repeat(2, 1fr); }
+      .svc.featured { grid-column: span 12; }
+      .svc { grid-column: span 6; }
+      .orbit-wrap { min-height: 380px; }
+      .stage { min-height: 0; }
+    }
+    @media (max-width: 760px) {
+      .nav-links { display: none; position: absolute; top: var(--nav-h); left: 0; right: 0;
+        background: #fff; border-bottom: 1px solid var(--line); padding: 12px 20px 20px;
+        flex-direction: column; align-items: stretch;
+      }
+      .nav.open .nav-links { display: flex; }
+      .nav-toggle { display: block; }
+      .nav-cta { margin: 8px 0 0; height: 44px; }
+      .pillars-grid, .cards-5, .cards-3, .why-grid, .team-grid { grid-template-columns: 1fr; }
+      .svc { grid-column: span 12; }
+      form { grid-template-columns: 1fr; }
+      .hero { min-height: 0; padding-top: 1.4rem; padding-bottom: 2rem; align-items: stretch; }
+      .hero h1 { font-size: 2.45rem; }
+      .hero-copy { margin-bottom: 18px; font-size: 1rem; }
+      .hero-actions { margin-bottom: 16px; }
+      .orbit-wrap { min-height: 280px; }
+      .orbit-core { width: 84px; height: 84px; }
+      .ring.r1 { width: 160px; height: 160px; }
+      .ring.r2 { width: 250px; height: 250px; }
+      .ol.n { top: 10px; }
+      .ol.s { bottom: 10px; }
+      .ol.e { right: 6px; }
+      .ol.w { left: 6px; }
+      .stage { min-height: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="nav" id="nav">
+    <div class="progress" id="progress"></div>
+    <div class="nav-inner">
+      <a class="brand" href="#home" aria-label="Nexora home">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <circle cx="8" cy="8" r="3" fill="#61a83f"/>
+          <circle cx="24" cy="8" r="3" fill="#1b2db5"/>
+          <circle cx="8" cy="24" r="3" fill="#cfd600"/>
+          <circle cx="24" cy="24" r="3" fill="#61a83f"/>
+          <path d="M8 8h16M8 8v16M24 8v16M8 24h16" stroke="#1b2db5" stroke-opacity=".4" stroke-width="1.2"/>
+        </svg>
+        NEXORA
+      </a>
+      <nav class="nav-links" id="menu" aria-label="Primary">
+        <a href="#home">Home</a>
+        <a href="#services">Services</a>
+        <a href="#expertise">Expertise</a>
+        <a href="#solutions">Solutions</a>
+        <a href="#industries">Industries</a>
+        <a href="#about">About</a>
+        <a href="#contact" class="btn btn-primary nav-cta">Talk to Us</a>
+      </nav>
+      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span></button>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="home">
+      <div class="hero-bg" aria-hidden="true">
+        <div class="aurora"></div>
+        <div class="aurora b"></div>
+        <canvas id="field"></canvas>
+      </div>
+      <div class="wrap hero-grid">
+        <div class="hero-copy-card">
+          <p class="eyebrow">Software Engineering &amp; Cloud Solutions Partner</p>
+          <h1>Build.<br><span class="w2">Modernize.</span><br><span class="w3">Scale.</span></h1>
+          <p class="hero-copy">We design and build secure, scalable, cloud-native software solutions that help businesses move faster and operate smarter.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#contact">Talk to Us</a>
+            <a class="btn btn-ghost" href="#services">Explore Our Services</a>
+            <a class="btn btn-text" href="#expertise">Our Expertise →</a>
+          </div>
+          <div class="caps" aria-label="Capabilities">
+            <span class="cap">Software Engineering</span>
+            <span class="cap">Cloud &amp; DevOps</span>
+            <span class="cap">API &amp; Integration</span>
+            <span class="cap">Data Engineering</span>
+            <span class="cap">QA &amp; Automation</span>
+          </div>
+        </div>
+        <aside class="stage" aria-label="Four engineering pillars">
+          <div class="stage-bar">
+            <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span>system.map — live</span>
+            <span class="live">signal</span>
+          </div>
+          <div class="orbit-wrap">
+            <svg class="orbit-lines" viewBox="0 0 400 400" aria-hidden="true">
+              <line x1="200" y1="200" x2="200" y2="48" stroke="rgba(27,45,181,0.45)" />
+              <line x1="200" y1="200" x2="352" y2="200" stroke="rgba(97,168,63,0.55)" />
+              <line x1="200" y1="200" x2="200" y2="352" stroke="rgba(207,214,0,0.7)" />
+              <line x1="200" y1="200" x2="48" y2="200" stroke="rgba(27,45,181,0.35)" />
+            </svg>
+            <div class="ring r1"></div>
+            <div class="ring r2"></div>
+            <span class="ol n">BUILD</span>
+            <span class="ol e">MODERNIZE</span>
+            <span class="ol s">CLOUD</span>
+            <span class="ol w">CONNECT</span>
+            <div class="orbit-core"><span>NX</span></div>
+          </div>
+          <p class="orbit-note">Four pillars. One partner. Senior engineers on the work.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="what">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">What we do</p>
+          <h2 class="h2">Outcomes first. Technology as proof.</h2>
+          <p class="lead">From modern web applications and APIs to cloud migration, microservices, DevOps and data platforms, we help businesses design, build and modernize reliable software systems.</p>
+        </div>
+        <div class="pillars-grid">
+          <article class="pillar">
+            <span class="pillar-no">01</span>
+            <h3>Build</h3>
+            <p>Custom software and full-stack systems — web apps, portals, SaaS platforms, and backend services that are ready to grow.</p>
+            <span class="out">Secure APIs and microservices</span>
+          </article>
+          <article class="pillar c2">
+            <span class="pillar-no">02</span>
+            <h3>Modernize</h3>
+            <p>Evolve legacy Java and monoliths into modular, cloud-ready architectures — without freezing the business.</p>
+            <span class="out">Independent deploys, lower risk</span>
+          </article>
+          <article class="pillar c3">
+            <span class="pillar-no">03</span>
+            <h3>Cloud</h3>
+            <p>AWS, Azure, and GCP. Kubernetes, CI/CD, and infrastructure as code — so you can deploy and operate at scale.</p>
+            <span class="out">Automate the platform</span>
+          </article>
+          <article class="pillar c4">
+            <span class="pillar-no">04</span>
+            <h3>Connect</h3>
+            <p>APIs, events, and data pipelines that join the systems you already have — REST, SOAP, Kafka, and beyond.</p>
+            <span class="out">Resilient event-driven systems</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="services" style="background: var(--bg);">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Services</p>
+          <h2 class="h2">Six offerings. No filler.</h2>
+          <p class="lead">We sell engineering work you can ship — not a catalogue of every tool we have touched.</p>
+        </div>
+        <div class="svc-grid">
+          <article class="svc featured">
+            <div class="ico" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V8l8-4 8 4v12"/><path d="M4 12l8 4 8-4"/></svg>
+            </div>
+            <span class="mark">Often the first engagement</span>
+            <h3>Application Modernization</h3>
+            <p class="one">Modernize legacy applications without disrupting the business.</p>
+            <ul>
+              <li>Monolith → microservices</li>
+              <li>Legacy Java modernization</li>
+              <li>Database &amp; API enablement</li>
+              <li>CI/CD, containers, Kubernetes adoption</li>
+              <li>Security modernization</li>
+            </ul>
+            <div class="tech-row">
+              <span class="tag">Java</span><span class="tag">Spring Boot</span><span class="tag">Kubernetes</span><span class="tag">Kafka</span>
+            </div>
+          </article>
+          <article class="svc">
+            <div class="ico" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 20V10"/></svg>
+            </div>
+            <h3>Custom Software Development</h3>
+            <p class="one">Enterprise web apps, customer portals, internal tools, and SaaS platforms.</p>
+            <ul>
+              <li>Backend systems &amp; microservices</li>
+              <li>Customer and ops portals</li>
+              <li>Product and platform engineering</li>
+            </ul>
+            <div class="tech-row">
+              <span class="tag">Java</span><span class="tag">Spring Boot</span><span class="tag">Python</span><span class="tag">Angular</span><span class="tag">React</span>
+            </div>
+          </article>
+          <article class="svc">
+            <div class="ico" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>
+            </div>
+            <h3>Cloud &amp; DevOps</h3>
+            <p class="one">Deploy and operate cloud-native applications with automated infrastructure.</p>
+            <ul>
+              <li>Cloud architecture &amp; migration</li>
+              <li>CI/CD, Docker, Kubernetes</li>
+              <li>Monitoring &amp; observability</li>
+            </ul>
+            <div class="tech-row">
+              <span class="tag">AWS</span><span class="tag">Azure</span><span class="tag">GCP</span><span class="tag">Terraform</span>
+            </div>
+          </article>
+          <article class="svc">
+            <div class="ico" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 7H4v4M16 7h4v4M8 17H4v-4M16 17h4v-4"/><path d="M8 9h8M8 15h8"/></svg>
+            </div>
+            <h3>API &amp; Integration Engineering</h3>
+            <p class="one">Connect applications, payments, and partner platforms through APIs and events.</p>
+            <ul>
+              <li>REST, SOAP, GraphQL, gRPC</li>
+              <li>Kafka, queues, and event-driven design</li>
+              <li>API security &amp; documentation</li>
+            </ul>
+            <div class="tech-row">
+              <span class="tag">Spring Integration</span><span class="tag">Kafka</span><span class="tag">RabbitMQ</span>
+            </div>
+          </article>
+          <article class="svc">
+            <div class="ico" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h16"/><path d="M7 15l4-6 3 4 4-7"/></svg>
+            </div>
+            <h3>Data Engineering &amp; Analytics</h3>
+            <p class="one">Pipelines, migrations, and analytics platforms that turn events into decisions.</p>
+            <ul>
+              <li>Data pipelines &amp; processing</li>
+              <li>Database modernization</li>
+              <li>NoSQL and warehouse architecture</li>
+            </ul>
+            <div class="tech-row">
+              <span class="tag">BigQuery</span><span class="tag">MongoDB</span><span class="tag">Cassandra</span>
+            </div>
+          </article>
+          <article class="svc">
+            <div class="ico" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+            </div>
+            <h3>Quality Engineering</h3>
+            <p class="one">Automation in the pipeline — not testing as an afterthought.</p>
+            <ul>
+              <li>API, integration, and end-to-end tests</li>
+              <li>Regression and performance</li>
+              <li>CI/CD test automation</li>
+            </ul>
+            <div class="tech-row">
+              <span class="tag">JUnit</span><span class="tag">Cypress</span><span class="tag">Postman</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="expertise">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Technology expertise</p>
+          <h2 class="h2">The stack behind the work.</h2>
+          <p class="lead">Organized by concern — not a homepage wall of logos. Proof that we can ship the outcomes above.</p>
+        </div>
+        <div class="tech-panel">
+          <div class="tech-tabs" role="tablist" aria-label="Technology categories" id="techTabs"></div>
+          <div id="techPanels"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="solutions" style="background: var(--bg);">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Representative solutions</p>
+          <h2 class="h2">Architectures you can inspect.</h2>
+          <p class="lead">These are solution designs — clearly labeled, not claimed as client case studies. They show how we think when a real system needs to be built.</p>
+        </div>
+        <div class="sol-layout">
+          <div class="sol-nav" role="tablist" aria-label="Solution demos" id="solNav"></div>
+          <div class="sol-board" id="solBoard"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="engage">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Engagement models</p>
+          <h2 class="h2">Clear ways to start.</h2>
+          <p class="lead">Pick the shape of the work. We stay small on purpose — you talk to the people writing the code.</p>
+        </div>
+        <div class="cards-5">
+          <article class="card">
+            <h3>Dedicated team</h3>
+            <p>Experienced engineers embedded on your product. Suited to startups, SaaS, and product companies.</p>
+          </article>
+          <article class="card">
+            <h3>Project-based</h3>
+            <p>End-to-end delivery of a specific application, platform, or feature — scoped, built, handed over.</p>
+          </article>
+          <article class="card">
+            <h3>Modernization</h3>
+            <p>Legacy applications, architecture, and infrastructure — evolved in slices, not a risky big-bang rewrite.</p>
+          </article>
+          <article class="card">
+            <h3>Cloud &amp; DevOps</h3>
+            <p>Architecture, migration, Kubernetes, CI/CD, and infrastructure automation as a focused engagement.</p>
+          </article>
+          <article class="card">
+            <h3>APIs &amp; integration</h3>
+            <p>Connect applications and third-party platforms through APIs and event-driven integrations.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="industries" style="background: var(--bg);">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Industries</p>
+          <h2 class="h2">Solutions for</h2>
+          <p class="lead">We start where the problems match our stack — not a list of fifteen industries we “serve.”</p>
+        </div>
+        <div class="cards-5">
+          <article class="card ind"><span class="k">01</span><h3>FinTech</h3><p>Ledgers, integrations, audit trails, and API security.</p></article>
+          <article class="card ind"><span class="k">02</span><h3>Healthcare</h3><p>Internal platforms, integrations, and careful data handling.</p></article>
+          <article class="card ind"><span class="k">03</span><h3>Retail &amp; e-commerce</h3><p>Order flows, catalogs, and event-driven fulfillment.</p></article>
+          <article class="card ind"><span class="k">04</span><h3>Logistics</h3><p>Status events, partner APIs, and operational systems.</p></article>
+          <article class="card ind"><span class="k">05</span><h3>SaaS / technology</h3><p>Multi-tenant backends, cloud platforms, and product engineering.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Founding engineering team</p>
+          <h2 class="h2">Four engineers. No layers.</h2>
+          <p class="lead">A potential client should feel this: experienced engineers will work directly on the project. We do not staff up a pyramid and disappear behind account managers.</p>
+        </div>
+        <div class="team-grid">
+          <article class="card team-card">
+            <div class="avatar" style="background:#edf3ff;">
+              <svg width="28" height="28" viewBox="0 0 32 32"><circle cx="8" cy="8" r="3" fill="#61a83f"/><circle cx="24" cy="24" r="3" fill="#61a83f" fill-opacity=".5"/><path d="M8 8h16v16" fill="none" stroke="#1b2db5" stroke-width="1.4"/></svg>
+            </div>
+            <div class="role">Architecture</div>
+            <h3>Solution Architect</h3>
+            <p>Shapes the system: boundaries, cloud, risk, and the first slices that actually ship.</p>
+          </article>
+          <article class="card team-card">
+            <div class="avatar" style="background:#edf3ff;">
+              <svg width="28" height="28" viewBox="0 0 32 32"><rect x="6" y="6" width="20" height="20" rx="4" fill="none" stroke="#1b2db5" stroke-width="1.5"/><path d="M10 16h12M16 10v12" stroke="#1b2db5" stroke-width="1.5"/></svg>
+            </div>
+            <div class="role">Product</div>
+            <h3>Full-Stack Engineer</h3>
+            <p>Angular / React on the surface, Spring Boot underneath — features that survive production.</p>
+          </article>
+          <article class="card team-card">
+            <div class="avatar" style="background:#edf3ff;">
+              <svg width="28" height="28" viewBox="0 0 32 32"><path d="M8 22l8-14 8 14" fill="none" stroke="#61a83f" stroke-width="1.6"/><circle cx="16" cy="20" r="3" fill="#cfd600"/></svg>
+            </div>
+            <div class="role">Platform</div>
+            <h3>Cloud &amp; DevOps Engineer</h3>
+            <p>Clusters, pipelines, and Terraform — so the app can be deployed, observed, and changed safely.</p>
+          </article>
+          <article class="card team-card">
+            <div class="avatar" style="background:#edf3ff;">
+              <svg width="28" height="28" viewBox="0 0 32 32"><path d="M6 16h20M10 10h12M10 22h12" stroke="#1b2db5" stroke-width="1.6" fill="none"/></svg>
+            </div>
+            <div class="role">Systems</div>
+            <h3>Data &amp; Integration Engineer</h3>
+            <p>Kafka, APIs, and warehouses — the connective tissue between the systems you already run.</p>
+          </article>
+        </div>
+        <p class="fine">Titles reflect how we staff work — not a corporate org chart. If your project needs four full-stack engineers, that is what you get.</p>
+      </div>
+    </section>
+
+    <section class="section" id="why" style="background: var(--bg);">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Why work with us</p>
+          <h2 class="h2">Trust, stated plainly.</h2>
+        </div>
+        <div class="why-grid">
+          <article class="card"><h3>Senior talent on the work</h3><p>Founding engineers involved directly in delivery — not a bait-and-switch staffing model.</p></article>
+          <article class="card"><h3>Modern technology</h3><p>Cloud-native architectures and current engineering practice, chosen for the problem — not the résumé.</p></article>
+          <article class="card"><h3>Flexible engagement</h3><p>Project-based delivery or a dedicated engineering team. We size the engagement to the risk.</p></article>
+          <article class="card"><h3>Transparent communication</h3><p>You talk to the engineering team. Status is in the repo, the board, and the architecture — not a weekly theatre.</p></article>
+          <article class="card"><h3>Security first</h3><p>Secure APIs, authentication, authorization, and infrastructure practices from the first slice.</p></article>
+          <article class="card"><h3>Built to evolve</h3><p>Architectures designed to grow with the business — independent deployability, not a prettier monolith.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="contact">
+      <div class="wrap contact-grid">
+        <div>
+          <p class="eyebrow">Contact</p>
+          <h2 class="h2">Have a project in mind?</h2>
+          <p class="lead">Tell us what you are trying to build, modernize, or integrate. We will come back with questions, not a generic pitch deck.</p>
+          <p class="fine" style="margin-top: 24px;">Prefer email? <a href="mailto:hello@nexora.dev" style="color: var(--signal); font-weight:700;">hello@nexora.dev</a></p>
+        </div>
+        <form id="contactForm" novalidate>
+          <div class="field">
+            <label for="name">Name</label>
+            <input id="name" name="name" autocomplete="name" required />
+          </div>
+          <div class="field">
+            <label for="company">Company</label>
+            <input id="company" name="company" autocomplete="organization" />
+          </div>
+          <div class="field full">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="need">Project / requirement</label>
+            <select id="need" name="need">
+              <option value="Custom software">Custom software</option>
+              <option value="Application modernization">Application modernization</option>
+              <option value="Cloud & DevOps">Cloud &amp; DevOps</option>
+              <option value="API & integration">API &amp; integration</option>
+              <option value="Data platform">Data platform</option>
+              <option value="Dedicated team">Dedicated team</option>
+              <option value="Something else">Something else</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="timeline">Estimated timeline</label>
+            <select id="timeline" name="timeline">
+              <option>As soon as possible</option>
+              <option>1–3 months</option>
+              <option>3–6 months</option>
+              <option>6+ months</option>
+              <option>Not sure yet</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" placeholder="What are you trying to build, modernize, or integrate?" required></textarea>
+          </div>
+          <p class="form-msg" id="formMsg" role="status"></p>
+          <div class="field full">
+            <button class="btn btn-primary" type="submit" style="width: 100%;">Discuss Your Project</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <span>© <span id="year"></span> Nexora · Software engineering &amp; cloud solutions</span>
+      <span>Build · Modernize · Cloud · Connect</span>
+    </div>
+  </footer>
+
+  <script>
+    const SITE_EMAIL = "hello@nexora.dev";
+
+    const TECH = [
+      { id: "front", label: "Frontend", items: ["Angular", "React", "JavaScript", "HTML5", "CSS3", "PHP"] },
+      { id: "back", label: "Backend", items: ["Java 17", "Spring Boot", "Spring Integration", "Python"] },
+      { id: "cloud", label: "Cloud", items: ["AWS", "Microsoft Azure", "Google Cloud"] },
+      { id: "int", label: "Microservices & integration", items: ["Kafka", "RabbitMQ", "REST", "SOAP", "GraphQL", "gRPC", "FTP/SFTP"] },
+      { id: "db", label: "Databases", items: ["MySQL", "PostgreSQL", "Oracle", "SQL Server", "MongoDB", "Cassandra"] },
+      { id: "ops", label: "DevOps & infrastructure", items: ["Docker", "Kubernetes", "Terraform", "Jenkins", "GitHub Actions", "Azure Pipelines"] },
+      { id: "data", label: "Data", items: ["BigQuery", "Dataproc", "Bigtable", "Firestore", "Cosmos DB"] },
+      { id: "sec", label: "Security", items: ["Spring Security", "OAuth 2.0", "IAM", "API Security"] },
+      { id: "obs", label: "Observability", items: ["Grafana", "Kibana", "Elasticsearch", "Logstash"] },
+      { id: "qa", label: "Testing", items: ["JUnit", "Mockito", "Cypress", "Jasmine", "Spock", "Postman", "SoapUI"] },
+      { id: "pm", label: "Project management", items: ["Jira", "Azure DevOps", "Confluence"] }
+    ];
+
+    const SOLUTIONS = [
+      {
+        id: "orders",
+        kicker: "Retail · SaaS",
+        title: "Enterprise order management",
+        challenge: "A growing business needs a scalable platform to manage orders across storefront, warehouse, and payment systems — without a single deploy locking the whole operation.",
+        approach: ["Microservices", "Spring Boot", "Angular", "Kafka", "PostgreSQL", "MongoDB", "Docker", "Kubernetes", "AWS"],
+        outcome: "Architecture designed for independent deployment, asynchronous processing, and later cloud expansion — not a one-box rewrite.",
+        layers: [
+          [{ t: "Angular", s: "Storefront & ops console" }],
+          [{ t: "API Gateway", s: "Auth, routing, limits" }],
+          [{ t: "Order", s: "Spring Boot" }, { t: "Inventory", s: "Spring Boot" }, { t: "Payments", s: "Spring Boot" }],
+          [{ t: "Kafka", s: "Events & workflows" }],
+          [{ t: "PostgreSQL", s: "Orders of record" }, { t: "MongoDB", s: "Catalog & sessions" }],
+          [{ t: "AWS · EKS", s: "Docker · Kubernetes" }]
+        ]
+      },
+      {
+        id: "fintech",
+        kicker: "FinTech",
+        title: "Banking integration platform",
+        challenge: "Core systems still speak SOAP. New products need REST, events, and a security model that auditors can follow.",
+        approach: ["REST + SOAP", "Spring Integration", "Kafka", "RabbitMQ", "OAuth 2.0", "Audit logging", "Monitoring"],
+        outcome: "A translation and event layer in front of legacy cores — new channels ship without rewriting the bank.",
+        layers: [
+          [{ t: "Channels", s: "Web · partners · mobile" }],
+          [{ t: "REST + SOAP", s: "Edge contracts" }],
+          [{ t: "Spring Integration", s: "Protocol & mapping" }],
+          [{ t: "Kafka / RabbitMQ", s: "Commands & facts" }],
+          [{ t: "Microservices", s: "OAuth 2.0 · audit" }],
+          [{ t: "Core databases", s: "System of record" }]
+        ]
+      },
+      {
+        id: "cloudnative",
+        kicker: "Platform",
+        title: "Cloud-native application",
+        challenge: "The product works on a single VM. The next step is repeatable environments, independent services, and eyes on production.",
+        approach: ["Angular / React", "Spring Boot", "Docker", "Kubernetes", "Terraform", "CI/CD", "Grafana", "Elasticsearch"],
+        outcome: "A path from laptop to cluster: infrastructure as code, pipelines, and observability as part of the system — not a later project.",
+        layers: [
+          [{ t: "Angular / React", s: "Product UI" }],
+          [{ t: "Spring Boot", s: "APIs & domain" }],
+          [{ t: "Docker", s: "Immutable images" }],
+          [{ t: "Kubernetes", s: "AWS / GCP" }],
+          [{ t: "Terraform + CI/CD", s: "GitHub Actions · Pipelines" }],
+          [{ t: "Grafana · ELK", s: "Metrics, logs, traces" }]
+        ]
+      },
+      {
+        id: "data",
+        kicker: "Analytics",
+        title: "Operational data platform",
+        challenge: "Applications produce events. Finance and product still wait on nightly exports. The business wants analytics without stopping the OLTP path.",
+        approach: ["Kafka", "Pub/Sub", "Stream processing", "BigQuery", "Dataproc"],
+        outcome: "An event backbone that feeds a warehouse — operational systems stay fast; analytics stay current.",
+        layers: [
+          [{ t: "Applications", s: "Services & batch jobs" }],
+          [{ t: "Kafka / Pub/Sub", s: "Durable event log" }],
+          [{ t: "Processing", s: "Dataproc · stream jobs" }],
+          [{ t: "BigQuery", s: "Warehouse" }],
+          [{ t: "Analytics", s: "Dashboards & models" }]
+        ]
+      }
+    ];
+
+    /* Tech tabs */
+    const tabsEl = document.getElementById("techTabs");
+    const panelsEl = document.getElementById("techPanels");
+    TECH.forEach((cat, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.id = "tab-" + cat.id;
+      btn.setAttribute("role", "tab");
+      btn.setAttribute("aria-selected", i === 0 ? "true" : "false");
+      btn.setAttribute("aria-controls", "panel-" + cat.id);
+      btn.textContent = cat.label;
+      btn.addEventListener("click", () => selectTech(cat.id));
+      tabsEl.appendChild(btn);
+
+      const panel = document.createElement("div");
+      panel.className = "tech-body" + (i === 0 ? " active" : "");
+      panel.id = "panel-" + cat.id;
+      panel.setAttribute("role", "tabpanel");
+      panel.innerHTML = `<div class="chips">${cat.items.map((t) => `<span class="chip">${t}</span>`).join("")}</div>`;
+      panelsEl.appendChild(panel);
+    });
+    function selectTech(id) {
+      TECH.forEach((cat) => {
+        document.getElementById("tab-" + cat.id).setAttribute("aria-selected", cat.id === id ? "true" : "false");
+        document.getElementById("panel-" + cat.id).classList.toggle("active", cat.id === id);
+      });
+    }
+
+    /* Solutions */
+    const solNav = document.getElementById("solNav");
+    const solBoard = document.getElementById("solBoard");
+    function renderArch(layers) {
+      return layers.map((row, i) => {
+        const nodes = row.map((n) => `<div class="arch-node"><b>${n.t}</b><span>${n.s}</span></div>`).join("");
+        const flow = i < layers.length - 1 ? `<div class="arch-flow" aria-hidden="true"></div>` : "";
+        return `<div class="arch-row">${nodes}</div>${flow}`;
+      }).join("");
+    }
+    function showSolution(id) {
+      const s = SOLUTIONS.find((x) => x.id === id);
+      [...solNav.querySelectorAll("button")].forEach((b) => b.setAttribute("aria-selected", b.dataset.id === id ? "true" : "false"));
+      solBoard.innerHTML = `
+        <div class="sol-meta">
+          <span class="ribbon">Representative solution · not a client case study</span>
+          <h3>${s.title}</h3>
+        </div>
+        <div class="arch">${renderArch(s.layers)}</div>
+        <div class="sol-copy">
+          <p><strong style="color:var(--text)">Challenge.</strong> ${s.challenge}</p>
+          <div class="approach">${s.approach.map((a) => `<span class="tag">${a}</span>`).join("")}</div>
+        </div>
+        <p class="outcome"><strong>Outcome.</strong> ${s.outcome}</p>`;
+    }
+    SOLUTIONS.forEach((s, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.dataset.id = s.id;
+      b.setAttribute("role", "tab");
+      b.setAttribute("aria-selected", i === 0 ? "true" : "false");
+      b.innerHTML = `<small>${s.kicker}</small><strong>${s.title}</strong>`;
+      b.addEventListener("click", () => showSolution(s.id));
+      solNav.appendChild(b);
+    });
+    showSolution(SOLUTIONS[0].id);
+
+    /* Nav */
+    const nav = document.getElementById("nav");
+    const toggle = document.getElementById("navToggle");
+    const menu = document.getElementById("menu");
+    toggle.addEventListener("click", () => {
+      const open = nav.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    menu.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => {
+      nav.classList.remove("open");
+      toggle.setAttribute("aria-expanded", "false");
+    }));
+
+    const sections = [...document.querySelectorAll("section[id]")];
+    const links = [...menu.querySelectorAll("a[href^='#']:not(.nav-cta)")];
+    const progress = document.getElementById("progress");
+    const spyAlias = { what: "home", engage: "solutions", why: "about" };
+    function onScroll() {
+      nav.classList.toggle("scrolled", window.scrollY > 8);
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      progress.style.width = max > 0 ? (window.scrollY / max) * 100 + "%" : "0";
+      const probe = window.scrollY + 130;
+      let current = "home";
+      sections.forEach((sec) => {
+        if (probe >= sec.offsetTop) current = sec.id;
+      });
+      const active = spyAlias[current] || current;
+      links.forEach((l) => l.classList.toggle("active", l.getAttribute("href") === "#" + active));
+    }
+    document.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+
+    /* Constellation */
+    (function field() {
+      const canvas = document.getElementById("field");
+      if (!canvas || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const ctx = canvas.getContext("2d");
+      let pts = [];
+      function resize() {
+        const r = canvas.parentElement.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = r.width * dpr;
+        canvas.height = r.height * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const n = Math.floor((r.width * r.height) / 18000);
+        pts = Array.from({ length: Math.max(28, n) }, () => ({
+          x: Math.random() * r.width,
+          y: Math.random() * r.height,
+          vx: (Math.random() - 0.5) * 0.18,
+          vy: (Math.random() - 0.5) * 0.18
+        }));
+      }
+      function tick() {
+        const r = canvas.parentElement.getBoundingClientRect();
+        ctx.clearRect(0, 0, r.width, r.height);
+        pts.forEach((p) => {
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0 || p.x > r.width) p.vx *= -1;
+          if (p.y < 0 || p.y > r.height) p.vy *= -1;
+        });
+        for (let i = 0; i < pts.length; i++) {
+          for (let j = i + 1; j < pts.length; j++) {
+            const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
+            const d = Math.hypot(dx, dy);
+            if (d < 130) {
+              ctx.strokeStyle = `rgba(207,214,0,${(1 - d / 130) * 0.35})`;
+              ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y); ctx.stroke();
+            }
+          }
+        }
+        pts.forEach((p) => {
+          ctx.fillStyle = "rgba(255,255,220,0.85)";
+          ctx.beginPath(); ctx.arc(p.x, p.y, 1.2, 0, Math.PI * 2); ctx.fill();
+        });
+        requestAnimationFrame(tick);
+      }
+      resize();
+      window.addEventListener("resize", resize);
+      tick();
+    })();
+
+    /* Form */
+    document.getElementById("year").textContent = new Date().getFullYear();
+    const form = document.getElementById("contactForm");
+    const formMsg = document.getElementById("formMsg");
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(form));
+      if (!data.name || !data.email || !data.message) {
+        formMsg.className = "form-msg err";
+        formMsg.style.display = "block";
+        formMsg.textContent = "Please add your name, email, and a short description of the work.";
+        return;
+      }
+      const body = [
+        `Name: ${data.name}`,
+        `Company: ${data.company || "—"}`,
+        `Email: ${data.email}`,
+        `Need: ${data.need}`,
+        `Timeline: ${data.timeline}`,
+        "",
+        data.message
+      ].join("\n");
+      const href = `mailto:${SITE_EMAIL}?subject=${encodeURIComponent("Project inquiry — " + data.name)}&body=${encodeURIComponent(body)}`;
+      formMsg.className = "form-msg";
+      formMsg.style.display = "block";
+      formMsg.textContent = "Opening your email client. If nothing appears, write to " + SITE_EMAIL + ".";
+      window.location.href = href;
+    });
+  </script>
+</body>
+</html>
