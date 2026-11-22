@@ -12,10 +12,6 @@ jobs:
   build-deploy:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: frontend
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -28,13 +24,26 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install Dependencies
+        working-directory: frontend
         run: npm ci
 
       - name: Build Angular
+        working-directory: frontend
         run: npm run build -- --configuration production
 
+      - name: Publish LGM at /lgm
+        run: |
+          set -euo pipefail
+          DEST=frontend/dist/frontend/browser/lgm
+          mkdir -p "$DEST"
+          # Static wireframe only — skip tools/, tests/, build tooling, and local dist/
+          cp -a LGM/wireframe/*.{js,html,css} "$DEST"/
+          cp -a LGM/wireframe/assets "$DEST"/
+          test -f "$DEST/index.html"
+          test -d "$DEST/assets"
+
       - name: Add CNAME
-        run: echo "mcart.space" > dist/frontend/browser/CNAME
+        run: echo "mcart.space" > frontend/dist/frontend/browser/CNAME
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4

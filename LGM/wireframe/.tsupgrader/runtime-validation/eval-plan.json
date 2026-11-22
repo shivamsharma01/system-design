@@ -1,0 +1,31 @@
+{
+  "projectType": "webapp",
+  "assertions": [
+    {
+      "name": "static-build",
+      "kind": "process",
+      "command": "npm",
+      "args": ["run", "build"],
+      "verificationMethod": "exit-code",
+      "expected": "0"
+    },
+    {
+      "name": "preview-responds",
+      "kind": "http-probe",
+      "startCommand": "node",
+      "startArgs": ["tools/serve.js", "--dist"],
+      "env": {"PORT": "47194"},
+      "url": "http://127.0.0.1:47194/",
+      "verificationMethod": "http-status",
+      "expected": "200"
+    },
+    {
+      "name": "tests-pass",
+      "kind": "process",
+      "command": "npm",
+      "args": ["test"],
+      "verificationMethod": "test-results",
+      "expected": "0"
+    }
+  ]
+}

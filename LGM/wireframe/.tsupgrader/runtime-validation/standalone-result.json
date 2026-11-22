@@ -1,0 +1,99 @@
+{
+  "planHash": "e570e0c981e283bad546257454ac9c5febd5a4f71e740e50438ebc8f686803d6",
+  "phase": "standalone",
+  "recordedAtUtc": "2026-11-22T20:14:50.6018764Z",
+  "retryCount": 0,
+  "resetBaseline": false,
+  "complete": true,
+  "result": {
+    "setupSucceeded": true,
+    "setupDurationMs": 0,
+    "setupFailureOutput": null,
+    "assertions": [
+      {
+        "name": "static-build",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "npm warn Unknown user config \u0022always-auth\u0022. This will stop working in the next major version of npm. See \u0060npm help npmrc\u0060 for supported config options.\nnpm warn Unknown user config \u0022always-auth\u0022 (@neverendingsupport:always-auth). This will stop working in the next major version of npm. See \u0060npm help npmrc\u0060 for supported config options.\n\n\u003E build\n\u003E node tools/build.js\n\nJavaScript syntax checks passed.\nBuilt static preview in wireframe/dist/.\n",
+        "durationMs": 835
+      },
+      {
+        "name": "preview-responds",
+        "kind": "http-probe",
+        "verificationMethod": "http-status",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": null,
+        "outputSample": "HTTP 200\n\u003C!doctype html\u003E\n\u003Chtml lang=\u0022en-IN\u0022\u003E\n\u003Chead\u003E\n  \u003Cmeta charset=\u0022utf-8\u0022\u003E\n  \u003Cmeta name=\u0022viewport\u0022 content=\u0022width=device-width, initial-scale=1\u0022\u003E\n  \u003Cmeta name=\u0022theme-color\u0022 content=\u0022#20252b\u0022\u003E\n  \u003Ctitle\u003ELGM Hub \u00B7 Wireframe studio\u003C/title\u003E\n  \u003Clink rel=\u0022icon\u0022 href=\u0022data:image/svg\u002Bxml,%3Csvg xmlns=\u0027http://www.w3.org/2000/svg\u0027 viewBox=\u00270 0 32 32\u0027%3E%3Crect width=\u002732\u0027 height=\u002732\u0027 rx=\u00276\u0027 fill=\u0027%2320252b\u0027/%3E%3Cpath d=\u0027M9 7v18h15v-4H13V7z\u0027 fill=\u0027white\u0027/%3E%3C/svg%3E\u0022\u003E\n  \u003Clink rel=\u0022stylesheet\u0022 href=\u0022base.css\u0022\u003E\n  \u003Clink rel=\u0022stylesheet\u0022 href=\u0022shell.css\u0022\u003E\n  \u003Clink rel=\u0022stylesheet\u0022 href=\u0022customer.css\u0022\u003E\n  \u003Clink rel=\u0022stylesheet\u0022 href=\u0022operations.css\u0022\u003E\n  \u003Clink rel=\u0022stylesheet\u0022 href=\u0022office.css\u0022\u003E\n  \u003Cscript type=\u0022module\u0022 src=\u0022app.js\u0022\u003E\u003C/script\u003E\n\u003C/head\u003E\n\u003Cbody\u003E\n  \u003Ca href=\u0022#main\u0022 class=\u0022skip-link\u0022\u003ESkip to content\u003C/a\u003E\n  \u003Cdiv id=\u0022app\u0022\u003E\u003C/div\u003E\n  \u003Cdialog class=\u0022modal\u0022 id=\u0022dialog\u0022 aria-labelledby=\u0022dialog-title\u0022\u003E\u003C/dialog\u003E\n  \u003Cdiv class=\u0022toast\u0022 role=\u0022status\u0022 aria-live=\u0022polite\u0022 id=\u0022toast\u0022\u003E\u003C/div\u003E\n  \u003Cnoscript\u003EEnable JavaScript to use this local wireframe.\u003C/noscript\u003E\n\u003C/body\u003E\n\u003C/html\u003E\n\n--- server output ---\nLGM Hub preview: http://127.0.0.1:47194/\n",
+        "durationMs": 297
+      },
+      {
+        "name": "tests-pass",
+        "kind": "process",
+        "verificationMethod": "test-results",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "npm warn Unknown user config \u0022always-auth\u0022. This will stop working in the next major version of npm. See \u0060npm help npmrc\u0060 for supported config options.\nnpm warn Unknown user config \u0022always-auth\u0022 (@neverendingsupport:always-auth). This will stop working in the next major version of npm. See \u0060npm help npmrc\u0060 for supported config options.\n\n\u003E test\n\u003E node --test tests/*.test.js\n\n\u2714 each catalogue entry points to a local, documented and nonempty visual (4.300522ms)\n\u2714 every review route maps to the brief and its requirement references (2.40406ms)\n\u2714 submitting an order does not reserve stock; only one manual acceptance posts OUT (2.36887ms)\n\u2714 failed stock checks leave a pending order and balances intact (0.261511ms)\n\u2714 a delivered order can have only one open return and one simulated credit (0.388434ms)\n\u2139 tests 5\n\u2139 suites 0\n\u2139 pass 5\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 81.836761\n",
+        "durationMs": 320,
+        "testResults": {
+          "testFramework": "unknown",
+          "runnerDetectedFrom": "none",
+          "testsTotal": 0,
+          "testsPassed": 0,
+          "testsFailed": 0,
+          "testsSkipped": 0,
+          "parseFailed": true
+        }
+      }
+    ],
+    "executions": [
+      {
+        "source": "static-build",
+        "resolvedExecutable": "/home/nagarro/.nvm/versions/node/v24.22.3/bin/npm",
+        "args": [
+          "run",
+          "build"
+        ],
+        "cwd": "/home/nagarro/Downloads/lo/tr-create-script/wireframe",
+        "env": {},
+        "prependPath": [],
+        "platform": "linux"
+      },
+      {
+        "source": "preview-responds",
+        "resolvedExecutable": "/home/nagarro/.nvm/versions/node/v24.22.3/bin/node",
+        "args": [
+          "tools/serve.js",
+          "--dist"
+        ],
+        "cwd": "/home/nagarro/Downloads/lo/tr-create-script/wireframe",
+        "env": {
+          "PORT": "47194"
+        },
+        "prependPath": [],
+        "platform": "linux"
+      },
+      {
+        "source": "tests-pass",
+        "resolvedExecutable": "/home/nagarro/.nvm/versions/node/v24.22.3/bin/npm",
+        "args": [
+          "test"
+        ],
+        "cwd": "/home/nagarro/Downloads/lo/tr-create-script/wireframe",
+        "env": {},
+        "prependPath": [],
+        "platform": "linux"
+      }
+    ]
+  }
+}
